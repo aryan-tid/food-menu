@@ -15,6 +15,7 @@ from django.db.models.functions import Coalesce
 from accounts.models import StaffProfile, Customer
 from menu.models import Restaurant, MenuItem, Category, Review
 from .models import RestaurantTable, Order, OrderItem, Payment, WaiterAlert, DiningSession
+from .context_processors import invalidate_restaurant_cache
 
 
 def staff_role_required(allowed_roles):
@@ -435,15 +436,20 @@ def manager_dashboard_view(request):
         1: reviews_qs.filter(rating=1).count(),
     }
 
-    # Generate QR codes for all tables and attach last session for manager re-lock support
+    # Attach table menu URLs for client-side instant vector QR code rendering (zero server CPU)
+    # and map latest session per table efficiently in a single query
     host = request.build_absolute_uri('/')[:-1]
+    last_sessions = {}
+    for s in DiningSession.objects.filter(table__isnull=False).select_related('customer__user').order_by('-started_at'):
+        if s.table_id not in last_sessions:
+            last_sessions[s.table_id] = s
+
     tables_with_qr = []
     for t in tables:
-        last_s = DiningSession.objects.filter(table=t).select_related('customer__user').order_by('-started_at').first()
         tables_with_qr.append({
             'table': t,
-            'qr_data_uri': t.generate_qr_base64(host),
-            'last_session': last_s,
+            'menu_url': f"{host}/menu/?table={t.table_number}",
+            'last_session': last_sessions.get(t.id),
         })
 
     context = {
@@ -722,6 +728,7 @@ def manager_create_table_view(request):
         return redirect(reverse('orders:manager_dashboard') + '#qr-pane')
 
     RestaurantTable.objects.create(table_number=table_number, capacity=capacity)
+    invalidate_restaurant_cache()
     messages.success(request, f"Added Table {table_number} with capacity {capacity}.")
     return redirect(reverse('orders:manager_dashboard') + '#qr-pane')
 
@@ -734,6 +741,7 @@ def manager_toggle_table_view(request, table_id):
     table = get_object_or_404(RestaurantTable, pk=table_id)
     table.is_active = not table.is_active
     table.save(update_fields=['is_active'])
+    invalidate_restaurant_cache()
     status_str = "Active" if table.is_active else "Inactive"
     messages.info(request, f"Table {table.table_number} is now {status_str}.")
     return redirect(reverse('orders:manager_dashboard') + '#qr-pane')
@@ -763,6 +771,7 @@ def manager_edit_table_view(request, table_id):
     except (ValueError, TypeError):
         pass
     table.save(update_fields=['table_number', 'capacity'])
+    invalidate_restaurant_cache()
     messages.success(request, f"Table updated to '{new_number}' with capacity {table.capacity}.")
     return redirect(reverse('orders:manager_dashboard') + '#qr-pane')
 
@@ -778,6 +787,7 @@ def manager_delete_table_view(request, table_id):
         return redirect(reverse('orders:manager_dashboard') + '#qr-pane')
     tnum = table.table_number
     table.delete()
+    invalidate_restaurant_cache()
     messages.success(request, f"Table '{tnum}' deleted.")
     return redirect(reverse('orders:manager_dashboard') + '#qr-pane')
 
@@ -1064,11 +1074,11 @@ def manager_session_detail_view(request, session_id):
     payments = session_obj.payments_list
     combined_payments = session_obj.get_combined_payments(status=Payment.STATUS_PAID)
     
-    subtotal = sum((o.subtotal for o in orders if o.status != Order.STATUS_CANCELLED), Decimal('0.00'))
-    tax_amount = sum((o.tax_amount for o in orders if o.status != Order.STATUS_CANCELLED), Decimal('0.00'))
-    total_amount = sum((o.total_amount for o in orders if o.status != Order.STATUS_CANCELLED), Decimal('0.00'))
-    total_paid = sum((p.amount for p in payments if p.status == Payment.STATUS_PAID), Decimal('0.00'))
-    balance_due = max(Decimal('0.00'), total_amount - total_paid)
+    subtotal = session_obj.subtotal_amount
+    tax_amount = session_obj.tax_sum
+    total_amount = session_obj.grand_total_amount
+    total_paid = session_obj.paid_total_amount
+    balance_due = session_obj.unpaid_total_amount
 
     can_relock = False
     if not session_obj.is_active and session_obj.table and not session_obj.table.is_locked:
@@ -1191,7 +1201,7 @@ def manager_print_qr_stickers_view(request):
     for t in tables:
         tables_with_qr.append({
             'table': t,
-            'qr_data_uri': t.generate_qr_base64(host),
+            'menu_url': f"{host}/menu/?table={t.table_number}",
         })
 
     return render(request, 'staff/print_qr_stickers.html', {

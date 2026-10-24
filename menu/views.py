@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
+from django.db.models import Avg, Count
 from .models import Restaurant, Category, MenuItem, Review
 from orders.models import RestaurantTable
 from accounts.models import Customer, StaffProfile
@@ -43,7 +44,10 @@ def home_view(request):
 
     restaurant = Restaurant.objects.first()
     categories = Category.objects.all().order_by('name')
-    featured_items = MenuItem.objects.filter(is_available=True).select_related('category')[:6]
+    featured_items = MenuItem.objects.filter(is_available=True).select_related('category').annotate(
+        avg_rating=Avg('reviews__rating'),
+        rev_count=Count('reviews')
+    )[:6]
     tables = RestaurantTable.objects.filter(is_active=True).order_by('table_number')
     
     current_table_id = request.session.get('table_id')
@@ -109,7 +113,10 @@ def menu_list_view(request):
     search_query = request.GET.get('q', '').strip()
     veg_only = request.GET.get('veg') == '1'
 
-    items_qs = MenuItem.objects.select_related('category').prefetch_related('reviews').filter(is_available=True)
+    items_qs = MenuItem.objects.select_related('category').annotate(
+        avg_rating=Avg('reviews__rating'),
+        rev_count=Count('reviews')
+    ).filter(is_available=True)
 
     if selected_category_id and selected_category_id.isdigit():
         items_qs = items_qs.filter(category_id=int(selected_category_id))

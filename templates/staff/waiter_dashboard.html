@@ -118,16 +118,18 @@
         </div>
     </div>
 
+    <!-- Audio Chime for Live Waiter Call Alerts -->
+    <audio id="waiterChimeAudio" preload="auto" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"></audio>
+
     <!-- Customer Assistance Calls Banner -->
-    {% if unresolved_alerts %}
-    <div class="mb-3 p-3 rounded-4 border" style="background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.3) !important;">
+    <div id="waiterAlertsContainer" class="mb-3 p-3 rounded-4 border {% if not unresolved_alerts %}d-none{% endif %}" style="background: rgba(245,158,11,0.08); border-color: rgba(245,158,11,0.3) !important;">
         <div class="d-flex align-items-center gap-2 mb-2">
             <span class="live-pulse-dot" style="background-color: #f59e0b;"></span>
-            <strong class="text-warning"><i class="bi bi-bell-fill me-1"></i>{{ unresolved_alerts|length }} Customer Assistance Call{{ unresolved_alerts|length|pluralize }}</strong>
+            <strong class="text-warning"><i class="bi bi-bell-fill me-1"></i><span id="waiterAlertCountText">{{ unresolved_alerts|length }}</span> Customer Assistance Call{{ unresolved_alerts|length|pluralize }}</strong>
         </div>
-        <div class="row g-2">
+        <div class="row g-2" id="waiterAlertsList">
             {% for alt in unresolved_alerts %}
-            <div class="col-12 col-sm-6 col-lg-4">
+            <div class="col-12 col-sm-6 col-lg-4" id="alert-card-{{ alt.id }}">
                 <div class="alert-call-card">
                     <div>
                         <strong class="d-block fs-6">Table {{ alt.table_number }}</strong>
@@ -141,7 +143,6 @@
             {% endfor %}
         </div>
     </div>
-    {% endif %}
 
     <!-- Quick Stats Bar -->
     {% with total=tables|length %}
@@ -474,10 +475,41 @@
         });
     }
 
+    // Live Alert Poller with Audio Notification
+    let previousAlertCount = {{ unresolved_alerts|length }};
+
+    function pollWaiterAlerts() {
+        if (document.hidden) return;
+
+        fetch('/api/waiter-alerts/', {
+            headers: {'X-Requested-With': 'XMLHttpRequest'}
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.count > previousAlertCount) {
+                const audio = document.getElementById('waiterChimeAudio');
+                if (audio) {
+                    audio.currentTime = 0;
+                    audio.play().catch(() => {});
+                }
+                if (window.showAppToast) showAppToast('🔔 New Customer Assistance Call!', 'warning');
+                setTimeout(() => window.location.reload(), 900);
+            }
+            previousAlertCount = data.count;
+        })
+        .catch(err => console.debug('Alert poll error:', err));
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         updateStats();
-        // Auto-refresh every 12 seconds
-        setTimeout(() => window.location.reload(), 12000);
+        // Poll customer assistance alerts every 5 seconds
+        setInterval(pollWaiterAlerts, 5000);
+        // Adaptive reload for floor updates (only when active tab)
+        setInterval(() => {
+            if (!document.hidden) {
+                window.location.reload();
+            }
+        }, 25000);
     });
 </script>
 {% endblock %}

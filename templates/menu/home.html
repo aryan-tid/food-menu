@@ -694,103 +694,14 @@
         <!-- Mobile Horizontal Food Cards (< 768px) with Clean Spacing -->
         <div class="d-md-none d-flex flex-column gap-4 pt-1 pb-3">
             {% for item in featured_items %}
-            <div class="dish-card-mobile">
-                <!-- Left: Food details -->
-                <div class="dish-mobile-info">
-                    <div class="d-flex align-items-center gap-1.5 mb-1">
-                        {% if item.is_veg %}
-                            <span class="tag-veg-pill"><i class="bi bi-record-circle-fill me-1"></i>VEG</span>
-                        {% else %}
-                            <span class="tag-nonveg-pill"><i class="bi bi-caret-up-square-fill me-1"></i>NON-VEG</span>
-                        {% endif %}
-
-                        {% if item.average_rating %}
-                            <span class="tag-rating-chip"><i class="bi bi-star-fill me-0.5"></i>{{ item.average_rating }}</span>
-                        {% endif %}
-                    </div>
-                    <h6 class="fw-bold mb-1 text-truncate" style="font-size: 0.95rem; color: var(--text-primary);">{{ item.name }}</h6>
-                    <p class="text-muted small mb-1" style="font-size: 0.76rem; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;">
-                        {{ item.description }}
-                    </p>
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="fw-black brand-font fs-6" style="color: var(--color-primary);">₹{{ item.price }}</span>
-                        <span class="badge bg-surface-raised border text-secondary" style="font-size: 0.65rem;">{{ item.category.name }}</span>
-                    </div>
-                </div>
-
-                <!-- Right: Food image with overlapping action button -->
-                <div class="dish-mobile-media">
-                    <img src="{{ item.get_image_url }}" alt="{{ item.name }}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300&fit=crop'">
-                    <div class="dish-mobile-action" id="home-stepper-m-{{ item.id }}">
-                        <button type="button" class="zomato-add-btn" onclick="handleHomeStepper({{ item.id }}, 'increase')">
-                            ADD <i class="bi bi-plus-lg"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
+                {% include "menu/includes/_dish_card_mobile.html" with item=item %}
             {% endfor %}
         </div>
 
         <!-- Desktop Grid Cards (>= 768px) -->
         <div class="d-none d-md-flex row g-3 g-md-4">
             {% for item in featured_items %}
-            <div class="col-md-6 col-lg-4">
-                <div class="chef-dish-card-desktop">
-                    <div>
-                        <!-- Dish Image Viewport with Floating Badges -->
-                        <div class="dish-img-viewport-d">
-                            <img src="{{ item.get_image_url }}" alt="{{ item.name }}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&fit=crop'">
-                            
-                            <!-- Veg / Non-Veg Indicator -->
-                            <div class="position-absolute top-0 start-0 m-2.5">
-                                {% if item.is_veg %}
-                                    <span class="tag-veg-pill shadow-sm"><i class="bi bi-record-circle-fill me-1"></i>PURE VEG</span>
-                                {% else %}
-                                    <span class="tag-nonveg-pill shadow-sm"><i class="bi bi-caret-up-square-fill me-1"></i>NON-VEG</span>
-                                {% endif %}
-                            </div>
-
-                            <!-- Star Rating Badge -->
-                            <div class="position-absolute top-0 end-0 m-2.5">
-                                {% if item.average_rating %}
-                                    <span class="tag-rating-chip shadow-sm"><i class="bi bi-star-fill me-1"></i>{{ item.average_rating }}</span>
-                                {% else %}
-                                    <span class="badge bg-dark bg-opacity-75 text-white shadow-sm px-2 py-1 rounded-pill" style="font-size: 0.68rem;">Chef Choice</span>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <!-- Card Body -->
-                        <div class="p-3 pb-2">
-                            <div class="d-flex align-items-center gap-1.5 mb-1">
-                                <span class="badge bg-surface-raised border text-secondary text-truncate" style="font-size: 0.68rem; max-width: 120px;">
-                                    {{ item.category.name }}
-                                </span>
-                                <span class="text-muted small" style="font-size: 0.72rem;">
-                                    &bull; {% if item.reviews.count %}{{ item.reviews.count }} review{{ item.reviews.count|pluralize }}{% else %}Be first to review{% endif %}
-                                </span>
-                            </div>
-                            <h5 class="fw-bold mb-1 text-truncate" style="font-size: 1.05rem; color: var(--text-primary);">{{ item.name }}</h5>
-                            <p class="text-muted small mb-0" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 0.8rem; line-height: 1.38;">
-                                {{ item.description }}
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- Bottom Price & Inline Stepper Action -->
-                    <div class="p-3 pt-2 border-top d-flex justify-content-between align-items-center">
-                        <div>
-                            <span class="text-muted small d-block" style="font-size: 0.70rem; line-height: 1;">Price</span>
-                            <span class="fw-black brand-font fs-5" style="color: var(--color-primary);">₹{{ item.price }}</span>
-                        </div>
-                        <div id="home-stepper-{{ item.id }}">
-                            <button type="button" class="btn btn-brand btn-sm px-3.5 py-1.5 rounded-pill d-inline-flex align-items-center gap-1.5 shadow-sm fw-bold" onclick="handleHomeStepper({{ item.id }}, 'increase')">
-                                <i class="bi bi-plus-lg"></i> Add
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                {% include "menu/includes/_dish_card_desktop.html" with item=item %}
             {% endfor %}
         </div>
     </section>

@@ -10,8 +10,9 @@ from django.views.decorators.http import require_POST
 from django.db import transaction
 from django.contrib.auth.decorators import login_required
 from menu.models import MenuItem
-from accounts.models import Customer
+from accounts.models import Customer, StaffProfile
 from .models import RestaurantTable, Order, OrderItem, Payment, DiningSession, WaiterAlert
+from .staff_views import staff_role_required
 
 
 def cart_add_view(request, item_id):
@@ -350,15 +351,15 @@ def session_live_view(request, session_id=None):
     orders_list = session_obj.orders.prefetch_related('items__menu_item', 'payment').order_by('-order_date')
     active_orders = orders_list.exclude(status=Order.STATUS_CANCELLED)
 
-    consolidated_subtotal = sum((o.subtotal for o in active_orders), Decimal('0.00'))
-    consolidated_tax = sum((o.tax_amount for o in active_orders), Decimal('0.00'))
-    consolidated_total = sum((o.total_amount for o in active_orders), Decimal('0.00'))
+    consolidated_subtotal = session_obj.subtotal_amount
+    consolidated_tax = session_obj.tax_sum
+    consolidated_total = session_obj.grand_total_amount
     session_obj.total_spent = consolidated_total
     session_obj.save(update_fields=['total_spent'])
 
-    unpaid_orders = active_orders.filter(payment_status=Order.PAYMENT_STATUS_PENDING)
-    unpaid_total = sum((o.total_amount for o in unpaid_orders), Decimal('0.00'))
-    paid_total = consolidated_total - unpaid_total
+    unpaid_orders = session_obj.unpaid_orders_qs
+    unpaid_total = session_obj.unpaid_total_amount
+    paid_total = session_obj.paid_total_amount
 
     all_items = []
     for ord_obj in orders_list:
@@ -458,9 +459,9 @@ def session_invoice_view(request, session_id):
         for itm in ord_obj.items.filter(is_cancelled=False):
             all_items.append(itm)
 
-    subtotal = sum((o.subtotal for o in orders), Decimal('0.00'))
-    tax = sum((o.tax_amount for o in orders), Decimal('0.00'))
-    total = sum((o.total_amount for o in orders), Decimal('0.00'))
+    subtotal = session_obj.subtotal_amount
+    tax = session_obj.tax_sum
+    total = session_obj.grand_total_amount
 
     # Collect distinct transaction IDs and all payments
     txn_ids = []
@@ -481,8 +482,8 @@ def session_invoice_view(request, session_id):
         'all_items': all_items,
         'subtotal': subtotal,
         'tax': tax,
-        'cgst': round(tax / Decimal('2.0'), 2),
-        'sgst': round(tax / Decimal('2.0'), 2),
+        'cgst': session_obj.cgst_sum,
+        'sgst': session_obj.sgst_sum,
         'total': total,
         'txn_id': txn_id_str,
         'txn_ids': txn_ids,
@@ -834,6 +835,8 @@ def api_call_waiter(request):
     })
 
 
+@login_required
+@staff_role_required([StaffProfile.ROLE_WAITER, StaffProfile.ROLE_MANAGER])
 def api_waiter_alerts(request):
     """Polls pending waiter alerts for Waiter dashboard."""
     alerts = WaiterAlert.objects.filter(is_resolved=False).order_by('-created_at')[:10]
@@ -847,13 +850,14 @@ def api_waiter_alerts(request):
     return JsonResponse({'alerts': alerts_data, 'count': len(alerts_data)})
 
 
+@login_required
+@staff_role_required([StaffProfile.ROLE_WAITER, StaffProfile.ROLE_MANAGER])
 @require_POST
 def api_resolve_waiter_alert(request, alert_id):
     """Marks a waiter alert as resolved."""
     alert = get_object_or_404(WaiterAlert, pk=alert_id)
     alert.is_resolved = True
-    if request.user.is_authenticated:
-        alert.resolved_by = request.user
+    alert.resolved_by = request.user
     alert.save(update_fields=['is_resolved', 'resolved_by'])
     return JsonResponse({'success': True})
 

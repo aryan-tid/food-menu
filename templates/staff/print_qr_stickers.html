@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -184,7 +185,7 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.06);
             margin-bottom: 8px;
         }
-        .qr-frame img {
+        .qr-frame canvas, .qr-frame img {
             display: block;
             width: 130px;
             height: 130px;
@@ -218,7 +219,7 @@
         }
 
         /* 3-column & 4-column size scaling */
-        .stickers-grid.cols-3 .qr-frame img {
+        .stickers-grid.cols-3 .qr-frame canvas, .stickers-grid.cols-3 .qr-frame img {
             width: 105px;
             height: 105px;
         }
@@ -230,7 +231,7 @@
             font-size: 13px;
         }
 
-        .stickers-grid.cols-4 .qr-frame img {
+        .stickers-grid.cols-4 .qr-frame canvas, .stickers-grid.cols-4 .qr-frame img {
             width: 80px;
             height: 80px;
         }
@@ -317,7 +318,7 @@
                 </div>
 
                 <div class="qr-frame">
-                    <img src="{{ item.qr_data_uri }}" alt="QR Table {{ item.table.table_number }}">
+                    <div class="client-qr-render" data-qr-url="{{ item.menu_url }}" data-size="130"></div>
                 </div>
 
                 <div>
@@ -334,6 +335,7 @@
         </div>
     </main>
 
+    <script src="{% static 'js/vendor/qrcode.min.js' %}"></script>
     <script>
         function setGridDensity(cols, btn) {
             const grid = document.getElementById('stickersGrid');
@@ -341,6 +343,24 @@
             document.querySelectorAll('.density-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
         }
+
+        // Initialize high-DPI client-side vector QR codes
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.client-qr-render').forEach(el => {
+                const url = el.dataset.qrUrl;
+                const size = parseInt(el.dataset.size || '130');
+                if (url && el.children.length === 0) {
+                    new QRCode(el, {
+                        text: url,
+                        width: size,
+                        height: size,
+                        colorDark: "#0f172a",
+                        colorLight: "#ffffff",
+                        correctLevel: QRCode.CorrectLevel.M
+                    });
+                }
+            });
+        });
     </script>
 </body>
 </html>

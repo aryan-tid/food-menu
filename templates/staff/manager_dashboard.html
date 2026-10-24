@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Manager Admin Console - {{ restaurant.name|default:"Spice Garden" }}{% endblock %}
 
@@ -780,13 +781,24 @@
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end shadow-sm border rounded-3 p-1" style="min-width: 190px; z-index: 1050;">
                                     <li>
-                                        <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-1.5 small rounded-2" data-bs-toggle="modal" data-bs-target="#editStaffModal-{{ staff.id }}">
+                                        <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-1.5 small rounded-2"
+                                            data-bs-toggle="modal" data-bs-target="#editStaffModal"
+                                            data-action="{% url 'orders:manager_edit_staff' staff.id %}"
+                                            data-username="{{ staff.user.username }}"
+                                            data-first-name="{{ staff.user.first_name }}"
+                                            data-last-name="{{ staff.user.last_name }}"
+                                            data-phone="{{ staff.phone|default:'' }}"
+                                            data-role="{{ staff.role }}">
                                             <i class="bi bi-pencil text-primary"></i>
                                             <span>Edit Staff Info</span>
                                         </button>
                                     </li>
                                     <li>
-                                        <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-1.5 small rounded-2" data-bs-toggle="modal" data-bs-target="#resetPasswordModal-{{ staff.id }}">
+                                        <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-1.5 small rounded-2"
+                                            data-bs-toggle="modal" data-bs-target="#resetPasswordModal"
+                                            data-action="{% url 'orders:manager_reset_staff_password' staff.id %}"
+                                            data-username="{{ staff.user.username }}"
+                                            data-fullname="{{ staff.user.get_full_name|default:staff.user.username }}">
                                             <i class="bi bi-key text-warning"></i>
                                             <span>Reset Password</span>
                                         </button>
@@ -880,7 +892,11 @@
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end shadow-sm border rounded-3 p-1" style="min-width: 190px; z-index: 1050;">
                                         <li>
-                                            <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-1.5 small rounded-2" data-bs-toggle="modal" data-bs-target="#editTableModal-{{ item.table.id }}">
+                                            <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-1.5 small rounded-2"
+                                                data-bs-toggle="modal" data-bs-target="#editTableModal"
+                                                data-action="{% url 'orders:manager_edit_table' item.table.id %}"
+                                                data-table-number="{{ item.table.table_number }}"
+                                                data-capacity="{{ item.table.capacity }}">
                                                 <i class="bi bi-pencil text-primary"></i>
                                                 <span>Edit Table</span>
                                             </button>
@@ -923,10 +939,10 @@
                                 {% endif %}
                             </div>
 
-                            <!-- Centered QR Code with Frame -->
+                            <!-- Centered Client-Side QR Code with Frame (Zero Server Compute) -->
                             <div class="text-center py-2 mb-3">
                                 <div class="p-2.5 bg-white rounded-3 d-inline-block shadow-sm border" style="max-width: 170px;">
-                                    <img src="{{ item.qr_data_uri }}" alt="QR Table {{ item.table.table_number }}" class="img-fluid" width="140" height="140">
+                                    <div class="client-qr-render d-flex align-items-center justify-content-center" data-qr-url="{{ item.menu_url }}" data-size="140" style="width: 140px; height: 140px;"></div>
                                 </div>
                             </div>
                         </div>
@@ -940,7 +956,9 @@
                                 </a>
                                 {% if not item.table.is_locked %}
                                 <button type="button" class="btn btn-warning btn-sm rounded-pill flex-grow-1 py-1 px-2 text-dark fw-bold"
-                                    data-bs-toggle="modal" data-bs-target="#managerLockOfflineModal-{{ item.table.id }}" style="font-size: 0.76rem;">
+                                    data-bs-toggle="modal" data-bs-target="#managerLockOfflineModal"
+                                    data-action="{% url 'orders:waiter_lock_offline_table' item.table.id %}"
+                                    data-table-number="{{ item.table.table_number }}" style="font-size: 0.76rem;">
                                     <i class="bi bi-person-fill-lock me-1"></i> Lock Offline
                                 </button>
                                 {% endif %}
@@ -1023,7 +1041,10 @@
                                 </div>
                                 <div class="d-flex gap-1 flex-shrink-0">
                                     <button type="button" class="btn btn-outline-primary btn-sm p-1 px-2 rounded-circle"
-                                        data-bs-toggle="modal" data-bs-target="#editCategoryModal-{{ cat.id }}"
+                                        data-bs-toggle="modal" data-bs-target="#editCategoryModal"
+                                        data-action="{% url 'orders:manager_edit_category' cat.id %}"
+                                        data-name="{{ cat.name }}"
+                                        data-description="{{ cat.description|default:'' }}"
                                         title="Edit Category">
                                         <i class="bi bi-pencil" style="font-size: 0.75rem;"></i>
                                     </button>
@@ -1087,7 +1108,16 @@
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end shadow-sm border rounded-3 p-1" style="min-width: 185px; z-index: 1050;">
                                         <li>
-                                            <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-1.5 small rounded-2" data-bs-toggle="modal" data-bs-target="#editItemModal-{{ item.id }}">
+                                            <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-1.5 small rounded-2"
+                                                data-bs-toggle="modal" data-bs-target="#editItemModal"
+                                                data-action="{% url 'orders:manager_edit_item' item.id %}"
+                                                data-name="{{ item.name }}"
+                                                data-category-id="{{ item.category_id }}"
+                                                data-price="{{ item.price }}"
+                                                data-is-veg="{{ item.is_veg|yesno:'1,0' }}"
+                                                data-description="{{ item.description|default:'' }}"
+                                                data-image-url="{{ item.image_url|default:'' }}"
+                                                data-active-image="{{ item.get_image_url }}">
                                                 <i class="bi bi-pencil text-primary"></i>
                                                 <span>Edit Details &amp; Price</span>
                                             </button>
@@ -1232,7 +1262,14 @@
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end shadow-sm border rounded-3 p-1" style="min-width: 180px; z-index: 1050;">
                                     <li>
-                                        <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-1.5 small rounded-2" data-bs-toggle="modal" data-bs-target="#editCustomerModal-{{ c.id }}">
+                                        <button type="button" class="dropdown-item d-flex align-items-center gap-2 py-1.5 small rounded-2"
+                                            data-bs-toggle="modal" data-bs-target="#editCustomerModal"
+                                            data-action="{% url 'orders:manager_edit_customer' c.id %}"
+                                            data-name="{{ c.name }}"
+                                            data-first-name="{{ c.user.first_name }}"
+                                            data-last-name="{{ c.user.last_name }}"
+                                            data-email="{{ c.email|default:'' }}"
+                                            data-phone="{{ c.phone|default:'' }}">
                                             <i class="bi bi-pencil text-primary"></i>
                                             <span>Edit Profile</span>
                                         </button>
@@ -1436,37 +1473,36 @@
     </div>
 </div>
 
-<!-- Modals: Edit Staff -->
-{% for staff in staff_members %}
-<div class="modal fade" id="editStaffModal-{{ staff.id }}" tabindex="-1">
+<!-- Modal: Edit Staff (Single Reusable Parameterized Modal) -->
+<div class="modal fade" id="editStaffModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content card-surface border-0 shadow-lg">
-            <form method="POST" action="{% url 'orders:manager_edit_staff' staff.id %}">
+            <form method="POST" id="editStaffForm" action="">
                 {% csrf_token %}
                 <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title brand-font fw-bold"><i class="bi bi-pencil-square me-1 text-primary"></i> Edit Staff: {{ staff.user.username }}</h5>
+                    <h5 class="modal-title brand-font fw-bold"><i class="bi bi-pencil-square me-1 text-primary"></i> Edit Staff: <span id="editStaffUsername"></span></h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="row g-2 mb-3">
                         <div class="col-6">
                             <label class="form-label small fw-semibold text-muted">First Name</label>
-                            <input type="text" name="first_name" class="form-control" value="{{ staff.user.first_name }}" required>
+                            <input type="text" name="first_name" id="editStaffFirstName" class="form-control" required>
                         </div>
                         <div class="col-6">
                             <label class="form-label small fw-semibold text-muted">Last Name</label>
-                            <input type="text" name="last_name" class="form-control" value="{{ staff.user.last_name }}">
+                            <input type="text" name="last_name" id="editStaffLastName" class="form-control">
                         </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-semibold text-muted">Phone</label>
-                        <input type="text" name="phone" class="form-control" value="{{ staff.phone|default:'' }}" placeholder="+91 9800000000">
+                        <input type="text" name="phone" id="editStaffPhone" class="form-control" placeholder="+91 9800000000">
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-semibold text-muted">Role</label>
-                        <select name="role" class="form-select">
+                        <select name="role" id="editStaffRole" class="form-select">
                             {% for code, label in role_choices %}
-                                <option value="{{ code }}" {% if staff.role == code %}selected{% endif %}>{{ label }}</option>
+                                <option value="{{ code }}">{{ label }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -1480,18 +1516,18 @@
     </div>
 </div>
 
-<!-- Modal: Reset Staff Password -->
-<div class="modal fade" id="resetPasswordModal-{{ staff.id }}" tabindex="-1">
+<!-- Modal: Reset Staff Password (Single Reusable Parameterized Modal) -->
+<div class="modal fade" id="resetPasswordModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content card-surface border-0 shadow-lg">
-            <form method="POST" action="{% url 'orders:manager_reset_staff_password' staff.id %}">
+            <form method="POST" id="resetPasswordForm" action="">
                 {% csrf_token %}
                 <div class="modal-header border-0 pb-0">
                     <h5 class="modal-title brand-font fw-bold"><i class="bi bi-key-fill me-1 text-warning"></i> Reset Staff Password</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <p class="text-muted small mb-3">Set a new login password for <strong>{{ staff.user.get_full_name|default:staff.user.username }}</strong> (<code>@{{ staff.user.username }}</code>).</p>
+                    <p class="text-muted small mb-3">Set a new login password for <strong id="resetStaffFullName"></strong> (<code>@<span id="resetStaffUsername"></span></code>).</p>
                     <div class="mb-3">
                         <label class="form-label small fw-semibold text-muted">New Password</label>
                         <input type="password" name="new_password" class="form-control" placeholder="Enter new password (min 4 chars)" required minlength="4">
@@ -1505,27 +1541,25 @@
         </div>
     </div>
 </div>
-{% endfor %}
 
-<!-- Modals: Edit Table -->
-{% for item in tables_with_qr %}
-<div class="modal fade" id="editTableModal-{{ item.table.id }}" tabindex="-1">
+<!-- Modal: Edit Table (Single Reusable Parameterized Modal) -->
+<div class="modal fade" id="editTableModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content card-surface border-0 shadow-lg">
-            <form method="POST" action="{% url 'orders:manager_edit_table' item.table.id %}">
+            <form method="POST" id="editTableForm" action="">
                 {% csrf_token %}
                 <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title brand-font fw-bold"><i class="bi bi-pencil-square me-1 text-primary"></i> Edit Table {{ item.table.table_number }}</h5>
+                    <h5 class="modal-title brand-font fw-bold"><i class="bi bi-pencil-square me-1 text-primary"></i> Edit Table <span id="editTableNumDisplay"></span></h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label small fw-semibold text-muted">Table Identifier</label>
-                        <input type="text" name="table_number" class="form-control" value="{{ item.table.table_number }}" required>
+                        <input type="text" name="table_number" id="editTableNumber" class="form-control" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-semibold text-muted">Seating Capacity</label>
-                        <input type="number" name="capacity" class="form-control" value="{{ item.table.capacity }}" min="1" max="20" required>
+                        <input type="number" name="capacity" id="editTableCapacity" class="form-control" min="1" max="20" required>
                     </div>
                 </div>
                 <div class="modal-footer border-0 pt-0">
@@ -1536,14 +1570,12 @@
         </div>
     </div>
 </div>
-{% endfor %}
 
-<!-- Modals: Edit Category -->
-{% for cat in categories %}
-<div class="modal fade" id="editCategoryModal-{{ cat.id }}" tabindex="-1">
+<!-- Modal: Edit Category (Single Reusable Parameterized Modal) -->
+<div class="modal fade" id="editCategoryModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content card-surface border-0 shadow-lg">
-            <form method="POST" action="{% url 'orders:manager_edit_category' cat.id %}">
+            <form method="POST" id="editCategoryForm" action="">
                 {% csrf_token %}
                 <div class="modal-header border-0 pb-0">
                     <h5 class="modal-title brand-font fw-bold"><i class="bi bi-tag-fill me-1 text-warning"></i> Edit Category</h5>
@@ -1552,11 +1584,11 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label small fw-semibold text-muted">Category Name</label>
-                        <input type="text" name="name" class="form-control" value="{{ cat.name }}" required>
+                        <input type="text" name="name" id="editCategoryName" class="form-control" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-semibold text-muted">Description (Optional)</label>
-                        <textarea name="description" class="form-control" rows="2">{{ cat.description|default:'' }}</textarea>
+                        <textarea name="description" id="editCategoryDescription" class="form-control" rows="2"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer border-0 pt-0">
@@ -1567,37 +1599,35 @@
         </div>
     </div>
 </div>
-{% endfor %}
 
-<!-- Modals: Edit Customer -->
-{% for c in customers %}
-<div class="modal fade" id="editCustomerModal-{{ c.id }}" tabindex="-1">
+<!-- Modal: Edit Customer (Single Reusable Parameterized Modal) -->
+<div class="modal fade" id="editCustomerModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content card-surface border-0 shadow-lg">
-            <form method="POST" action="{% url 'orders:manager_edit_customer' c.id %}">
+            <form method="POST" id="editCustomerForm" action="">
                 {% csrf_token %}
                 <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title brand-font fw-bold"><i class="bi bi-pencil-square me-1 text-primary"></i> Edit Customer: {{ c.name }}</h5>
+                    <h5 class="modal-title brand-font fw-bold"><i class="bi bi-pencil-square me-1 text-primary"></i> Edit Customer: <span id="editCustomerNameDisplay"></span></h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="row g-2 mb-3">
                         <div class="col-6">
                             <label class="form-label small fw-semibold text-muted">First Name</label>
-                            <input type="text" name="first_name" class="form-control" value="{{ c.user.first_name }}" placeholder="First name">
+                            <input type="text" name="first_name" id="editCustomerFirstName" class="form-control" placeholder="First name">
                         </div>
                         <div class="col-6">
                             <label class="form-label small fw-semibold text-muted">Last Name</label>
-                            <input type="text" name="last_name" class="form-control" value="{{ c.user.last_name }}" placeholder="Last name">
+                            <input type="text" name="last_name" id="editCustomerLastName" class="form-control" placeholder="Last name">
                         </div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-semibold text-muted">Email Address</label>
-                        <input type="email" name="email" class="form-control" value="{{ c.email|default:'' }}" placeholder="name@example.com">
+                        <input type="email" name="email" id="editCustomerEmail" class="form-control" placeholder="name@example.com">
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-semibold text-muted">Phone Number</label>
-                        <input type="tel" name="phone" class="form-control" value="{{ c.phone|default:'' }}" placeholder="+91 9800000000">
+                        <input type="tel" name="phone" id="editCustomerPhone" class="form-control" placeholder="+91 9800000000">
                     </div>
                 </div>
                 <div class="modal-footer border-0 pt-0">
@@ -1608,7 +1638,6 @@
         </div>
     </div>
 </div>
-{% endfor %}
 
 <!-- Modal: Add New Customer/User -->
 <div class="modal fade" id="createCustomerModal" tabindex="-1">
@@ -1843,69 +1872,66 @@
     </div>
 </div>
 
-<!-- Modals: Edit Menu Item -->
-{% for item in menu_items %}
-<div class="modal fade" id="editItemModal-{{ item.id }}" tabindex="-1">
+<!-- Modal: Edit Menu Item (Single Reusable Parameterized Modal) -->
+<div class="modal fade" id="editItemModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content card-surface border-0 shadow-lg">
-            <form method="POST" action="{% url 'orders:manager_edit_item' item.id %}" enctype="multipart/form-data">
+            <form method="POST" id="editItemForm" action="" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title brand-font fw-bold"><i class="bi bi-pencil-square me-1 text-primary"></i> Edit Dish: {{ item.name }}</h5>
+                    <h5 class="modal-title brand-font fw-bold"><i class="bi bi-pencil-square me-1 text-primary"></i> Edit Dish: <span id="editItemNameDisplay"></span></h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="row g-3">
                         <div class="col-12 col-md-6">
                             <label class="form-label small fw-semibold text-muted">Category</label>
-                            <select name="category_id" class="form-select" required>
+                            <select name="category_id" id="editItemCategory" class="form-select" required>
                                 {% for cat in categories %}
-                                    <option value="{{ cat.id }}" {% if cat.id == item.category_id %}selected{% endif %}>{{ cat.name }}</option>
+                                    <option value="{{ cat.id }}">{{ cat.name }}</option>
                                 {% endfor %}
                             </select>
                         </div>
                         <div class="col-12 col-md-6">
                             <label class="form-label small fw-semibold text-muted">Dish Name</label>
-                            <input type="text" name="name" value="{{ item.name }}" class="form-control" required>
+                            <input type="text" name="name" id="editItemName" class="form-control" required>
                         </div>
                         <div class="col-12 col-md-6">
                             <label class="form-label small fw-semibold text-muted">Price (₹)</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-surface-raised">₹</span>
-                                <input type="number" step="0.01" min="1" name="price" value="{{ item.price }}" class="form-control" required>
+                                <input type="number" step="0.01" min="1" name="price" id="editItemPrice" class="form-control" required>
                             </div>
                         </div>
                         <div class="col-12 col-md-6">
                             <label class="form-label small fw-semibold text-muted">Dietary Classification</label>
                             <div class="d-flex gap-3 pt-2">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="is_veg" id="editVeg-{{ item.id }}" value="1" {% if item.is_veg %}checked{% endif %}>
-                                    <label class="form-check-label small fw-semibold text-success" for="editVeg-{{ item.id }}">
-                                        <span class="veg-tag me-1">VEG</span> Vegetarian
+                                    <input class="form-check-input" type="radio" name="is_veg" id="editVegRadio" value="1">
+                                    <label class="form-check-label small fw-semibold text-success" for="editVegRadio">
+                                        <span class="zomato-veg-badge me-1"></span> Vegetarian
                                     </label>
                                 </div>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="is_veg" id="editNonVeg-{{ item.id }}" value="0" {% if not item.is_veg %}checked{% endif %}>
-                                    <label class="form-check-label small fw-semibold text-danger" for="editNonVeg-{{ item.id }}">
-                                        <span class="nonveg-tag me-1">NON-VEG</span> Non-Vegetarian
+                                    <input class="form-check-input" type="radio" name="is_veg" id="editNonVegRadio" value="0">
+                                    <label class="form-check-label small fw-semibold text-danger" for="editNonVegRadio">
+                                        <span class="zomato-nonveg-badge me-1"></span> Non-Vegetarian
                                     </label>
                                 </div>
                             </div>
                         </div>
                         <div class="col-12">
-                            <label class="form-label small fw-semibold text-muted">Description & Ingredients</label>
-                            <textarea name="description" class="form-control" rows="2">{{ item.description }}</textarea>
+                            <label class="form-label small fw-semibold text-muted">Description &amp; Ingredients</label>
+                            <textarea name="description" id="editItemDescription" class="form-control" rows="2"></textarea>
                         </div>
                         
                         <!-- Image Preview & Options -->
                         <div class="col-12">
                             <div class="p-2.5 rounded-3 border bg-surface-raised d-flex align-items-center gap-3">
-                                <img src="{{ item.get_image_url }}" alt="{{ item.name }}" class="rounded-3 object-fit-cover shadow-sm flex-shrink-0" width="56" height="56">
+                                <img src="" id="editItemImgPreview" alt="" class="rounded-3 object-fit-cover shadow-sm flex-shrink-0" width="56" height="56">
                                 <div class="small">
-                                    <strong class="d-block text-truncate">Current Active Image</strong>
-                                    <span class="text-muted" style="font-size: 0.75rem;">
-                                        {% if item.image %}Uploaded File ({{ item.image.name }}){% elif item.image_url %}Direct Image URL{% else %}Automatic Fallback Photo{% endif %}
-                                    </span>
+                                    <strong class="d-block text-truncate">Active Image Preview</strong>
+                                    <span class="text-muted" style="font-size: 0.75rem;">Modify image URL or upload replacement below</span>
                                 </div>
                             </div>
                         </div>
@@ -1913,7 +1939,7 @@
                             <label class="form-label small fw-semibold text-muted">Direct Image URL (Optional)</label>
                             <div class="input-group">
                                 <span class="input-group-text bg-surface-raised"><i class="bi bi-link-45deg"></i></span>
-                                <input type="url" name="image_url" value="{{ item.image_url|default:'' }}" class="form-control" placeholder="https://images.unsplash.com/...">
+                                <input type="url" name="image_url" id="editItemImageUrl" class="form-control" placeholder="https://images.unsplash.com/...">
                             </div>
                             <div class="form-text" style="font-size: 0.72rem;">Set or update web link to dish photo</div>
                         </div>
@@ -1932,30 +1958,27 @@
         </div>
     </div>
 </div>
-{% endfor %}
 
-<!-- Modals: Lock Tables for Offline Guests -->
-{% for item in tables_with_qr %}
-{% if not item.table.is_locked %}
-<div class="modal fade" id="managerLockOfflineModal-{{ item.table.id }}" tabindex="-1" aria-hidden="true">
+<!-- Modal: Lock Tables for Offline Guests (Single Reusable Parameterized Modal) -->
+<div class="modal fade" id="managerLockOfflineModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content card-surface border-0 shadow-lg">
-            <form method="POST" action="{% url 'orders:waiter_lock_offline_table' item.table.id %}">
+            <form method="POST" id="managerLockOfflineForm" action="">
                 {% csrf_token %}
                 <div class="modal-header border-bottom">
                     <h5 class="modal-title brand-font fw-bold">
-                        <i class="bi bi-person-fill-lock text-warning me-1"></i> Lock Table {{ item.table.table_number }} (Offline Diner)
+                        <i class="bi bi-person-fill-lock text-warning me-1"></i> Lock Table <span id="lockOfflineTableNumDisplay"></span> (Offline Diner)
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body text-start">
                     <div class="alert alert-info small mb-3">
                         <i class="bi bi-info-circle me-1"></i>
-                        Reserve Table <strong>{{ item.table.table_number }}</strong> for walk-in diners who prefer dining offline without scanning QR or using phones. This prevents online guests from ordering on or locking this table.
+                        Reserve Table <strong id="lockOfflineTableNumHighlight"></strong> for walk-in diners who prefer dining offline without scanning QR or using phones. This prevents online guests from ordering on or locking this table.
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-semibold text-muted">Guest Identifier / Name (Optional)</label>
-                        <input type="text" name="guest_name" class="form-control" placeholder="e.g. Walk-In Guest, Mr. Sharma, Table {{ item.table.table_number }}">
+                        <input type="text" name="guest_name" class="form-control" placeholder="e.g. Walk-In Guest, Mr. Sharma">
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-semibold text-muted">Phone Number (Optional)</label>
@@ -1976,13 +1999,127 @@
         </div>
     </div>
 </div>
-{% endif %}
-{% endfor %}
 </div> <!-- /.manager-console-container -->
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'js/vendor/qrcode.min.js' %}"></script>
 <script>
+    // High-DPI Vector QR Code Initializer (Zero Server CPU)
+    function initManagerQRCodes() {
+        document.querySelectorAll('.client-qr-render').forEach(el => {
+            const url = el.dataset.qrUrl;
+            const size = parseInt(el.dataset.size || '140');
+            if (url && el.children.length === 0) {
+                new QRCode(el, {
+                    text: url,
+                    width: size,
+                    height: size,
+                    colorDark: "#0f172a",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+            }
+        });
+    }
+
+    // Dynamic Parameterized Modal Hydration (Pruned 300+ modals to 7 reusable instances)
+    document.addEventListener('DOMContentLoaded', function() {
+        initManagerQRCodes();
+
+        const qrTabBtn = document.getElementById('qr-tab');
+        if (qrTabBtn) {
+            qrTabBtn.addEventListener('shown.bs.tab', initManagerQRCodes);
+        }
+
+        const editStaffModal = document.getElementById('editStaffModal');
+        if (editStaffModal) {
+            editStaffModal.addEventListener('show.bs.modal', function(e) {
+                const d = e.relatedTarget.dataset;
+                document.getElementById('editStaffForm').action = d.action;
+                document.getElementById('editStaffUsername').textContent = d.username;
+                document.getElementById('editStaffFirstName').value = d.firstName;
+                document.getElementById('editStaffLastName').value = d.lastName;
+                document.getElementById('editStaffPhone').value = d.phone;
+                document.getElementById('editStaffRole').value = d.role;
+            });
+        }
+
+        const resetPasswordModal = document.getElementById('resetPasswordModal');
+        if (resetPasswordModal) {
+            resetPasswordModal.addEventListener('show.bs.modal', function(e) {
+                const d = e.relatedTarget.dataset;
+                document.getElementById('resetPasswordForm').action = d.action;
+                document.getElementById('resetStaffFullName').textContent = d.fullname;
+                document.getElementById('resetStaffUsername').textContent = d.username;
+            });
+        }
+
+        const editTableModal = document.getElementById('editTableModal');
+        if (editTableModal) {
+            editTableModal.addEventListener('show.bs.modal', function(e) {
+                const d = e.relatedTarget.dataset;
+                document.getElementById('editTableForm').action = d.action;
+                document.getElementById('editTableNumDisplay').textContent = d.tableNumber;
+                document.getElementById('editTableNumber').value = d.tableNumber;
+                document.getElementById('editTableCapacity').value = d.capacity;
+            });
+        }
+
+        const editCategoryModal = document.getElementById('editCategoryModal');
+        if (editCategoryModal) {
+            editCategoryModal.addEventListener('show.bs.modal', function(e) {
+                const d = e.relatedTarget.dataset;
+                document.getElementById('editCategoryForm').action = d.action;
+                document.getElementById('editCategoryName').value = d.name;
+                document.getElementById('editCategoryDescription').value = d.description;
+            });
+        }
+
+        const editCustomerModal = document.getElementById('editCustomerModal');
+        if (editCustomerModal) {
+            editCustomerModal.addEventListener('show.bs.modal', function(e) {
+                const d = e.relatedTarget.dataset;
+                document.getElementById('editCustomerForm').action = d.action;
+                document.getElementById('editCustomerNameDisplay').textContent = d.name;
+                document.getElementById('editCustomerFirstName').value = d.firstName;
+                document.getElementById('editCustomerLastName').value = d.lastName;
+                document.getElementById('editCustomerEmail').value = d.email;
+                document.getElementById('editCustomerPhone').value = d.phone;
+            });
+        }
+
+        const editItemModal = document.getElementById('editItemModal');
+        if (editItemModal) {
+            editItemModal.addEventListener('show.bs.modal', function(e) {
+                const d = e.relatedTarget.dataset;
+                document.getElementById('editItemForm').action = d.action;
+                document.getElementById('editItemNameDisplay').textContent = d.name;
+                document.getElementById('editItemName').value = d.name;
+                document.getElementById('editItemCategory').value = d.categoryId;
+                document.getElementById('editItemPrice').value = d.price;
+                document.getElementById('editItemDescription').value = d.description;
+                document.getElementById('editItemImageUrl').value = d.imageUrl;
+                document.getElementById('editItemImgPreview').src = d.activeImage;
+                if (d.isVeg === '1') {
+                    document.getElementById('editVegRadio').checked = true;
+                } else {
+                    document.getElementById('editNonVegRadio').checked = true;
+                }
+            });
+        }
+
+        const managerLockOfflineModal = document.getElementById('managerLockOfflineModal');
+        if (managerLockOfflineModal) {
+            managerLockOfflineModal.addEventListener('show.bs.modal', function(e) {
+                const d = e.relatedTarget.dataset;
+                document.getElementById('managerLockOfflineForm').action = d.action;
+                document.getElementById('lockOfflineTableNumDisplay').textContent = d.tableNumber;
+                document.getElementById('lockOfflineTableNumHighlight').textContent = d.tableNumber;
+            });
+        }
+    });
+
     // Toggle all session accordion cards
     function toggleAllSessions(expand) {
         document.querySelectorAll('.session-card .collapse').forEach(el => {
@@ -2270,7 +2407,7 @@
         let currentManagerStatusHash = "{{ status_hash|default:'' }}";
 
         function pollManagerOrders() {
-            if (getActiveTab() !== '#orders-pane') return;
+            if (document.hidden || getActiveTab() !== '#orders-pane') return;
 
             fetch(`/staff/manager/?poll=1&order_filter={{ order_filter }}`, {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }

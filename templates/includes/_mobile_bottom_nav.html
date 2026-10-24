@@ -1,0 +1,57 @@
+<!-- Mobile Bottom Navigation Bar (Dynamic Staff vs Customer) -->
+{% if staff_profile or user.is_superuser %}
+<nav class="mobile-bottom-nav d-lg-none">
+    <a href="{% url 'orders:kitchen_dashboard' %}" class="mobile-nav-link {% if request.resolver_match.url_name == 'kitchen_dashboard' %}active{% endif %}">
+        <i class="bi bi-egg-fried"></i>
+        <span>Kitchen</span>
+    </a>
+    <a href="{% url 'orders:waiter_dashboard' %}" class="mobile-nav-link {% if request.resolver_match.url_name == 'waiter_dashboard' %}active{% endif %}">
+        <i class="bi bi-person-badge"></i>
+        <span>Floor</span>
+    </a>
+    {% if staff_profile.is_manager or user.is_superuser %}
+    <a href="{% url 'orders:manager_dashboard' %}" class="mobile-nav-link {% if request.resolver_match.url_name == 'manager_dashboard' %}active{% endif %}">
+        <i class="bi bi-speedometer2"></i>
+        <span>Manager</span>
+    </a>
+    {% endif %}
+    <a href="{% url 'menu:menu_list' %}" class="mobile-nav-link">
+        <i class="bi bi-book"></i>
+        <span>Menu</span>
+    </a>
+    <a href="javascript:void(0)" class="mobile-nav-link" data-bs-toggle="modal" data-bs-target="#staffPasswordModal">
+        <i class="bi bi-key-fill text-warning"></i>
+        <span>Password</span>
+    </a>
+    <a href="{% url 'accounts:logout' %}" class="mobile-nav-link text-danger">
+        <i class="bi bi-box-arrow-right"></i>
+        <span>Logout</span>
+    </a>
+</nav>
+{% else %}
+<nav class="mobile-bottom-nav d-lg-none">
+    <a href="{% url 'menu:home' %}" class="mobile-nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+        <i class="bi bi-house-door-fill"></i>
+        <span>Home</span>
+    </a>
+    <a href="{% url 'menu:menu_list' %}" class="mobile-nav-link {% if request.resolver_match.url_name == 'menu_list' %}active{% endif %}">
+        <i class="bi bi-book-half"></i>
+        <span>Menu</span>
+    </a>
+    <a href="{% url 'orders:cart' %}" class="mobile-nav-link position-relative {% if request.resolver_match.url_name == 'cart' %}active{% endif %}">
+        <i class="bi bi-bag-check-fill"></i>
+        <span>Cart</span>
+        <span class="position-absolute top-0 start-50 translate-middle-x badge rounded-pill bg-danger cart-badge-count" style="font-size: 0.65rem; margin-top: -2px; margin-left: 12px;">
+            {{ cart_count|default:"0" }}
+        </span>
+    </a>
+    <a href="{% url 'orders:my_orders' %}" class="mobile-nav-link {% if request.resolver_match.url_name == 'my_orders' %}active{% endif %}">
+        <i class="bi bi-clock-history"></i>
+        <span>Orders</span>
+    </a>
+    <a href="javascript:void(0)" class="mobile-nav-link" data-bs-toggle="modal" data-bs-target="#waiterModal">
+        <i class="bi bi-bell-fill text-warning"></i>
+        <span>Staff</span>
+    </a>
+</nav>
+{% endif %}

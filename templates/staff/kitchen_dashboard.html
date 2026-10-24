@@ -24,6 +24,11 @@
         50% { transform: scale(1.1); }
         100% { transform: scale(1); }
     }
+    @media (max-width: 991.98px) {
+        .kds-column:not(.active-mobile-col) {
+            display: none !important;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -75,11 +80,26 @@
         </div>
     </div>
 
+    <!-- Mobile Stage Switcher (< 992px) -->
+    <div class="d-lg-none sticky-top py-2 mb-3 bg-surface z-2 border-bottom">
+        <div class="btn-group w-100 rounded-pill p-1 bg-surface-raised border shadow-sm" role="group">
+            <button type="button" class="btn btn-sm rounded-pill active fw-semibold" id="btnTabPending" onclick="switchKDSColumn('pending')">
+                <i class="bi bi-hourglass-split me-1 text-warning"></i> Queued ({{ pending_orders.count }})
+            </button>
+            <button type="button" class="btn btn-sm rounded-pill fw-semibold" id="btnTabCooking" onclick="switchKDSColumn('cooking')">
+                <i class="bi bi-fire me-1 text-primary"></i> Cooking ({{ preparing_orders.count }})
+            </button>
+            <button type="button" class="btn btn-sm rounded-pill fw-semibold" id="btnTabReady" onclick="switchKDSColumn('ready')">
+                <i class="bi bi-check2-all me-1 text-success"></i> Ready ({{ ready_orders.count }})
+            </button>
+        </div>
+    </div>
+
     <!-- 3-Column KDS Cooking Board -->
     <div class="row g-4 mb-5">
         
         <!-- Column 1: Incoming / Queued Tickets -->
-        <div class="col-12 col-lg-4">
+        <div class="col-12 col-lg-4 kds-column active-mobile-col" id="kdsColPending">
             <div class="card-surface p-3 h-100 rounded-4 border-2 border-warning shadow-sm">
                 <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
                     <h5 class="fw-bold mb-0 text-warning d-flex align-items-center gap-2">
@@ -148,7 +168,7 @@
         </div>
 
         <!-- Column 2: In Kitchen / Cooking -->
-        <div class="col-12 col-lg-4">
+        <div class="col-12 col-lg-4 kds-column" id="kdsColCooking">
             <div class="card-surface p-3 h-100 rounded-4 border-2 border-primary shadow-sm">
                 <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
                     <h5 class="fw-bold mb-0 text-primary d-flex align-items-center gap-2">
@@ -223,7 +243,7 @@
         </div>
 
         <!-- Column 3: Plated & Ready for Waiter Pickup -->
-        <div class="col-12 col-lg-4">
+        <div class="col-12 col-lg-4 kds-column" id="kdsColReady">
             <div class="card-surface p-3 h-100 rounded-4 border-2 border-success shadow-sm">
                 <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
                     <h5 class="fw-bold mb-0 text-success d-flex align-items-center gap-2">
@@ -355,6 +375,22 @@
     updateChimeUI();
 
     // 3. Smart Polling: Checks for new orders every 4 seconds without disruptive full reloads
+    function switchKDSColumn(stage) {
+        document.querySelectorAll('.kds-column').forEach(col => col.classList.remove('active-mobile-col'));
+        document.querySelectorAll('#btnTabPending, #btnTabCooking, #btnTabReady').forEach(b => b.classList.remove('active'));
+
+        if (stage === 'pending') {
+            document.getElementById('kdsColPending')?.classList.add('active-mobile-col');
+            document.getElementById('btnTabPending')?.classList.add('active');
+        } else if (stage === 'cooking') {
+            document.getElementById('kdsColCooking')?.classList.add('active-mobile-col');
+            document.getElementById('btnTabCooking')?.classList.add('active');
+        } else if (stage === 'ready') {
+            document.getElementById('kdsColReady')?.classList.add('active-mobile-col');
+            document.getElementById('btnTabReady')?.classList.add('active');
+        }
+    }
+
     let previousPendingCount = {{ pending_orders.count }};
     let previousPreparingCount = {{ preparing_orders.count }};
     let previousReadyCount = {{ ready_orders.count }};

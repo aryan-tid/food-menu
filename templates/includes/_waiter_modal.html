@@ -1,0 +1,44 @@
+<!-- Modal: Call Waiter Modal -->
+<div class="modal fade" id="waiterModal" tabindex="-1" aria-labelledby="waiterModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-surface border-0 shadow-lg">
+            <form id="callWaiterForm" onsubmit="submitCallWaiter(event)">
+                {% csrf_token %}
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title brand-font fw-bold" id="waiterModalLabel">
+                        <i class="bi bi-bell-fill text-warning me-2"></i> Request Staff Assistance
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small mb-2">
+                        Assisting Table: <strong>{{ current_table_number|default:"Current Diner" }}</strong>
+                    </p>
+
+                    {% if current_table_number and not table_is_locked_for_me %}
+                    <div class="alert alert-warning py-2 small mb-3 border-0 rounded-3">
+                        <i class="bi bi-shield-lock-fill me-1"></i> Staff assistance is reserved for the diner who holds the active lock on this table.
+                    </div>
+                    {% endif %}
+
+                    <!-- One-Tap Quick Presets -->
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <button type="button" class="btn btn-sm btn-outline-surface" onclick="setWaiterMessage('Need drinking water')">💧 Water</button>
+                        <button type="button" class="btn btn-sm btn-outline-surface" onclick="setWaiterMessage('Need cutlery / napkins')">🍴 Cutlery</button>
+                        <button type="button" class="btn btn-sm btn-outline-surface" onclick="setWaiterMessage('Requesting bill / payment')">💳 Bill</button>
+                        <button type="button" class="btn btn-sm btn-outline-surface" onclick="setWaiterMessage('Need waiter for ordering help')">🙋 Assistance</button>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Message / Special Request</label>
+                        <input type="text" id="waiterMessageInput" name="message" class="form-control" placeholder="What can we help you with?" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-surface btn-sm" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-brand btn-sm px-4" id="callWaiterSubmitBtn">Notify Waiter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

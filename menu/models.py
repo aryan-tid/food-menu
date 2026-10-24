@@ -125,11 +125,15 @@ class MenuItem(models.Model):
 
     @property
     def average_rating(self):
+        if hasattr(self, 'avg_rating'):
+            return round(self.avg_rating, 1) if self.avg_rating else None
         avg = self.reviews.aggregate(models.Avg('rating'))['rating__avg']
         return round(avg, 1) if avg else None
 
     @property
     def review_count(self):
+        if hasattr(self, 'rev_count'):
+            return self.rev_count
         return self.reviews.count()
 
 

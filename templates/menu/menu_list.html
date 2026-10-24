@@ -637,8 +637,8 @@
 
             <div class="row g-3 g-md-4">
                 {% for item in section.items %}
-                <div class="col-12 col-md-6">
-                    <div class="zomato-dish-card shadow-sm" onclick="openItemDetailModal({{ item.id }}, '{{ item.name|escapejs }}', '{{ item.description|escapejs }}', '{{ item.price }}', {{ item.is_veg|yesno:'true,false' }}, '{{ item.category.name|escapejs }}', '{{ item.average_rating|default:'' }}', '{{ item.reviews.count }}', '{{ item.get_image_url }}')">
+                <div class="col-12 col-md-6 dish-listing-card" data-dish-name="{{ item.name|lower }}" data-dish-desc="{{ item.description|lower }}" data-is-veg="{{ item.is_veg|yesno:'1,0' }}" data-cat-id="{{ item.category_id }}">
+                    <div class="zomato-dish-card shadow-sm" onclick="openItemDetailModal({{ item.id }}, '{{ item.name|escapejs }}', '{{ item.description|escapejs }}', '{{ item.price }}', {{ item.is_veg|yesno:'true,false' }}, '{{ item.category.name|escapejs }}', '{{ item.average_rating|default:'' }}', '{{ item.rev_count|default:item.reviews.count }}', '{{ item.get_image_url }}')">
                         <!-- Left: Food details -->
                         <div class="zomato-dish-info">
                             <div class="d-flex align-items-center gap-2 mb-1">
@@ -665,7 +665,7 @@
                             <div class="d-flex align-items-center gap-2 mt-2">
                                 <span class="small text-muted" style="font-size: 0.76rem;">
                                     <i class="bi bi-chat-heart text-danger me-1"></i>
-                                    {% if item.reviews.count %}{{ item.reviews.count }} review{{ item.reviews.count|pluralize }}{% else %}Be first to review{% endif %}
+                                    {% if item.rev_count != None %}{% if item.rev_count %}{{ item.rev_count }} review{{ item.rev_count|pluralize }}{% else %}Be first to review{% endif %}{% else %}{% if item.reviews.count %}{{ item.reviews.count }} review{{ item.reviews.count|pluralize }}{% else %}Be first to review{% endif %}{% endif %}
                                 </span>
                             </div>
                         </div>
@@ -690,8 +690,8 @@
         <!-- Filtered Flat Listing (Category or Search Result) -->
         <div class="row g-3 g-md-4">
             {% for item in menu_items %}
-            <div class="col-12 col-md-6">
-                <div class="zomato-dish-card shadow-sm" onclick="openItemDetailModal({{ item.id }}, '{{ item.name|escapejs }}', '{{ item.description|escapejs }}', '{{ item.price }}', {{ item.is_veg|yesno:'true,false' }}, '{{ item.category.name|escapejs }}', '{{ item.average_rating|default:'' }}', '{{ item.reviews.count }}', '{{ item.get_image_url }}')">
+            <div class="col-12 col-md-6 dish-listing-card" data-dish-name="{{ item.name|lower }}" data-dish-desc="{{ item.description|lower }}" data-is-veg="{{ item.is_veg|yesno:'1,0' }}" data-cat-id="{{ item.category_id }}">
+                <div class="zomato-dish-card shadow-sm" onclick="openItemDetailModal({{ item.id }}, '{{ item.name|escapejs }}', '{{ item.description|escapejs }}', '{{ item.price }}', {{ item.is_veg|yesno:'true,false' }}, '{{ item.category.name|escapejs }}', '{{ item.average_rating|default:'' }}', '{{ item.rev_count|default:item.reviews.count }}', '{{ item.get_image_url }}')">
                     <!-- Left: Food details -->
                     <div class="zomato-dish-info">
                         <div class="d-flex align-items-center gap-2 mb-1">
@@ -720,7 +720,7 @@
                         <div class="d-flex align-items-center gap-2 mt-2">
                             <span class="small text-muted" style="font-size: 0.76rem;">
                                 <i class="bi bi-chat-heart text-danger me-1"></i>
-                                {% if item.reviews.count %}{{ item.reviews.count }} review{{ item.reviews.count|pluralize }}{% else %}Be first to review{% endif %}
+                                {% if item.rev_count != None %}{% if item.rev_count %}{{ item.rev_count }} review{{ item.rev_count|pluralize }}{% else %}Be first to review{% endif %}{% else %}{% if item.reviews.count %}{{ item.reviews.count }} review{{ item.reviews.count|pluralize }}{% else %}Be first to review{% endif %}{% endif %}
                             </span>
                         </div>
                     </div>
@@ -853,11 +853,65 @@
 
 {% block extra_js %}
 <script>
-    // 1. Dietary Preference Memory in localStorage
+    // 1. Dietary Preference Memory & Instant Zero-Latency Client-Side Filtering
+    let searchDebounceTimer = null;
+
     function handleVegToggle(checkbox) {
         localStorage.setItem('foodmenu_veg_only', checkbox.checked ? '1' : '0');
-        checkbox.form.submit();
+        checkbox.closest('.pure-veg-toggle-pill')?.classList.toggle('active', checkbox.checked);
+        filterDishesClientSide();
     }
+
+    function filterDishesClientSide() {
+        const searchInput = document.querySelector('input[name="q"]');
+        const q = (searchInput ? searchInput.value : '').toLowerCase().trim();
+        const vegOnly = document.getElementById('vegFilterSwitch')?.checked || false;
+
+        let visibleCount = 0;
+        document.querySelectorAll('.dish-listing-card').forEach(card => {
+            const name = card.dataset.dishName || '';
+            const desc = card.dataset.dishDesc || '';
+            const isVeg = card.dataset.isVeg === '1';
+
+            const matchesSearch = !q || name.includes(q) || desc.includes(q);
+            const matchesVeg = !vegOnly || isVeg;
+
+            if (matchesSearch && matchesVeg) {
+                card.style.display = '';
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        // Hide category sections if all items in section are hidden
+        document.querySelectorAll('.menu-category-section').forEach(sec => {
+            const visibleInSec = sec.querySelectorAll('.dish-listing-card:not([style*="display: none"])');
+            sec.style.display = visibleInSec.length > 0 ? '' : 'none';
+        });
+
+        // Toggle clear search button
+        const clearBtn = document.querySelector('.modern-search-clear-btn');
+        if (clearBtn) clearBtn.style.display = q ? 'inline-flex' : 'none';
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.querySelector('input[name="q"]');
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchDebounceTimer);
+                searchDebounceTimer = setTimeout(filterDishesClientSide, 100);
+            });
+        }
+
+        const filterForm = document.getElementById('menuFilterForm');
+        if (filterForm) {
+            filterForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                filterDishesClientSide();
+            });
+        }
+    });
 
     let isUserClickScrolling = false;
     let scrollTimeout = null;

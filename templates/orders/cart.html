@@ -71,32 +71,34 @@
 
                 <div class="d-flex flex-column gap-3">
                     {% for c in cart_items %}
-                    <div class="d-flex justify-content-between align-items-center p-2 rounded-3 border-bottom pb-3">
-                        <div class="d-flex align-items-start gap-2">
-                            {% if c.item.is_veg %}
-                                <span class="veg-tag mt-1"><i class="bi bi-record-circle"></i></span>
-                            {% else %}
-                                <span class="nonveg-tag mt-1"><i class="bi bi-caret-up-square-fill"></i></span>
-                            {% endif %}
-                            <div>
-                                <h6 class="fw-bold mb-0">{{ c.item.name }}</h6>
-                                <span class="text-muted small">₹{{ c.item.price }} each</span>
+                    <div class="p-2.5 rounded-3 border-bottom pb-3">
+                        <!-- Tier 1: Dish details & Delete action -->
+                        <div class="d-flex align-items-start justify-content-between gap-2 mb-2 min-w-0">
+                            <div class="d-flex align-items-start gap-2 min-w-0 flex-grow-1">
+                                {% if c.item.is_veg %}
+                                    <span class="zomato-veg-badge flex-shrink-0 mt-1"></span>
+                                {% else %}
+                                    <span class="zomato-nonveg-badge flex-shrink-0 mt-1"></span>
+                                {% endif %}
+                                <div class="min-w-0 flex-grow-1">
+                                    <h6 class="fw-bold mb-0 text-truncate" style="font-size: 0.92rem; color: var(--text-primary);">{{ c.item.name }}</h6>
+                                    <span class="text-muted small" style="font-size: 0.74rem;">₹{{ c.item.price }} each</span>
+                                </div>
                             </div>
+                            <a href="{% url 'orders:cart_delete' c.item.id %}" class="text-secondary hover-danger p-1 flex-shrink-0 text-decoration-none" title="Remove item">
+                                <i class="bi bi-x-lg" style="font-size: 0.82rem;"></i>
+                            </a>
                         </div>
 
-                        <!-- Quantity Stepper & Subtotal -->
-                        <div class="d-flex align-items-center gap-3">
-                            <div class="d-flex align-items-center gap-1 bg-surface-raised rounded-3 p-1 border">
-                                <a href="{% url 'orders:cart_remove' c.item.id %}" class="btn btn-sm btn-link text-decoration-none p-0 px-2 fw-bold" style="color: var(--text-primary);">-</a>
-                                <span class="fw-bold px-2 small">{{ c.quantity }}</span>
-                                <a href="{% url 'orders:cart_add' c.item.id %}" class="btn btn-sm btn-link text-decoration-none p-0 px-2 fw-bold" style="color: var(--text-primary);">+</a>
+                        <!-- Tier 2: Quantity Stepper & Line Subtotal -->
+                        <div class="d-flex align-items-center justify-content-between pt-1 ps-4">
+                            <div class="d-flex align-items-center gap-1 bg-surface-raised rounded-pill px-2 py-0.5 border shadow-sm">
+                                <a href="{% url 'orders:cart_remove' c.item.id %}" class="btn btn-sm btn-link text-decoration-none p-0 px-2 fw-bold" style="color: var(--text-primary); font-size: 0.85rem;">-</a>
+                                <span class="fw-bold px-1.5 small" style="min-width: 18px; text-align: center;">{{ c.quantity }}</span>
+                                <a href="{% url 'orders:cart_add' c.item.id %}" class="btn btn-sm btn-link text-decoration-none p-0 px-2 fw-bold" style="color: var(--text-primary); font-size: 0.85rem;">+</a>
                             </div>
 
-                            <span class="fw-bold" style="min-width: 65px; text-align: right;">₹{{ c.subtotal }}</span>
-
-                            <a href="{% url 'orders:cart_delete' c.item.id %}" class="text-secondary hover-danger p-1" title="Remove item">
-                                <i class="bi bi-x-lg"></i>
-                            </a>
+                            <span class="fw-bold brand-font fs-6" style="color: var(--color-primary); text-align: right;">₹{{ c.subtotal }}</span>
                         </div>
                     </div>
                     {% endfor %}

@@ -1,12 +1,20 @@
+from django.core.cache import cache
 from menu.models import Restaurant
 from orders.models import RestaurantTable, Order, DiningSession
+
+
+def invalidate_restaurant_cache():
+    """Call whenever restaurant details or tables are added, modified, or deleted."""
+    cache.delete('app_restaurant_info')
+    cache.delete('app_all_active_tables')
 
 
 def restaurant_context(request):
     """
     Makes restaurant info, cart count, active table, active order & session accessible in all templates.
+    Optimized with in-memory caching to eliminate redundant DB queries on every request.
     """
-    restaurant = Restaurant.objects.first()
+    restaurant = cache.get_or_set('app_restaurant_info', lambda: Restaurant.objects.first(), 3600)
     cart = request.session.get('cart', {})
     cart_count = sum(cart.values()) if isinstance(cart, dict) else 0
 
@@ -53,8 +61,12 @@ def restaurant_context(request):
     # Check staff role for navigation
     staff_profile = getattr(request.user, 'staff_profile', None) if request.user.is_authenticated else None
 
-    # All active tables for easy one-tap selection modal
-    all_active_tables = RestaurantTable.objects.filter(is_active=True).order_by('table_number')
+    # All active tables for easy one-tap selection modal (cached for 5 minutes)
+    all_active_tables = cache.get_or_set(
+        'app_all_active_tables',
+        lambda: list(RestaurantTable.objects.filter(is_active=True).order_by('table_number')),
+        300
+    )
 
     from django.conf import settings
     firebase_config = getattr(settings, 'FIREBASE_CONFIG', {})

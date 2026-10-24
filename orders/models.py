@@ -20,8 +20,8 @@ class RestaurantTable(models.Model):
     """
     table_number = models.CharField(max_length=20, unique=True, help_text="e.g. T-01, T-02, VIP-1")
     capacity = models.PositiveIntegerField(default=4)
-    is_active = models.BooleanField(default=True, help_text="Table is available for service")
-    is_locked = models.BooleanField(default=False, help_text="True when occupied by an active ordering customer")
+    is_active = models.BooleanField(default=True, db_index=True, help_text="Table is available for service")
+    is_locked = models.BooleanField(default=False, db_index=True, help_text="True when occupied by an active ordering customer")
     current_customer = models.ForeignKey(
         Customer,
         on_delete=models.SET_NULL,
@@ -83,9 +83,9 @@ class DiningSession(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='dining_sessions')
     table = models.ForeignKey(RestaurantTable, on_delete=models.SET_NULL, null=True, blank=True, related_name='sessions')
     table_number = models.CharField(max_length=20, blank=True)
-    started_at = models.DateTimeField(auto_now_add=True)
+    started_at = models.DateTimeField(auto_now_add=True, db_index=True)
     ended_at = models.DateTimeField(null=True, blank=True)
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True, db_index=True)
     total_spent = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
 
     class Meta:
@@ -105,6 +105,52 @@ class DiningSession(models.Model):
         self.total_spent = total
         self.save(update_fields=['total_spent'])
         return self.total_spent
+
+    @property
+    def active_orders_qs(self):
+        """Returns non-cancelled orders belonging to this session."""
+        return self.orders.exclude(status=Order.STATUS_CANCELLED)
+
+    @property
+    def subtotal_amount(self):
+        """Consolidated subtotal of all active orders in this session."""
+        return sum((o.subtotal for o in self.active_orders_qs), Decimal('0.00'))
+
+    @property
+    def tax_sum(self):
+        """Consolidated 5% GST tax of all active orders."""
+        return sum((o.tax_amount for o in self.active_orders_qs), Decimal('0.00'))
+
+    @property
+    def cgst_sum(self):
+        """Central GST (2.5%)."""
+        return round(self.tax_sum / Decimal('2.0'), 2)
+
+    @property
+    def sgst_sum(self):
+        """State GST (2.5%)."""
+        return round(self.tax_sum / Decimal('2.0'), 2)
+
+    @property
+    def grand_total_amount(self):
+        """Consolidated grand total of all active orders."""
+        return sum((o.total_amount for o in self.active_orders_qs), Decimal('0.00'))
+
+    @property
+    def unpaid_orders_qs(self):
+        """Unpaid active orders."""
+        return self.active_orders_qs.filter(payment_status=Order.PAYMENT_STATUS_PENDING)
+
+    @property
+    def unpaid_total_amount(self):
+        """Total pending payment in this session."""
+        return sum((o.total_amount for o in self.unpaid_orders_qs), Decimal('0.00'))
+
+    @property
+    def paid_total_amount(self):
+        """Total paid amount settled in this session."""
+        paid_orders = self.active_orders_qs.filter(payment_status=Order.PAYMENT_STATUS_PAID)
+        return sum((o.total_amount for o in paid_orders), Decimal('0.00'))
 
     def end_session(self):
         """Closes the dining session and releases table lock if applicable."""
@@ -270,16 +316,16 @@ class Order(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name='orders')
     table = models.ForeignKey(RestaurantTable, on_delete=models.SET_NULL, null=True, blank=True, related_name='orders')
     table_number = models.CharField(max_length=20, blank=True, help_text="Stored snapshot of table number")
-    order_date = models.DateTimeField(auto_now_add=True)
+    order_date = models.DateTimeField(auto_now_add=True, db_index=True)
     
     subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
     tax_amount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'), help_text="5% GST")
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
     
-    status = models.CharField(max_length=25, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    status = models.CharField(max_length=25, choices=STATUS_CHOICES, default=STATUS_PENDING, db_index=True)
     order_type = models.CharField(max_length=20, choices=ORDER_TYPE_CHOICES, default=ORDER_TYPE_DINE_IN)
     payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES, default=PAYMENT_METHOD_PAY_LATER)
-    payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default=PAYMENT_STATUS_PENDING)
+    payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default=PAYMENT_STATUS_PENDING, db_index=True)
     
     special_instructions = models.TextField(blank=True, help_text="Cooking notes or allergy requests")
 
@@ -300,6 +346,16 @@ class Order(models.Model):
         Once it is in Preparing or later, only staff can cancel.
         """
         return self.status == self.STATUS_PENDING and self.payment_status != self.PAYMENT_STATUS_PAID
+
+    @property
+    def cgst_amount(self):
+        """Central GST (2.5%)."""
+        return round(self.tax_amount / Decimal('2.0'), 2)
+
+    @property
+    def sgst_amount(self):
+        """State GST (2.5%)."""
+        return round(self.tax_amount / Decimal('2.0'), 2)
 
     def recalculate_totals(self):
         """Calculates active items subtotal, 5% GST tax, and total amount."""
@@ -372,7 +428,7 @@ class Payment(models.Model):
     method = models.CharField(max_length=30, choices=METHOD_CHOICES, default=METHOD_CASH_COUNTER)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     payment_date = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING, db_index=True)
     transaction_id = models.CharField(max_length=100, blank=True, null=True)
     collected_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='collected_payments')
 
@@ -404,7 +460,7 @@ class WaiterAlert(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, null=True, blank=True, related_name='waiter_alerts')
     message = models.CharField(max_length=150, default="Assistance / Service requested")
     created_at = models.DateTimeField(auto_now_add=True)
-    is_resolved = models.BooleanField(default=False)
+    is_resolved = models.BooleanField(default=False, db_index=True)
     resolved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='resolved_alerts')
 
     class Meta:
