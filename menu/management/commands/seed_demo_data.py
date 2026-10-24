@@ -247,67 +247,67 @@ class Command(BaseCommand):
 
             items_def = [
                 # Starters & Appetizers
-                ("Starters & Appetizers", "Paneer Tikka Angara", "Charcoal-grilled cottage cheese cubes marinated in fiery tandoori spices and mustard oil.", Decimal('260.00'), True),
-                ("Starters & Appetizers", "Crispy Corn Salt & Pepper", "Tender sweet corn tossed with freshly cracked black pepper, scallions, and roasted garlic.", Decimal('190.00'), True),
-                ("Starters & Appetizers", "Crispy Veg Spring Rolls", "Golden crunchy rolls stuffed with shredded vegetables, served with sweet chili dip.", Decimal('180.00'), True),
-                ("Starters & Appetizers", "Hara Bhara Kebab", "Delicate pan-fried patties crafted with fresh spinach, green peas, mashed potatoes, and herbs.", Decimal('210.00'), True),
-                ("Starters & Appetizers", "Dahi Ke Kebab", "Melt-in-the-mouth shallow fried kebabs made with hung curd, paneer, cardamom, and fresh coriander.", Decimal('230.00'), True),
-                ("Starters & Appetizers", "Murgh Malai Tikka", "Succulent chicken chunks marinated in heavy cream, hung curd, cheese, and crushed green cardamom.", Decimal('330.00'), False),
-                ("Starters & Appetizers", "Tandoori Chicken (Half)", "Classic tandoor-roasted chicken with bone, marinated in hung curd, Kashmiri deggi mirch, and ginger.", Decimal('290.00'), False),
-                ("Starters & Appetizers", "Chicken Seekh Kebab", "Juicy minced chicken infused with roasted cumin, mint, ginger, and skewered to perfection over coals.", Decimal('310.00'), False),
-                ("Starters & Appetizers", "Chilli Chicken Dry", "Wok-tossed battered crispy chicken cubes tossed with diced bell peppers, onions, and spicy soya glaze.", Decimal('280.00'), False),
-                ("Starters & Appetizers", "Amritsari Fish Tikka", "Fresh fish fillets dipped in carom seed (ajwain) and gram flour batter, deep fried until crisp.", Decimal('360.00'), False),
+                ("Starters & Appetizers", "Paneer Tikka Angara", "Charcoal-grilled cottage cheese cubes marinated in fiery tandoori spices and mustard oil.", Decimal('260.00'), True, "https://images.unsplash.com/photo-1599488615731-7e5c2823ff28?w=800&auto=format&fit=crop&q=80"),
+                ("Starters & Appetizers", "Crispy Corn Salt & Pepper", "Tender sweet corn tossed with freshly cracked black pepper, scallions, and roasted garlic.", Decimal('190.00'), True, "https://images.unsplash.com/photo-1551782450-a2132b4ba21d?w=800&auto=format&fit=crop&q=80"),
+                ("Starters & Appetizers", "Crispy Veg Spring Rolls", "Golden crunchy rolls stuffed with shredded vegetables, served with sweet chili dip.", Decimal('180.00'), True, "https://images.unsplash.com/photo-1544025162-d76694265947?w=800&auto=format&fit=crop&q=80"),
+                ("Starters & Appetizers", "Hara Bhara Kebab", "Delicate pan-fried patties crafted with fresh spinach, green peas, mashed potatoes, and herbs.", Decimal('210.00'), True, "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=800&auto=format&fit=crop&q=80"),
+                ("Starters & Appetizers", "Dahi Ke Kebab", "Melt-in-the-mouth shallow fried kebabs made with hung curd, paneer, cardamom, and fresh coriander.", Decimal('230.00'), True, "https://images.unsplash.com/photo-1567188040759-fb8a883dc6d8?w=800&auto=format&fit=crop&q=80"),
+                ("Starters & Appetizers", "Murgh Malai Tikka", "Succulent chicken chunks marinated in heavy cream, hung curd, cheese, and crushed green cardamom.", Decimal('330.00'), False, "https://images.unsplash.com/photo-1610057099443-fde8c4d50f91?w=800&auto=format&fit=crop&q=80"),
+                ("Starters & Appetizers", "Tandoori Chicken (Half)", "Classic tandoor-roasted chicken with bone, marinated in hung curd, Kashmiri deggi mirch, and ginger.", Decimal('290.00'), False, "https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?w=800&auto=format&fit=crop&q=80"),
+                ("Starters & Appetizers", "Chicken Seekh Kebab", "Juicy minced chicken infused with roasted cumin, mint, ginger, and skewered to perfection over coals.", Decimal('310.00'), False, "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800&auto=format&fit=crop&q=80"),
+                ("Starters & Appetizers", "Chilli Chicken Dry", "Wok-tossed battered crispy chicken cubes tossed with diced bell peppers, onions, and spicy soya glaze.", Decimal('280.00'), False, "https://images.unsplash.com/photo-1562967914-608f82629710?w=800&auto=format&fit=crop&q=80"),
+                ("Starters & Appetizers", "Amritsari Fish Tikka", "Fresh fish fillets dipped in carom seed (ajwain) and gram flour batter, deep fried until crisp.", Decimal('360.00'), False, "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=800&auto=format&fit=crop&q=80"),
 
                 # Main Course - Veg
-                ("Main Course - Veg", "Paneer Butter Masala", "Soft cottage cheese simmered in a velvet-smooth, buttery tomato and cashew nut gravy.", Decimal('280.00'), True),
-                ("Main Course - Veg", "Dal Makhani", "Slow-cooked black lentils and kidney beans simmered overnight on slow charcoal with churned butter.", Decimal('240.00'), True),
-                ("Main Course - Veg", "Dal Tadka Double Rassa", "Yellow toor dal tempered with roasted cumin seeds, garlic, dried red chilies, and pure ghee.", Decimal('190.00'), True),
-                ("Main Course - Veg", "Kadai Paneer Special", "Cottage cheese and crunchy bell peppers tossed in a rustic freshly ground coriander-chili spice mix.", Decimal('290.00'), True),
-                ("Main Course - Veg", "Shahi Malai Kofta", "Dumplings made of paneer and dry fruits bathed in a royal cashew and fresh cream gravy.", Decimal('295.00'), True),
-                ("Main Course - Veg", "Veg Kolhapuri Spicy", "Medley of seasonal vegetables cooked in a spicy, roasted coconut and red chili Kolhapuri masala.", Decimal('240.00'), True),
-                ("Main Course - Veg", "Mushroom Masala", "Fresh button mushrooms cooked with caramelized onion, tomato gravy, and aromatic whole garam masalas.", Decimal('270.00'), True),
-                ("Main Course - Veg", "Palak Paneer", "Fresh spinach purée mildly spiced with roasted garlic and cooked with soft paneer cubes.", Decimal('260.00'), True),
+                ("Main Course - Veg", "Paneer Butter Masala", "Soft cottage cheese simmered in a velvet-smooth, buttery tomato and cashew nut gravy.", Decimal('280.00'), True, "https://images.unsplash.com/photo-1631452180519-c014fe946bc7?w=800&auto=format&fit=crop&q=80"),
+                ("Main Course - Veg", "Dal Makhani", "Slow-cooked black lentils and kidney beans simmered overnight on slow charcoal with churned butter.", Decimal('240.00'), True, "https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=800&auto=format&fit=crop&q=80"),
+                ("Main Course - Veg", "Dal Tadka Double Rassa", "Yellow toor dal tempered with roasted cumin seeds, garlic, dried red chilies, and pure ghee.", Decimal('190.00'), True, "https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=800&auto=format&fit=crop&q=80"),
+                ("Main Course - Veg", "Kadai Paneer Special", "Cottage cheese and crunchy bell peppers tossed in a rustic freshly ground coriander-chili spice mix.", Decimal('290.00'), True, "https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=800&auto=format&fit=crop&q=80"),
+                ("Main Course - Veg", "Shahi Malai Kofta", "Dumplings made of paneer and dry fruits bathed in a royal cashew and fresh cream gravy.", Decimal('295.00'), True, "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=800&auto=format&fit=crop&q=80"),
+                ("Main Course - Veg", "Veg Kolhapuri Spicy", "Medley of seasonal vegetables cooked in a spicy, roasted coconut and red chili Kolhapuri masala.", Decimal('240.00'), True, "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800&auto=format&fit=crop&q=80"),
+                ("Main Course - Veg", "Mushroom Masala", "Fresh button mushrooms cooked with caramelized onion, tomato gravy, and aromatic whole garam masalas.", Decimal('270.00'), True, "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&auto=format&fit=crop&q=80"),
+                ("Main Course - Veg", "Palak Paneer", "Fresh spinach purée mildly spiced with roasted garlic and cooked with soft paneer cubes.", Decimal('260.00'), True, "https://images.unsplash.com/photo-1613292443284-8d10ef9383fe?w=800&auto=format&fit=crop&q=80"),
 
                 # Main Course - Non-Veg
-                ("Main Course - Non-Veg", "Butter Chicken Punjabi", "Tender tandoor-roasted chicken pieces cooked in our legendary sweet and tangy buttery tomato gravy.", Decimal('360.00'), False),
-                ("Main Course - Non-Veg", "Mutton Rogan Josh Kashmiri", "Slow-braised lamb shanks cooked with Kashmiri chilies, mace, fennel powder, and ratan jot.", Decimal('460.00'), False),
-                ("Main Course - Non-Veg", "Chicken Tikka Lababdar", "Charcoal-grilled chicken tikka finished in a rich, chunky onion-tomato gravy with grated paneer.", Decimal('350.00'), False),
-                ("Main Course - Non-Veg", "Chicken Sukka Saoji", "Traditional Vidarbha specialty: fiery dry chicken roasted with toasted poppy seeds and black pepper.", Decimal('340.00'), False),
-                ("Main Course - Non-Veg", "Malabar Fish Curry", "Tender fish steaks gently simmered in a mildly spiced coconut milk gravy with fresh curry leaves.", Decimal('390.00'), False),
-                ("Main Course - Non-Veg", "Homestyle Egg Curry", "Boiled fried eggs simmered in a hearty onion-tomato masala flavored with crushed peppercorns.", Decimal('210.00'), False),
+                ("Main Course - Non-Veg", "Butter Chicken Punjabi", "Tender tandoor-roasted chicken pieces cooked in our legendary sweet and tangy buttery tomato gravy.", Decimal('360.00'), False, "https://images.unsplash.com/photo-1588166524941-3bf61a9c41db?w=800&auto=format&fit=crop&q=80"),
+                ("Main Course - Non-Veg", "Mutton Rogan Josh Kashmiri", "Slow-braised lamb shanks cooked with Kashmiri chilies, mace, fennel powder, and ratan jot.", Decimal('460.00'), False, "https://images.unsplash.com/photo-1545247181-516773cae754?w=800&auto=format&fit=crop&q=80"),
+                ("Main Course - Non-Veg", "Chicken Tikka Lababdar", "Charcoal-grilled chicken tikka finished in a rich, chunky onion-tomato gravy with grated paneer.", Decimal('350.00'), False, "https://images.unsplash.com/photo-1606471191009-63994c53433b?w=800&auto=format&fit=crop&q=80"),
+                ("Main Course - Non-Veg", "Chicken Sukka Saoji", "Traditional Vidarbha specialty: fiery dry chicken roasted with toasted poppy seeds and black pepper.", Decimal('340.00'), False, "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=800&auto=format&fit=crop&q=80"),
+                ("Main Course - Non-Veg", "Malabar Fish Curry", "Tender fish steaks gently simmered in a mildly spiced coconut milk gravy with fresh curry leaves.", Decimal('390.00'), False, "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=800&auto=format&fit=crop&q=80"),
+                ("Main Course - Non-Veg", "Homestyle Egg Curry", "Boiled fried eggs simmered in a hearty onion-tomato masala flavored with crushed peppercorns.", Decimal('210.00'), False, "https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43?w=800&auto=format&fit=crop&q=80"),
 
                 # Tandoori Breads & Biryanis
-                ("Tandoori Breads & Biryanis", "Butter Garlic Naan", "Clay oven baked refined flour bread topped with minced roasted garlic, coriander, and churned butter.", Decimal('65.00'), True),
-                ("Tandoori Breads & Biryanis", "Cheese Garlic Naan", "Stuffed with melted mozzarella cheese, garlic, and fresh herbs, baked until golden blistered.", Decimal('90.00'), True),
-                ("Tandoori Breads & Biryanis", "Tandoori Butter Roti", "Whole wheat flatbread baked directly on the clay oven walls and brushed with pure amul butter.", Decimal('30.00'), True),
-                ("Tandoori Breads & Biryanis", "Laccha Paratha", "Flaky multi-layered whole wheat bread baked in tandoor with crispy edges and soft layers.", Decimal('50.00'), True),
-                ("Tandoori Breads & Biryanis", "Hyderabadi Veg Dum Biryani", "Aromatic aged basmati rice layered with seasoned vegetables, saffron milk, and fried onions.", Decimal('270.00'), True),
-                ("Tandoori Breads & Biryanis", "Hyderabadi Chicken Dum Biryani", "Royal kacchi dum biryani featuring tender marinated chicken, saffron, mint, and long-grain rice.", Decimal('350.00'), False),
-                ("Tandoori Breads & Biryanis", "Lucknowi Mutton Dum Biryani", "Awadhi dum biryani with fragrant rose water, mace, aromatic spices, and tender baby goat meat.", Decimal('440.00'), False),
-                ("Tandoori Breads & Biryanis", "Jeera Rice with Fried Onions", "Steamed basmati rice tempered with golden roasted cumin seeds and topped with crispy fried onions.", Decimal('160.00'), True),
-                ("Tandoori Breads & Biryanis", "Steamed Basmati Rice", "Fluffy long-grain premium fragrant basmati rice.", Decimal('120.00'), True),
+                ("Tandoori Breads & Biryanis", "Butter Garlic Naan", "Clay oven baked refined flour bread topped with minced roasted garlic, coriander, and churned butter.", Decimal('65.00'), True, "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=800&auto=format&fit=crop&q=80"),
+                ("Tandoori Breads & Biryanis", "Cheese Garlic Naan", "Stuffed with melted mozzarella cheese, garlic, and fresh herbs, baked until golden blistered.", Decimal('90.00'), True, "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800&auto=format&fit=crop&q=80"),
+                ("Tandoori Breads & Biryanis", "Tandoori Butter Roti", "Whole wheat flatbread baked directly on the clay oven walls and brushed with pure amul butter.", Decimal('30.00'), True, "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=800&auto=format&fit=crop&q=80"),
+                ("Tandoori Breads & Biryanis", "Laccha Paratha", "Flaky multi-layered whole wheat bread baked in tandoor with crispy edges and soft layers.", Decimal('50.00'), True, "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?w=800&auto=format&fit=crop&q=80"),
+                ("Tandoori Breads & Biryanis", "Hyderabadi Veg Dum Biryani", "Aromatic aged basmati rice layered with seasoned vegetables, saffron milk, and fried onions.", Decimal('270.00'), True, "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=800&auto=format&fit=crop&q=80"),
+                ("Tandoori Breads & Biryanis", "Hyderabadi Chicken Dum Biryani", "Royal kacchi dum biryani featuring tender marinated chicken, saffron, mint, and long-grain rice.", Decimal('350.00'), False, "https://images.unsplash.com/photo-1589302168068-964664d93dc0?w=800&auto=format&fit=crop&q=80"),
+                ("Tandoori Breads & Biryanis", "Lucknowi Mutton Dum Biryani", "Awadhi dum biryani with fragrant rose water, mace, aromatic spices, and tender baby goat meat.", Decimal('440.00'), False, "https://images.unsplash.com/photo-1633945274405-b6c8069047b0?w=800&auto=format&fit=crop&q=80"),
+                ("Tandoori Breads & Biryanis", "Jeera Rice with Fried Onions", "Steamed basmati rice tempered with golden roasted cumin seeds and topped with crispy fried onions.", Decimal('160.00'), True, "https://images.unsplash.com/photo-1536304993881-ff6e9eefa2a6?w=800&auto=format&fit=crop&q=80"),
+                ("Tandoori Breads & Biryanis", "Steamed Basmati Rice", "Fluffy long-grain premium fragrant basmati rice.", Decimal('120.00'), True, "https://images.unsplash.com/photo-1516684732162-798a0062be99?w=800&auto=format&fit=crop&q=80"),
 
                 # Desserts & Delicacies
-                ("Desserts & Delicacies", "Gulab Jamun with Ice Cream", "Warm khoya dumplings soaked in saffron-rose syrup, served with creamy chilled vanilla bean ice cream.", Decimal('140.00'), True),
-                ("Desserts & Delicacies", "Sizzling Hot Brownie with Vanilla", "Fudgy walnut brownie served on a piping hot cast-iron sizzler with vanilla ice cream and chocolate sauce.", Decimal('195.00'), True),
-                ("Desserts & Delicacies", "Royal Kesar Rasmalai (2 pcs)", "Delicate flattened cottage cheese discs steeped in thickened saffron and pistachio milk.", Decimal('150.00'), True),
-                ("Desserts & Delicacies", "Kulfi Falooda Royal", "Traditional malai kulfi sliced over chilled falooda noodles, sabja seeds, and rose syrup.", Decimal('160.00'), True),
-                ("Desserts & Delicacies", "Molten Chocolate Lava Cake", "Warm baked chocolate sponge with a luscious molten cocoa center, dusted with icing sugar.", Decimal('180.00'), True),
-                ("Desserts & Delicacies", "Matka Rabdi Kheer", "Slow-reduced creamy rice pudding enriched with slivered almonds, pistachios, and saffron.", Decimal('130.00'), True),
+                ("Desserts & Delicacies", "Gulab Jamun with Ice Cream", "Warm khoya dumplings soaked in saffron-rose syrup, served with creamy chilled vanilla bean ice cream.", Decimal('140.00'), True, "https://images.unsplash.com/photo-1589119908995-c6837fa14d48?w=800&auto=format&fit=crop&q=80"),
+                ("Desserts & Delicacies", "Sizzling Hot Brownie with Vanilla", "Fudgy walnut brownie served on a piping hot cast-iron sizzler with vanilla ice cream and chocolate sauce.", Decimal('195.00'), True, "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=800&auto=format&fit=crop&q=80"),
+                ("Desserts & Delicacies", "Royal Kesar Rasmalai (2 pcs)", "Delicate flattened cottage cheese discs steeped in thickened saffron and pistachio milk.", Decimal('150.00'), True, "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=800&auto=format&fit=crop&q=80"),
+                ("Desserts & Delicacies", "Kulfi Falooda Royal", "Traditional malai kulfi sliced over chilled falooda noodles, sabja seeds, and rose syrup.", Decimal('160.00'), True, "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=800&auto=format&fit=crop&q=80"),
+                ("Desserts & Delicacies", "Molten Chocolate Lava Cake", "Warm baked chocolate sponge with a luscious molten cocoa center, dusted with icing sugar.", Decimal('180.00'), True, "https://images.unsplash.com/photo-1624353365286-3f8d62daad51?w=800&auto=format&fit=crop&q=80"),
+                ("Desserts & Delicacies", "Matka Rabdi Kheer", "Slow-reduced creamy rice pudding enriched with slivered almonds, pistachios, and saffron.", Decimal('130.00'), True, "https://images.unsplash.com/photo-1579954115545-a95591f28bfc?w=800&auto=format&fit=crop&q=80"),
 
                 # Beverages & Mocktails
-                ("Beverages & Mocktails", "Royal Mango Lassi", "Thick churned creamy yogurt blended with sweet Ratnagiri Alphonso mango pulp and cardamom.", Decimal('120.00'), True),
-                ("Beverages & Mocktails", "Virgin Mint Mojito", "Muddled fresh mint sprigs, tangy Persian lime chunks, and cane sugar charged with bubbly club soda.", Decimal('130.00'), True),
-                ("Beverages & Mocktails", "Blue Lagoon Fizz", "Vibrant blue curacao syrup, lemon juice, sprite, and crushed ice garnished with a lemon wheel.", Decimal('140.00'), True),
-                ("Beverages & Mocktails", "Fresh Lime Soda (Sweet & Salt)", "Freshly squeezed lime juice with balanced sweet syrup and rock salt, topped with chilled soda.", Decimal('80.00'), True),
-                ("Beverages & Mocktails", "Cold Coffee with Ice Cream", "Rich espresso shaken with chilled milk and topped with a scoop of chocolate vanilla swirl.", Decimal('150.00'), True),
-                ("Beverages & Mocktails", "Peach Iced Tea", "Brewed black tea infused with natural peach nectar and served over cracked ice cubes.", Decimal('110.00'), True),
-                ("Beverages & Mocktails", "Masala Buttermilk (Chaas)", "Light spiced buttermilk churned with roasted cumin, rock salt, ginger, and fresh mint leaves.", Decimal('60.00'), True),
-                ("Beverages & Mocktails", "Kadak Masala Cutting Chai", "Strong aromatic tea boiled with crushed green cardamom, cloves, ginger, and buffalo milk.", Decimal('40.00'), True),
+                ("Beverages & Mocktails", "Royal Mango Lassi", "Thick churned creamy yogurt blended with sweet Ratnagiri Alphonso mango pulp and cardamom.", Decimal('120.00'), True, "https://images.unsplash.com/photo-1571006687898-3bfd4b4a1b02?w=800&auto=format&fit=crop&q=80"),
+                ("Beverages & Mocktails", "Virgin Mint Mojito", "Muddled fresh mint sprigs, tangy Persian lime chunks, and cane sugar charged with bubbly club soda.", Decimal('130.00'), True, "https://images.unsplash.com/photo-1551538827-9c037cb4f32a?w=800&auto=format&fit=crop&q=80"),
+                ("Beverages & Mocktails", "Blue Lagoon Fizz", "Vibrant blue curacao syrup, lemon juice, sprite, and crushed ice garnished with a lemon wheel.", Decimal('140.00'), True, "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=800&auto=format&fit=crop&q=80"),
+                ("Beverages & Mocktails", "Fresh Lime Soda (Sweet & Salt)", "Freshly squeezed lime juice with balanced sweet syrup and rock salt, topped with chilled soda.", Decimal('80.00'), True, "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=800&auto=format&fit=crop&q=80"),
+                ("Beverages & Mocktails", "Cold Coffee with Ice Cream", "Rich espresso shaken with chilled milk and topped with a scoop of chocolate vanilla swirl.", Decimal('150.00'), True, "https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?w=800&auto=format&fit=crop&q=80"),
+                ("Beverages & Mocktails", "Peach Iced Tea", "Brewed black tea infused with natural peach nectar and served over cracked ice cubes.", Decimal('110.00'), True, "https://images.unsplash.com/photo-1499638673689-79a0b5115d87?w=800&auto=format&fit=crop&q=80"),
+                ("Beverages & Mocktails", "Masala Buttermilk (Chaas)", "Light spiced buttermilk churned with roasted cumin, rock salt, ginger, and fresh mint leaves.", Decimal('60.00'), True, "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?w=800&auto=format&fit=crop&q=80"),
+                ("Beverages & Mocktails", "Kadak Masala Cutting Chai", "Strong aromatic tea boiled with crushed green cardamom, cloves, ginger, and buffalo milk.", Decimal('40.00'), True, "https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=800&auto=format&fit=crop&q=80"),
             ]
 
             menu_item_objs = {}
-            for cat_name, item_name, desc, price, is_veg in items_def:
+            for cat_name, item_name, desc, price, is_veg, img_url in items_def:
                 item, _ = MenuItem.objects.get_or_create(
                     category=cat_objs[cat_name],
                     name=item_name,
@@ -315,9 +315,15 @@ class Command(BaseCommand):
                         'description': desc,
                         'price': price,
                         'is_veg': is_veg,
-                        'is_available': True
+                        'is_available': True,
+                        'image_url': img_url
                     }
                 )
+                item.description = desc
+                item.price = price
+                item.is_veg = is_veg
+                item.image_url = img_url
+                item.save(update_fields=['description', 'price', 'is_veg', 'image_url'])
                 menu_item_objs[item_name] = item
 
             # -------------------------------------------------------------

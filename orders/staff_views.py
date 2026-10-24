@@ -641,6 +641,7 @@ def manager_create_item_view(request):
     description = request.POST.get('description', '').strip()
     price = request.POST.get('price', 0)
     is_veg = request.POST.get('is_veg') == '1'
+    image_url = request.POST.get('image_url', '').strip()
 
     category = get_object_or_404(Category, pk=category_id)
     if not name or float(price) <= 0:
@@ -656,9 +657,51 @@ def manager_create_item_view(request):
         price=price,
         is_veg=is_veg,
         is_available=True,
-        image=image_file
+        image=image_file,
+        image_url=image_url or None
     )
     messages.success(request, f"Successfully created new menu item: {item.name} (₹{item.price}).")
+    return redirect(reverse('orders:manager_dashboard') + '#menu-pane')
+
+
+@login_required
+@staff_role_required([StaffProfile.ROLE_MANAGER])
+@require_POST
+def manager_edit_item_view(request, item_id):
+    """Updates an existing food item in the digital menu."""
+    item = get_object_or_404(MenuItem, pk=item_id)
+    category_id = request.POST.get('category_id')
+    name = request.POST.get('name', '').strip()
+    description = request.POST.get('description', '').strip()
+    price = request.POST.get('price', 0)
+    is_veg = request.POST.get('is_veg') == '1'
+    image_url = request.POST.get('image_url', '').strip()
+
+    try:
+        price_val = float(price)
+        if not name or price_val <= 0:
+            messages.error(request, "Item name and valid positive price are required.")
+            return redirect(reverse('orders:manager_dashboard') + '#menu-pane')
+    except (ValueError, TypeError):
+        messages.error(request, "Invalid price amount entered.")
+        return redirect(reverse('orders:manager_dashboard') + '#menu-pane')
+
+    if category_id:
+        item.category = get_object_or_404(Category, pk=category_id)
+
+    item.name = name
+    item.description = description
+    item.price = price_val
+    item.is_veg = is_veg
+    item.image_url = image_url or None
+
+    if 'image' in request.FILES:
+        item.image = request.FILES['image']
+    elif request.POST.get('clear_image_file') == '1':
+        item.image = None
+
+    item.save()
+    messages.success(request, f"Successfully updated dish: {item.name}.")
     return redirect(reverse('orders:manager_dashboard') + '#menu-pane')
 
 

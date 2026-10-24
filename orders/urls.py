@@ -71,6 +71,7 @@ urlpatterns = [
     path('staff/manager/item/<int:item_id>/toggle-stock/', staff_views.manager_toggle_item_availability_view, name='manager_toggle_stock'),
     path('staff/manager/item/<int:item_id>/price/', staff_views.manager_update_item_price_view, name='manager_update_price'),
     path('staff/manager/item/<int:item_id>/delete/', staff_views.manager_delete_item_view, name='manager_delete_item'),
+    path('staff/manager/item/<int:item_id>/edit/', staff_views.manager_edit_item_view, name='manager_edit_item'),
     path('staff/manager/item/create/', staff_views.manager_create_item_view, name='manager_create_item'),
     path('staff/manager/category/create/', staff_views.manager_create_category_view, name='manager_create_category'),
     path('staff/manager/category/<int:category_id>/delete/', staff_views.manager_delete_category_view, name='manager_delete_category'),

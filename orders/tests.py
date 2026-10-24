@@ -210,18 +210,36 @@ class RealDiningFlowTests(TestCase):
         new_cat = Category.objects.get(name='Desserts & Sweets')
         self.assertEqual(new_cat.description, 'Traditional sweets and ice creams')
 
-        # 2. Create Menu Item under category
+        # 2. Create Menu Item under category with optional image_url
         res_item = self.client.post(reverse('orders:manager_create_item'), {
             'category_id': new_cat.id,
             'name': 'Gulab Jamun with Ice Cream',
             'description': 'Warm jamuns with vanilla scoop',
             'price': '140.00',
-            'is_veg': '1'
+            'is_veg': '1',
+            'image_url': 'https://images.unsplash.com/photo-1589119908995-c6837fa14d48'
         })
         self.assertEqual(res_item.status_code, 302)
         new_item = MenuItem.objects.get(name='Gulab Jamun with Ice Cream')
         self.assertEqual(new_item.price, Decimal('140.00'))
         self.assertTrue(new_item.is_veg)
+        self.assertEqual(new_item.image_url, 'https://images.unsplash.com/photo-1589119908995-c6837fa14d48')
+        self.assertEqual(new_item.get_image_url, 'https://images.unsplash.com/photo-1589119908995-c6837fa14d48')
+
+        # 2b. Edit Menu Item (edit name, price, and update image_url)
+        res_edit_item = self.client.post(reverse('orders:manager_edit_item', args=[new_item.id]), {
+            'category_id': new_cat.id,
+            'name': 'Royal Gulab Jamun with Ice Cream',
+            'description': 'Warm jamuns with vanilla scoop & pistachios',
+            'price': '160.00',
+            'is_veg': '1',
+            'image_url': 'https://images.unsplash.com/photo-updated'
+        })
+        self.assertEqual(res_edit_item.status_code, 302)
+        new_item.refresh_from_db()
+        self.assertEqual(new_item.name, 'Royal Gulab Jamun with Ice Cream')
+        self.assertEqual(new_item.price, Decimal('160.00'))
+        self.assertEqual(new_item.image_url, 'https://images.unsplash.com/photo-updated')
 
         # 3. Delete Menu Item
         res_del_item = self.client.post(reverse('orders:manager_delete_item', args=[new_item.id]))
