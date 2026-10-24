@@ -126,8 +126,8 @@ cp .env.example .env
 # Run database migrations
 python manage.py migrate
 
-# Seed initial restaurant menu, tables, and demo staff accounts
-python manage.py seed_data
+# Seed rich restaurant demo data (Staff, 47 dishes, Reviews, Tables, Live & Past Orders, Payments)
+python manage.py seed_demo_data --clear
 ```
 
 ### 5. Run Automated Tests
@@ -144,14 +144,20 @@ Open **`http://127.0.0.1:8000/`** in your browser.
 
 ---
 
-## 🔑 Demo Staff Login Credentials (College Viva / Evaluation)
+## 🔑 Demo Login Credentials (Staff & Customers)
 
-| Role | Username | Password | Dashboard URL |
+| Role | Username | Password | Dashboard / Access URL |
 |---|---|---|---|
-| **Restaurant Manager (Admin)** | `manager1` | `password123` | `/staff/manager/` |
-| **Kitchen Chef (KDS)** | `chef1` | `password123` | `/staff/kitchen/` |
-| **Floor Waiter** | `waiter1` | `password123` | `/staff/waiter/` |
-| **Superuser (Django Admin)** | `admin` | `admin123` | `/admin/` |
+| **Superuser / Master Admin** | `admin` | `admin123` | `/admin/` |
+| **Restaurant Manager** | `manager` | `manager123` | `/staff/manager/` |
+| **Floor Waiter (Captain)** | `waiter` | `waiter123` | `/staff/waiter/` |
+| **Floor Waiter 2 (Steward)** | `waiter2` | `waiter123` | `/staff/waiter/` |
+| **Floor Waiter 3 (Steward)** | `waiter3` | `waiter123` | `/staff/waiter/` |
+| **Kitchen Chef (Head Chef)** | `kitchen` | `kitchen123` | `/staff/kitchen/` |
+| **Kitchen Chef 2 (Sous Chef)** | `chef2` | `kitchen123` | `/staff/kitchen/` |
+| **Customer (Table T-03 Active)** | `siddhivinayak` | `customer123` | `/orders/session/live/` |
+| **Customer 2 (Table T-05 Ready)** | `aditi_s` | `customer123` | `/orders/session/live/` |
+| **Customer 3 (Table T-02 Pending)** | `rohit_v` | `customer123` | `/orders/session/live/` |
 
 ---
 
@@ -213,6 +219,22 @@ sudo bash /var/www/food-menu/gcp/update_app.sh
 6. Fixes `www-data` ownership permissions.
 7. Restarts Gunicorn daemon: `sudo systemctl restart food_menu`.
 8. Reloads Nginx and reports live service health.
+
+---
+
+### 🌱 C. Resetting & Seeding Demo Data on Production
+
+To wipe old test database records and populate the complete realistic demo dataset (Staff accounts, Waiters, Chefs, Customers, 47 Menu dishes, Reviews, Historical & Live Orders, Combined Payments, and Table Locks):
+
+```bash
+sudo bash /var/www/food-menu/gcp/seed_database.sh
+```
+
+Or via the Django management command directly:
+```bash
+cd /var/www/food-menu
+./venv/bin/python manage.py seed_demo_data --clear
+```
 
 ---
 
