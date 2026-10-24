@@ -1,4 +1,9 @@
+import json
+import hmac
+import hashlib
 from decimal import Decimal
+from unittest import mock
+from django.conf import settings
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth.models import User
@@ -1236,6 +1241,102 @@ class DynamicTableCombinedPaymentAndStaffSecurityTests(TestCase):
             'password': 'freshSecureWaiterPass99'
         })
         self.assertRedirects(res_login, reverse('orders:waiter_dashboard'))
+
+
+class RazorpayIntegrationTests(TestCase):
+    """Automated tests for Razorpay Standard Web Checkout (Test Mode)."""
+
+    def setUp(self):
+        self.restaurant = Restaurant.objects.create(name="Test Kitchen", address="Test Rd", phone="9999999999")
+        self.table = RestaurantTable.objects.create(table_number='T-99', capacity=4, is_active=True, is_locked=True)
+        self.user = User.objects.create_user(username='diner_test', password='password123', email='diner@test.com')
+        self.customer = self.user.customer_profile
+        self.customer.phone = "9876543210"
+        self.customer.save()
+        self.category = Category.objects.create(restaurant=self.restaurant, name='Desserts')
+        self.item = MenuItem.objects.create(category=self.category, name='Gulab Jamun', price=Decimal('100.00'), is_available=True)
+        self.session = DiningSession.objects.create(table=self.table, customer=self.customer)
+        self.order = Order.objects.create(
+            session=self.session,
+            customer=self.customer,
+            table=self.table,
+            table_number=self.table.table_number,
+            status=Order.STATUS_SERVED,
+            payment_status=Order.PAYMENT_STATUS_PENDING,
+            total_amount=Decimal('105.00')
+        )
+        self.payment = Payment.objects.create(order=self.order, amount=self.order.total_amount, status=Payment.STATUS_PENDING)
+
+    def test_razorpay_create_order_validation(self):
+        """Rejects empty request or amounts under 100 paise (₹1.00)."""
+        res_empty = self.client.post(reverse('orders:api_create_order'), data=json.dumps({}), content_type='application/json')
+        self.assertEqual(res_empty.status_code, 400)
+        self.assertFalse(res_empty.json()['success'])
+
+        res_low = self.client.post(reverse('orders:api_create_order'), data=json.dumps({'amount': 0.50}), content_type='application/json')
+        self.assertEqual(res_low.status_code, 400)
+        self.assertIn('Amount must be at least 100 paise', res_low.json()['error'])
+
+    def test_razorpay_create_order_success(self):
+        """Creates a real Razorpay order in test mode with correct amount in paise."""
+        res = self.client.post(reverse('orders:api_create_order'), data=json.dumps({'session_id': self.session.id}), content_type='application/json')
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+        self.assertTrue(data['success'])
+        self.assertTrue(data['order_id'].startswith('order_'))
+        self.assertEqual(data['amount'], 10500) # ₹105.00 = 10500 paise
+        self.assertEqual(data['currency'], 'INR')
+        self.assertEqual(data['key_id'], settings.RAZORPAY_KEY_ID)
+
+    def test_razorpay_verify_payment_tamper_detection(self):
+        """Rejects invalid signatures, returns 400, and does NOT mark order as paid."""
+        res = self.client.post(reverse('orders:api_verify_payment'), data=json.dumps({
+            'session_id': self.session.id,
+            'razorpay_order_id': 'order_fake12345',
+            'razorpay_payment_id': 'pay_fake12345',
+            'razorpay_signature': 'tampered_signature_hex'
+        }), content_type='application/json')
+        self.assertEqual(res.status_code, 400)
+        self.assertFalse(res.json()['success'])
+        self.assertIn('mismatch', res.json()['error'].lower())
+
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.payment_status, Order.PAYMENT_STATUS_PENDING)
+        self.assertTrue(self.session.is_active)
+
+    def test_razorpay_verify_payment_valid_signature_settles_session(self):
+        """Valid HMAC-SHA256 signature marks order/session as Paid and unlocks the table."""
+        rzp_order_id = 'order_validTest99'
+        rzp_payment_id = 'pay_validTest99'
+        msg = f"{rzp_order_id}|{rzp_payment_id}"
+        valid_signature = hmac.new(settings.RAZORPAY_KEY_SECRET.encode('utf-8'), msg.encode('utf-8'), hashlib.sha256).hexdigest()
+
+        # Mock verify_payment_signature on razorpay client to pass test utility
+        with mock.patch('razorpay.Client') as mock_client_cls:
+            mock_client = mock.MagicMock()
+            mock_client.utility.verify_payment_signature.return_value = True
+            mock_client_cls.return_value = mock_client
+
+            res = self.client.post(reverse('orders:api_verify_payment'), data=json.dumps({
+                'session_id': self.session.id,
+                'razorpay_order_id': rzp_order_id,
+                'razorpay_payment_id': rzp_payment_id,
+                'razorpay_signature': valid_signature
+            }), content_type='application/json')
+
+            self.assertEqual(res.status_code, 200)
+            self.assertTrue(res.json()['success'])
+            self.assertEqual(res.json()['payment_id'], rzp_payment_id)
+
+            self.order.refresh_from_db()
+            self.session.refresh_from_db()
+            self.table.refresh_from_db()
+
+            self.assertEqual(self.order.payment_status, Order.PAYMENT_STATUS_PAID)
+            self.assertEqual(self.order.status, Order.STATUS_COMPLETED)
+            self.assertFalse(self.session.is_active)
+            self.assertFalse(self.table.is_locked)
+
 
 
 

@@ -36,6 +36,12 @@ urlpatterns = [
     
     path('my-orders/', views.my_orders_view, name='my_orders'),
 
+    # Razorpay Standard Web Checkout Endpoints
+    path('api/create-order/', views.razorpay_create_order_view, name='api_create_order'),
+    path('api/verify-payment/', views.razorpay_verify_payment_view, name='api_verify_payment'),
+    path('api/razorpay/create-order/', views.razorpay_create_order_view, name='razorpay_create_order'),
+    path('api/razorpay/verify-payment/', views.razorpay_verify_payment_view, name='razorpay_verify_payment'),
+
     # AJAX APIs for modern dynamic frontend
     path('api/tables/status/', views.api_tables_status, name='api_tables_status'),
     path('api/my-active-order/', views.api_my_active_order, name='api_my_active_order'),

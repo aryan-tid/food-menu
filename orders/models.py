@@ -407,11 +407,13 @@ class Payment(models.Model):
     METHOD_CASH_COUNTER = 'CASH_COUNTER'
     METHOD_ONLINE_UPI = 'ONLINE_UPI'
     METHOD_ONLINE_CARD = 'ONLINE_CARD'
+    METHOD_ONLINE_RAZORPAY = 'ONLINE_RAZORPAY'
 
     METHOD_CHOICES = [
         (METHOD_CASH_COUNTER, 'Cash at Counter / Reception'),
         (METHOD_ONLINE_UPI, 'Online UPI (GPay / PhonePe / Paytm)'),
         (METHOD_ONLINE_CARD, 'Credit / Debit Card'),
+        (METHOD_ONLINE_RAZORPAY, 'Razorpay Online Gateway'),
     ]
 
     STATUS_PENDING = 'Pending'

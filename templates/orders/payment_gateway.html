@@ -1,92 +1,85 @@
 {% extends 'base.html' %}
 
-{% block title %}FastPay Gateway - Order #{{ order.id }}{% endblock %}
+{% block title %}Razorpay Checkout - Order #{{ order.id }}{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center py-4">
+<div class="row justify-content-center py-3 py-md-4">
     <div class="col-12 col-md-8 col-lg-5">
         <div class="card-surface overflow-hidden shadow-lg border-0 rounded-4">
-            <!-- Gateway Top Brand Bar -->
-            <div class="p-4 text-center text-white" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
-                <div class="d-inline-flex p-2 bg-white bg-opacity-10 rounded-circle mb-2 fs-4 text-warning">
+            <!-- Razorpay Gateway Top Header -->
+            <div class="p-4 text-center text-white position-relative" style="background: linear-gradient(135deg, #072654 0%, #0c2340 50%, #0284c7 100%);">
+                <div class="d-inline-flex p-2.5 bg-white bg-opacity-15 rounded-circle mb-2 fs-3 text-white shadow-sm">
                     <i class="bi bi-shield-check"></i>
                 </div>
-                <h5 class="fw-bold mb-0">FastPay Digital Checkout</h5>
-                <span class="text-white-50 small" style="font-size: 0.75rem;">256-Bit SSL Encrypted Mock Gateway</span>
+                <h5 class="fw-bold mb-1">Razorpay Standard Checkout</h5>
+                <span class="badge bg-warning bg-opacity-25 text-warning border border-warning border-opacity-50 px-2.5 py-1 rounded-pill fw-semibold" style="font-size: 0.72rem;">
+                    <i class="bi bi-lightning-charge-fill me-1"></i>Test Sandbox Mode Active
+                </span>
             </div>
 
             <div class="p-4">
+                <!-- Order & Location Summary -->
                 <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
                     <div>
-                        <span class="text-muted small d-block">Order #{{ order.id }}</span>
-                        <h6 class="fw-bold mb-0" style="color: var(--text-primary);">Table {{ order.table_number|default:'Takeaway' }}</h6>
+                        <span class="text-muted small d-block" style="font-size: 0.75rem;">Order Reference</span>
+                        <h6 class="fw-bold mb-0" style="color: var(--text-primary);">Order #{{ order.id }}</h6>
+                        <span class="text-muted" style="font-size: 0.72rem;">{{ order.table_number|default:'Takeaway / Pickup' }}</span>
                     </div>
                     <div class="text-end">
-                        <span class="text-muted small d-block">Amount Due</span>
-                        <h4 class="fw-bold text-danger mb-0">₹{{ order.total_amount }}</h4>
+                        <span class="text-muted small d-block" style="font-size: 0.75rem;">Amount Due</span>
+                        <h3 class="fw-black brand-font mb-0" style="color: var(--color-primary);">₹{{ order.total_amount }}</h3>
                     </div>
                 </div>
 
-                <form method="POST" id="gatewayPaymentForm">
-                    {% csrf_token %}
+                <!-- Test Mode Sandbox Callout -->
+                <div class="alert alert-info border-0 rounded-3 p-3 mb-4 d-flex align-items-start gap-2.5" style="background: rgba(2, 132, 199, 0.1); color: #0284c7;">
+                    <i class="bi bi-info-circle-fill fs-5 flex-shrink-0 mt-0.5"></i>
+                    <div style="font-size: 0.80rem; line-height: 1.4;">
+                        <strong>Safe Simulation:</strong> No real bank charges will be made. You can use Razorpay's test UPI IDs (e.g. <code>success@razorpay</code>) or test cards to complete this payment.
+                    </div>
+                </div>
 
-                    <!-- Payment Mode Tabs -->
-                    <ul class="nav nav-pills nav-fill mb-3 bg-surface-raised p-1 rounded-3" id="paymentTabs" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active small py-2 fw-semibold" id="upi-tab" data-bs-toggle="pill" data-bs-target="#upi-pane" type="button" role="tab" onclick="document.getElementById('methodInput').value='ONLINE_UPI'">
-                                <i class="bi bi-qr-code-scan me-1"></i> UPI QR Code
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link small py-2 fw-semibold" id="card-tab" data-bs-toggle="pill" data-bs-target="#card-pane" type="button" role="tab" onclick="document.getElementById('methodInput').value='ONLINE_CARD'">
-                                <i class="bi bi-credit-card me-1"></i> Card
-                            </button>
-                        </li>
-                    </ul>
+                <!-- Error Alert Box (Hidden by default) -->
+                <div id="paymentErrorAlert" class="alert alert-danger border-0 rounded-3 p-3 mb-3 d-none align-items-center gap-2" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill fs-5 flex-shrink-0"></i>
+                    <div id="paymentErrorMessage" style="font-size: 0.82rem;"></div>
+                </div>
 
-                    <input type="hidden" name="method" value="ONLINE_UPI" id="methodInput">
+                <!-- Primary Action: Razorpay Standard Web Checkout -->
+                <div class="mb-3">
+                    <button type="button" id="rzpPayBtn" class="btn btn-lg w-100 py-3 rounded-3 fw-bold text-white shadow d-flex align-items-center justify-content-center gap-2" style="background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); font-size: 1.05rem;">
+                        <i class="bi bi-credit-card-2-front-fill fs-5"></i> Pay ₹{{ order.total_amount }} with Razorpay
+                    </button>
+                    <div class="text-center mt-2 text-muted" style="font-size: 0.72rem;">
+                        <i class="bi bi-lock-fill me-1 text-success"></i> Secured by 256-Bit Razorpay SSL &bull; UPI, Cards, Netbanking
+                    </div>
+                </div>
 
-                    <div class="tab-content mb-4" id="paymentTabContent">
-                        <!-- UPI Pane -->
-                        <div class="tab-pane fade show active text-center p-3 border rounded-3 bg-surface-raised" id="upi-pane" role="tabpanel">
-                            <div class="d-flex justify-content-between align-items-center mb-2 small text-muted">
-                                <span>Scan & Pay via GPay / PhonePe / Paytm</span>
-                                <span class="badge bg-danger rounded-pill"><i class="bi bi-stopwatch me-1"></i><span id="qrTimer">09:59</span></span>
-                            </div>
+                <!-- Secondary Option: Pay with Cash at Reception -->
+                <div class="pt-3 border-top">
+                    <button class="btn btn-outline-surface w-100 py-2 rounded-3 text-secondary small fw-semibold d-flex align-items-center justify-content-center gap-1.5" type="button" data-bs-toggle="collapse" data-bs-target="#cashCounterCollapse" aria-expanded="false">
+                        <i class="bi bi-cash-stack"></i> Prefer Cash? Settle at Reception
+                    </button>
 
-                            <div class="d-inline-block p-2 bg-white rounded-3 shadow-sm mb-2">
-                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=restaurant@bank%26pn=SpiceGarden%26am={{ order.total_amount }}%26cu=INR" alt="UPI QR" width="140" height="140">
-                            </div>
-                            <div class="small fw-semibold text-secondary">UPI VPA: <code>spicegarden@okhdfcbank</code></div>
-                        </div>
-
-                        <!-- Card Pane -->
-                        <div class="tab-pane fade p-3 border rounded-3 bg-surface-raised" id="card-pane" role="tabpanel">
-                            <div class="mb-2">
-                                <label class="form-label small fw-semibold text-muted">Card Number</label>
-                                <input type="text" class="form-control form-control-sm" placeholder="4111 •••• •••• 1111" value="4111 2222 3333 4444">
-                            </div>
-                            <div class="row g-2">
-                                <div class="col-6">
-                                    <label class="form-label small fw-semibold text-muted">Expiry</label>
-                                    <input type="text" class="form-control form-control-sm" placeholder="MM/YY" value="12/28">
-                                </div>
-                                <div class="col-6">
-                                    <label class="form-label small fw-semibold text-muted">CVV</label>
-                                    <input type="password" class="form-control form-control-sm" placeholder="123" value="999">
-                                </div>
-                            </div>
+                    <div class="collapse mt-2" id="cashCounterCollapse">
+                        <div class="p-3 rounded-3 bg-surface-raised border">
+                            <p class="text-muted small mb-2" style="font-size: 0.78rem;">
+                                If you wish to pay cash at the restaurant counter, click below to mark your order for counter settlement.
+                            </p>
+                            <form method="POST" id="cashCounterForm">
+                                {% csrf_token %}
+                                <input type="hidden" name="method" value="CASH_COUNTER">
+                                <button type="submit" class="btn btn-sm btn-outline-success w-100 py-2 rounded-2 fw-semibold">
+                                    <i class="bi bi-check2-circle me-1"></i> Confirm Cash at Counter (₹{{ order.total_amount }})
+                                </button>
+                            </form>
                         </div>
                     </div>
-
-                    <button type="submit" class="btn btn-brand w-100 py-3 rounded-3 fw-bold fs-6 shadow" id="confirmPaymentBtn">
-                        <i class="bi bi-shield-check me-1"></i> Approve & Settle ₹{{ order.total_amount }}
-                    </button>
-                </form>
+                </div>
 
                 <div class="text-center mt-3">
                     <a href="{% url 'orders:order_live' order.id %}" class="small text-muted text-decoration-none">
-                        <i class="bi bi-arrow-left me-1"></i> Cancel and Pay at Counter
+                        <i class="bi bi-arrow-left me-1"></i> Back to Live Order Status
                     </a>
                 </div>
             </div>
@@ -96,23 +89,146 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-    // Cosmetic countdown timer for UPI QR
-    let secondsLeft = 599;
-    const timerEl = document.getElementById('qrTimer');
-    setInterval(() => {
-        if (secondsLeft > 0) {
-            secondsLeft--;
-            const mins = Math.floor(secondsLeft / 60).toString().padStart(2, '0');
-            const secs = (secondsLeft % 60).toString().padStart(2, '0');
-            timerEl.textContent = `${mins}:${secs}`;
-        }
-    }, 1000);
+<!-- Razorpay Standard Web Checkout Official Script -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
-    document.getElementById('gatewayPaymentForm').addEventListener('submit', function() {
-        const btn = document.getElementById('confirmPaymentBtn');
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Processing Payment...';
-    });
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const payBtn = document.getElementById('rzpPayBtn');
+    const errorAlert = document.getElementById('paymentErrorAlert');
+    const errorMessage = document.getElementById('paymentErrorMessage');
+
+    function showError(msg) {
+        if (errorAlert && errorMessage) {
+            errorMessage.textContent = msg;
+            errorAlert.classList.remove('d-none');
+            errorAlert.classList.add('d-flex');
+        } else {
+            alert(msg);
+        }
+    }
+
+    function hideError() {
+        if (errorAlert) {
+            errorAlert.classList.add('d-none');
+            errorAlert.classList.remove('d-flex');
+        }
+    }
+
+    if (payBtn) {
+        payBtn.addEventListener('click', async function() {
+            hideError();
+            const originalHtml = payBtn.innerHTML;
+            payBtn.disabled = true;
+            payBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Initializing Razorpay...';
+
+            try {
+                // STEP 1: BACKEND - Call Create Order API
+                const response = await fetch('/api/create-order/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({
+                        order_id: {{ order.id }}
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || !data.success || !data.order_id) {
+                    throw new Error(data.error || 'Failed to create Razorpay order.');
+                }
+
+                // STEP 2: FRONTEND - Open Razorpay Standard Checkout Modal
+                const options = {
+                    key: data.key_id || '{{ razorpay_key_id }}',
+                    amount: data.amount,
+                    currency: data.currency || 'INR',
+                    name: data.name || "{{ restaurant.name|default:'Spice Garden' }}",
+                    description: data.description || "Order #{{ order.id }}",
+                    image: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍛</text></svg>",
+                    order_id: data.order_id,
+                    prefill: data.prefill || {},
+                    theme: {
+                        color: "#0284c7"
+                    },
+                    modal: {
+                        ondismiss: function() {
+                            payBtn.disabled = false;
+                            payBtn.innerHTML = originalHtml;
+                            if (typeof showAppToast === 'function') {
+                                showAppToast('Checkout closed by user.');
+                            }
+                        }
+                    },
+                    handler: async function(rzpResponse) {
+                        // Received: razorpay_payment_id, razorpay_order_id, razorpay_signature
+                        payBtn.disabled = true;
+                        payBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Verifying Payment Signature...';
+
+                        try {
+                            // STEP 3: BACKEND - Verify Signature API
+                            const verifyRes = await fetch('/api/verify-payment/', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRFToken': '{{ csrf_token }}'
+                                },
+                                body: JSON.stringify({
+                                    razorpay_payment_id: rzpResponse.razorpay_payment_id,
+                                    razorpay_order_id: rzpResponse.razorpay_order_id,
+                                    razorpay_signature: rzpResponse.razorpay_signature,
+                                    order_id: {{ order.id }}
+                                })
+                            });
+
+                            const verifyData = await verifyRes.json();
+
+                            if (verifyRes.ok && verifyData.success) {
+                                payBtn.className = "btn btn-lg btn-success w-100 py-3 rounded-3 fw-bold text-white shadow d-flex align-items-center justify-content-center gap-2";
+                                payBtn.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Payment Verified! Redirecting...';
+                                window.location.href = verifyData.redirect_url || "{% url 'orders:order_invoice' order.id %}";
+                            } else {
+                                throw new Error(verifyData.error || 'Payment signature verification failed.');
+                            }
+                        } catch (verifyErr) {
+                            payBtn.disabled = false;
+                            payBtn.innerHTML = originalHtml;
+                            showError(verifyErr.message);
+                        }
+                    }
+                };
+
+                const rzp = new Razorpay(options);
+                rzp.on('payment.failed', function(resp) {
+                    payBtn.disabled = false;
+                    payBtn.innerHTML = originalHtml;
+                    const reason = (resp.error && (resp.error.description || resp.error.reason)) || 'Transaction was declined.';
+                    showError('Payment Failed: ' + reason);
+                });
+                rzp.open();
+
+            } catch (err) {
+                payBtn.disabled = false;
+                payBtn.innerHTML = originalHtml;
+                showError(err.message);
+            }
+        });
+    }
+
+    // Cash at Counter confirmation spinner
+    const cashForm = document.getElementById('cashCounterForm');
+    if (cashForm) {
+        cashForm.addEventListener('submit', function() {
+            const submitBtn = cashForm.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Confirming with Counter...';
+            }
+        });
+    }
+});
 </script>
 {% endblock %}

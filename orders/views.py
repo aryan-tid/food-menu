@@ -1,15 +1,21 @@
+import json
+import hmac
+import hashlib
 import random
 import string
 from decimal import Decimal
+import razorpay
+from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib import messages
 from django.utils import timezone
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
+from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
 from django.contrib.auth.decorators import login_required
-from menu.models import MenuItem
+from menu.models import MenuItem, Restaurant
 from accounts.models import Customer, StaffProfile
 from .models import RestaurantTable, Order, OrderItem, Payment, DiningSession, WaiterAlert
 from .staff_views import staff_role_required
@@ -302,7 +308,11 @@ def payment_gateway_view(request, order_id):
         messages.success(request, f"Payment of ₹{order.total_amount} successful! Ref: {txn_id}. Table lock released.")
         return redirect('orders:order_live', order_id=order.id)
 
-    return render(request, 'orders/payment_gateway.html', {'order': order, 'payment': payment})
+    return render(request, 'orders/payment_gateway.html', {
+        'order': order,
+        'payment': payment,
+        'razorpay_key_id': getattr(settings, 'RAZORPAY_KEY_ID', '')
+    })
 
 
 def order_live_view(request, order_id):
@@ -445,7 +455,8 @@ def session_payment_gateway_view(request, session_id):
     return render(request, 'orders/session_payment.html', {
         'session': session_obj,
         'amount_due': amount_due,
-        'unpaid_orders': unpaid_orders
+        'unpaid_orders': unpaid_orders,
+        'razorpay_key_id': getattr(settings, 'RAZORPAY_KEY_ID', '')
     })
 
 
@@ -895,5 +906,303 @@ def api_tables_status(request):
         'success': True,
         'tables': tables_data,
         'current_table_number': current_table_num or '',
+    })
+
+
+def get_razorpay_client():
+    """Initializes and returns an authenticated Razorpay Client."""
+    key_id = getattr(settings, 'RAZORPAY_KEY_ID', '')
+    key_secret = getattr(settings, 'RAZORPAY_KEY_SECRET', '')
+    if not key_id or not key_secret:
+        raise ValueError("Razorpay credentials not configured in settings/environment.")
+    return razorpay.Client(auth=(key_id, key_secret))
+
+
+@csrf_exempt
+@require_POST
+def razorpay_create_order_view(request):
+    """
+    Razorpay Standard Web Checkout - Step 1: Create Order
+    Endpoint: POST /api/create-order/ or /api/razorpay/create-order/
+    - Accepts JSON payload or form-encoded POST
+    - Request: { amount (paise or INR), currency, receipt, order_id, session_id }
+    - Minimum amount: 100 paise (₹1.00)
+    - Calls Razorpay API: POST https://api.razorpay.com/v1/orders
+    - Returns JSON: { 'success': True, 'order_id': rzp_order_id, 'amount': paise, 'currency': 'INR', 'key_id': KEY_ID }
+    """
+    try:
+        if request.content_type == 'application/json':
+            data = json.loads(request.body.decode('utf-8'))
+        else:
+            data = request.POST
+    except Exception:
+        data = request.POST
+
+    session_id = data.get('session_id')
+    order_id = data.get('order_id')
+    raw_amount = data.get('amount')
+    currency = data.get('currency', 'INR')
+
+    restaurant = Restaurant.objects.first()
+    rest_name = restaurant.name if restaurant else "Spice Garden"
+    description = "Restaurant Dining Bill"
+    prefill = {
+        'name': '',
+        'email': '',
+        'contact': ''
+    }
+
+    amount_paise = 0
+    receipt = f"rcpt_{int(timezone.now().timestamp())}"
+
+    if session_id:
+        try:
+            session_obj = DiningSession.objects.get(pk=session_id)
+        except DiningSession.DoesNotExist:
+            return JsonResponse({'success': False, 'error': f'Dining Session #{session_id} not found.'}, status=404)
+
+        if not session_obj.is_active:
+            return JsonResponse({'success': False, 'error': 'This dining session is already settled and closed.'}, status=400)
+
+        # Check for undelivered food
+        active_orders = session_obj.orders.exclude(status=Order.STATUS_CANCELLED)
+        has_undelivered = active_orders.exclude(status__in=[Order.STATUS_SERVED, Order.STATUS_COMPLETED]).exists()
+        if has_undelivered:
+            return JsonResponse({
+                'success': False,
+                'error': 'Food is still being prepared or delivered! The bill can only be settled once all dishes have arrived at your table.'
+            }, status=400)
+
+        unpaid_orders = active_orders.filter(payment_status=Order.PAYMENT_STATUS_PENDING)
+        if not unpaid_orders.exists():
+            return JsonResponse({'success': False, 'error': 'All orders in this dining session are already settled.'}, status=400)
+        amount_due = sum((o.total_amount for o in unpaid_orders), Decimal('0.00'))
+        if amount_due <= 0:
+            amount_due = session_obj.total_spent
+        amount_paise = int(amount_due * 100)
+        receipt = f"sess_{session_obj.id}_{int(timezone.now().timestamp())}"[:40]
+        description = f"Dining Session #{session_obj.id} (Table {session_obj.table_number})"
+        if session_obj.customer and session_obj.customer.user:
+            prefill['name'] = session_obj.customer.user.get_full_name() or session_obj.customer.user.username
+            prefill['email'] = session_obj.customer.user.email
+            prefill['contact'] = getattr(session_obj.customer, 'phone', '')
+
+    elif order_id:
+        try:
+            order_obj = Order.objects.get(pk=order_id)
+        except Order.DoesNotExist:
+            return JsonResponse({'success': False, 'error': f'Order #{order_id} not found.'}, status=404)
+
+        if order_obj.payment_status == Order.PAYMENT_STATUS_PAID:
+            return JsonResponse({'success': False, 'error': f'Order #{order_id} is already settled.'}, status=400)
+
+        if order_obj.table and order_obj.status not in [Order.STATUS_SERVED, Order.STATUS_COMPLETED]:
+            return JsonResponse({
+                'success': False,
+                'error': 'This order cannot be settled yet. Food must be delivered to your table before payment.'
+            }, status=400)
+
+        amount_paise = int(order_obj.total_amount * 100)
+        receipt = f"ord_{order_obj.id}_{int(timezone.now().timestamp())}"[:40]
+        description = f"Order #{order_obj.id} ({order_obj.table_number or 'Takeaway'})"
+        if order_obj.customer and order_obj.customer.user:
+            prefill['name'] = order_obj.customer.user.get_full_name() or order_obj.customer.user.username
+            prefill['email'] = order_obj.customer.user.email
+            prefill['contact'] = getattr(order_obj.customer, 'phone', '')
+
+    elif raw_amount is not None:
+        try:
+            val = float(raw_amount)
+            if data.get('is_paise') or (val >= 100 and val == int(val) and '.' not in str(raw_amount)):
+                amount_paise = int(val)
+            else:
+                amount_paise = int(val * 100)
+        except (ValueError, TypeError):
+            return JsonResponse({'success': False, 'error': 'Invalid amount parameter.'}, status=400)
+    else:
+        return JsonResponse({'success': False, 'error': 'Either session_id, order_id, or amount parameter is required.'}, status=400)
+
+    # Validate minimum amount: 100 paise (₹1.00)
+    if amount_paise < 100:
+        return JsonResponse({
+            'success': False,
+            'error': f'Amount must be at least 100 paise (₹1.00). Received {amount_paise} paise.'
+        }, status=400)
+
+    try:
+        client = get_razorpay_client()
+        order_params = {
+            'amount': amount_paise,
+            'currency': currency,
+            'receipt': receipt,
+            'payment_capture': 1,
+            'notes': {
+                'description': description,
+                'session_id': str(session_id) if session_id else '',
+                'order_id': str(order_id) if order_id else ''
+            }
+        }
+        razorpay_order = client.order.create(data=order_params)
+        return JsonResponse({
+            'success': True,
+            'order_id': razorpay_order['id'],
+            'amount': razorpay_order['amount'],
+            'currency': razorpay_order['currency'],
+            'key_id': getattr(settings, 'RAZORPAY_KEY_ID', ''),
+            'name': rest_name,
+            'description': description,
+            'prefill': prefill
+        })
+    except razorpay.errors.AuthenticationError:
+        return JsonResponse({'success': False, 'error': 'Razorpay authentication failed. Check API keys.'}, status=401)
+    except razorpay.errors.BadRequestError as e:
+        return JsonResponse({'success': False, 'error': f'Razorpay Bad Request: {str(e)}'}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': f'Failed to create Razorpay order: {str(e)}'}, status=500)
+
+
+@csrf_exempt
+@require_POST
+def razorpay_verify_payment_view(request):
+    """
+    Razorpay Standard Web Checkout - Step 3: Verify Signature
+    Endpoint: POST /api/verify-payment/ or /api/razorpay/verify-payment/
+    - Receives razorpay_payment_id, razorpay_order_id, razorpay_signature
+    - Algorithm: HMAC-SHA256(order_id + "|" + payment_id, KEY_SECRET)
+    - Compares generated signature with razorpay_signature
+    - Return success only if signatures match
+    - Signature mismatch: returns 400, does NOT mark as paid
+    - Missing fields: returns 400
+    """
+    try:
+        if request.content_type == 'application/json':
+            data = json.loads(request.body.decode('utf-8'))
+        else:
+            data = request.POST
+    except Exception:
+        data = request.POST
+
+    payment_id = data.get('razorpay_payment_id')
+    order_id = data.get('razorpay_order_id')
+    signature = data.get('razorpay_signature')
+    session_id = data.get('session_id')
+    internal_order_id = data.get('order_id')
+
+    # Missing fields check
+    if not (payment_id and order_id and signature):
+        return JsonResponse({
+            'success': False,
+            'error': 'Missing required fields. razorpay_payment_id, razorpay_order_id, and razorpay_signature are all mandatory.'
+        }, status=400)
+
+    key_secret = getattr(settings, 'RAZORPAY_KEY_SECRET', '')
+    if not key_secret:
+        return JsonResponse({'success': False, 'error': 'Razorpay secret key not configured on server.'}, status=500)
+
+    # 1. Verify HMAC-SHA256 Signature
+    msg = f"{order_id}|{payment_id}"
+    generated_signature = hmac.new(
+        key_secret.encode('utf-8'),
+        msg.encode('utf-8'),
+        hashlib.sha256
+    ).hexdigest()
+
+    if not hmac.compare_digest(generated_signature, signature):
+        return JsonResponse({
+            'success': False,
+            'error': 'Payment signature mismatch! Potential security tampering detected.'
+        }, status=400)
+
+    # 2. Verify with Razorpay SDK utility as additional security validation
+    try:
+        client = get_razorpay_client()
+        client.utility.verify_payment_signature({
+            'razorpay_order_id': order_id,
+            'razorpay_payment_id': payment_id,
+            'razorpay_signature': signature
+        })
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': f'Signature verification failed: {str(e)}'}, status=400)
+
+    # 3. Signature matched! Update DB atomically
+    redirect_url = reverse('menu:menu_list')
+
+    if session_id:
+        try:
+            session_obj = DiningSession.objects.get(pk=session_id)
+            with transaction.atomic():
+                for ord_obj in session_obj.orders.exclude(status=Order.STATUS_CANCELLED):
+                    ord_obj.payment_status = Order.PAYMENT_STATUS_PAID
+                    ord_obj.status = Order.STATUS_COMPLETED
+                    ord_obj.save(update_fields=['payment_status', 'status'])
+
+                    payment, created = Payment.objects.get_or_create(
+                        order=ord_obj,
+                        defaults={
+                            'amount': ord_obj.total_amount,
+                            'status': Payment.STATUS_PAID,
+                            'method': Payment.METHOD_ONLINE_RAZORPAY,
+                            'transaction_id': payment_id
+                        }
+                    )
+                    if not created:
+                        payment.status = Payment.STATUS_PAID
+                        payment.method = Payment.METHOD_ONLINE_RAZORPAY
+                        payment.transaction_id = payment_id
+                        payment.save()
+
+                session_obj.update_totals()
+                session_obj.end_session()
+
+            messages.success(request, f"Payment of ₹{session_obj.total_spent} verified successfully via Razorpay! Ref: {payment_id}")
+            redirect_url = reverse('orders:session_invoice', args=[session_obj.id])
+        except DiningSession.DoesNotExist:
+            return JsonResponse({'success': False, 'error': f'Dining Session #{session_id} not found.'}, status=404)
+
+    elif internal_order_id:
+        try:
+            ord_obj = Order.objects.get(pk=internal_order_id)
+            with transaction.atomic():
+                payment, created = Payment.objects.get_or_create(
+                    order=ord_obj,
+                    defaults={
+                        'amount': ord_obj.total_amount,
+                        'status': Payment.STATUS_PAID,
+                        'method': Payment.METHOD_ONLINE_RAZORPAY,
+                        'transaction_id': payment_id
+                    }
+                )
+                if not created:
+                    payment.status = Payment.STATUS_PAID
+                    payment.method = Payment.METHOD_ONLINE_RAZORPAY
+                    payment.transaction_id = payment_id
+                    payment.save()
+
+                ord_obj.payment_status = Order.PAYMENT_STATUS_PAID
+                ord_obj.status = Order.STATUS_COMPLETED
+                ord_obj.save(update_fields=['payment_status', 'status'])
+
+                if ord_obj.session:
+                    ord_obj.session.update_totals()
+                    unsettled = ord_obj.session.orders.filter(payment_status=Order.PAYMENT_STATUS_PENDING).exclude(pk=ord_obj.pk).exists()
+                    if not unsettled:
+                        for s_ord in ord_obj.session.orders.exclude(status=Order.STATUS_CANCELLED):
+                            s_ord.status = Order.STATUS_COMPLETED
+                            s_ord.save(update_fields=['status'])
+                        ord_obj.session.end_session()
+                elif ord_obj.table:
+                    ord_obj.table.release_lock()
+
+            messages.success(request, f"Payment of ₹{ord_obj.total_amount} verified successfully via Razorpay! Ref: {payment_id}")
+            redirect_url = reverse('orders:order_invoice', args=[ord_obj.id])
+        except Order.DoesNotExist:
+            return JsonResponse({'success': False, 'error': f'Order #{internal_order_id} not found.'}, status=404)
+
+    return JsonResponse({
+        'success': True,
+        'message': 'Payment signature verified successfully.',
+        'payment_id': payment_id,
+        'order_id': order_id,
+        'redirect_url': redirect_url
     })
 
