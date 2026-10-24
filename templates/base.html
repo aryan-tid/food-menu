@@ -565,6 +565,61 @@
             z-index: 1080;
         }
 
+        /* High-End Polished Dropdown Menu System */
+        .app-dropdown-menu {
+            min-width: 250px !important;
+            max-width: 310px !important;
+            background-color: var(--bg-surface) !important;
+            border: 1px solid var(--border-color) !important;
+            border-radius: 18px !important;
+            box-shadow: 0 16px 40px -4px rgba(0, 0, 0, 0.18), 0 0 0 1px var(--border-color) !important;
+            padding: 0.5rem !important;
+            z-index: 1060 !important;
+            box-sizing: border-box !important;
+        }
+        @media (max-width: 576px) {
+            .app-dropdown-menu {
+                min-width: 240px !important;
+                right: 0 !important;
+                left: auto !important;
+            }
+        }
+        .app-dropdown-item {
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.65rem !important;
+            padding: 0.55rem 0.85rem !important;
+            font-size: 0.86rem !important;
+            font-weight: 500 !important;
+            color: var(--text-primary) !important;
+            border-radius: 12px !important;
+            transition: all 0.15s ease !important;
+            white-space: nowrap !important;
+            text-decoration: none !important;
+            border: none;
+            width: 100%;
+            background: transparent;
+            text-align: left;
+            cursor: pointer;
+        }
+        .app-dropdown-item:hover, .app-dropdown-item:focus {
+            background-color: var(--bg-surface-raised) !important;
+            color: var(--color-primary) !important;
+        }
+        .app-dropdown-item.text-danger {
+            color: #ef4444 !important;
+        }
+        .app-dropdown-item.text-danger:hover {
+            background-color: rgba(239, 68, 68, 0.1) !important;
+            color: #dc2626 !important;
+        }
+        .app-dropdown-item i {
+            font-size: 1.05rem;
+            width: 20px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
         /* High-Contrast Robust Dark Mode Global Overrides */
         :root[data-theme="dark"] body {
             background-color: var(--bg-body);
@@ -905,27 +960,98 @@
 
             <!-- Right: Theme Toggle & Staff Logout -->
             <div class="d-flex align-items-center gap-1 gap-md-2 flex-shrink-0">
-                <!-- Theme Switcher (Hidden) -->
-                <button type="button" class="theme-toggle-btn p-1 px-2 d-none" onclick="changeTheme()" title="Toggle Light/Dark Theme">
+                <!-- Theme Switcher -->
+                {% if not user.is_authenticated %}
+                <button type="button" class="theme-toggle-btn p-1 px-2" onclick="changeTheme()" title="Toggle Light/Dark Theme">
                     <i class="bi bi-sun-fill d-none dark-icon fs-6 text-warning"></i>
                     <i class="bi bi-moon-stars-fill light-icon fs-6"></i>
                 </button>
+                {% endif %}
                 <div class="dropdown">
-                    <button class="btn btn-sm btn-outline-surface dropdown-toggle d-flex align-items-center gap-1 p-1 px-2" type="button" data-bs-toggle="dropdown">
+                    <button class="btn btn-sm btn-outline-surface dropdown-toggle d-flex align-items-center gap-1.5 p-1 px-2.5 rounded-pill" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="bi bi-person-badge"></i>
                         <span class="d-none d-lg-inline">{{ user.first_name|default:user.username }}</span>
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 card-surface mt-2">
-                        <li><a class="dropdown-item" href="{% url 'orders:kitchen_dashboard' %}"><i class="bi bi-egg-fried me-2 text-warning"></i> Kitchen KDS</a></li>
-                        <li><a class="dropdown-item" href="{% url 'orders:waiter_dashboard' %}"><i class="bi bi-person-badge me-2 text-info"></i> Waiter Floor</a></li>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 app-dropdown-menu mt-2">
+                        <!-- Staff Profile Header Card -->
+                        <li class="px-2.5 py-2 mb-1.5 border-bottom" style="border-color: var(--border-color) !important;">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="rounded-circle bg-warning text-dark d-flex align-items-center justify-content-center fw-bold shadow-sm flex-shrink-0" style="width: 34px; height: 34px; font-size: 0.9rem;">
+                                    {{ user.first_name|default:user.username|slice:":1"|upper }}
+                                </div>
+                                <div class="min-w-0" style="overflow: hidden;">
+                                    <strong class="d-block text-truncate small" style="color: var(--text-primary); line-height: 1.2;">{{ user.get_full_name|default:user.username }}</strong>
+                                    <span class="badge bg-warning text-dark fw-bold" style="font-size: 0.65rem;">
+                                        {{ staff_profile.get_role_display|default:"Administrator" }}
+                                    </span>
+                                </div>
+                            </div>
+                        </li>
+
+                        <!-- Navigation Items -->
+                        <li>
+                            <a class="dropdown-item app-dropdown-item" href="{% url 'orders:kitchen_dashboard' %}">
+                                <i class="bi bi-egg-fried text-warning"></i>
+                                <span>Kitchen KDS</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item app-dropdown-item" href="{% url 'orders:waiter_dashboard' %}">
+                                <i class="bi bi-person-badge text-info"></i>
+                                <span>Waiter Floor</span>
+                            </a>
+                        </li>
                         {% if staff_profile.is_manager or user.is_superuser %}
-                        <li><a class="dropdown-item" href="{% url 'orders:manager_dashboard' %}"><i class="bi bi-speedometer2 me-2 text-danger"></i> Manager Console</a></li>
-                        <li><a class="dropdown-item" href="/admin/"><i class="bi bi-database-gear me-2 text-warning"></i> Master Django Admin</a></li>
+                        <li>
+                            <a class="dropdown-item app-dropdown-item" href="{% url 'orders:manager_dashboard' %}">
+                                <i class="bi bi-speedometer2 text-danger"></i>
+                                <span>Manager Console</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item app-dropdown-item" href="/admin/">
+                                <i class="bi bi-database-gear text-warning"></i>
+                                <span>Master Django Admin</span>
+                            </a>
+                        </li>
                         {% endif %}
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#staffPasswordModal"><i class="bi bi-key-fill me-2 text-warning"></i> Change Password</a></li>
-                        <li><a class="dropdown-item" href="{% url 'menu:menu_list' %}"><i class="bi bi-book me-2"></i> View Customer Menu</a></li>
-                        <li><a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}"><i class="bi bi-box-arrow-right me-2"></i> Staff Sign Out</a></li>
+
+                        <li><hr class="dropdown-divider my-1.5" style="border-color: var(--border-color);"></li>
+
+                        <!-- Theme Switcher Item -->
+                        <li>
+                            <button type="button" class="dropdown-item app-dropdown-item justify-content-between" onclick="changeTheme()" title="Toggle Dark/Light Mode">
+                                <span class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-moon-stars-fill text-warning dropdown-theme-icon"></i>
+                                    <span class="dropdown-theme-label">Dark Theme</span>
+                                </span>
+                                <span class="badge bg-surface-raised border text-body dropdown-theme-badge px-2 py-0.5" style="font-size: 0.68rem;">
+                                    Switch
+                                </span>
+                            </button>
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item app-dropdown-item" href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#staffPasswordModal">
+                                <i class="bi bi-key-fill text-warning"></i>
+                                <span>Change Password</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item app-dropdown-item" href="{% url 'menu:menu_list' %}">
+                                <i class="bi bi-book text-primary"></i>
+                                <span>View Customer Menu</span>
+                            </a>
+                        </li>
+
+                        <li><hr class="dropdown-divider my-1.5" style="border-color: var(--border-color);"></li>
+
+                        <li>
+                            <a class="dropdown-item app-dropdown-item text-danger" href="{% url 'accounts:logout' %}">
+                                <i class="bi bi-box-arrow-right"></i>
+                                <span>Staff Sign Out</span>
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -965,11 +1091,13 @@
 
             <!-- Right Actions: Theme, Cart, Call Staff, User -->
             <div class="d-flex align-items-center gap-1 gap-md-2 flex-shrink-0">
-                <!-- Theme Switcher (Hidden) -->
-                <button type="button" class="theme-toggle-btn p-1 px-2 d-none" onclick="changeTheme()" title="Toggle Light/Dark Theme">
+                <!-- Theme Switcher -->
+                {% if not user.is_authenticated %}
+                <button type="button" class="theme-toggle-btn p-1 px-2" onclick="changeTheme()" title="Toggle Light/Dark Theme">
                     <i class="bi bi-sun-fill d-none dark-icon fs-6 text-warning"></i>
                     <i class="bi bi-moon-stars-fill light-icon fs-6"></i>
                 </button>
+                {% endif %}
 
                 <!-- Call Waiter Button (Desktop) -->
                 <button type="button" class="btn btn-sm btn-outline-surface d-none d-md-inline-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#waiterModal">
@@ -993,7 +1121,7 @@
                 <!-- User Dropdown / Sign-In -->
                 {% if user.is_authenticated %}
                     <div class="dropdown">
-                        <button class="btn btn-sm btn-outline-surface dropdown-toggle d-flex align-items-center gap-1 p-1 px-2" type="button" data-bs-toggle="dropdown">
+                        <button class="btn btn-sm btn-outline-surface dropdown-toggle d-flex align-items-center gap-1.5 p-1 px-2.5 rounded-pill" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                             {% if user.customer_profile.avatar_url %}
                                 <img src="{{ user.customer_profile.avatar_url }}" width="22" height="22" class="rounded-circle" alt="avatar">
                             {% else %}
@@ -1001,15 +1129,76 @@
                             {% endif %}
                             <span class="d-none d-lg-inline">{{ user.first_name|default:user.username }}</span>
                         </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 card-surface mt-2">
+                        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 app-dropdown-menu mt-2">
+                            <!-- Customer Profile Header Card -->
+                            <li class="px-2.5 py-2 mb-1.5 border-bottom" style="border-color: var(--border-color) !important;">
+                                <div class="d-flex align-items-center gap-2">
+                                    {% if user.customer_profile.avatar_url %}
+                                        <img src="{{ user.customer_profile.avatar_url }}" width="34" height="34" class="rounded-circle flex-shrink-0 shadow-sm" alt="avatar">
+                                    {% else %}
+                                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold shadow-sm flex-shrink-0" style="width: 34px; height: 34px; font-size: 0.9rem;">
+                                            {{ user.first_name|default:user.username|slice:":1"|upper }}
+                                        </div>
+                                    {% endif %}
+                                    <div class="min-w-0" style="overflow: hidden;">
+                                        <strong class="d-block text-truncate small" style="color: var(--text-primary); line-height: 1.2;">{{ user.get_full_name|default:user.username }}</strong>
+                                        <span class="badge bg-surface-raised border text-body fw-semibold" style="font-size: 0.65rem;">
+                                            {{ user.email|default:"Diner Member" }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </li>
+
                             {% if active_session %}
-                            <li><a class="dropdown-item" href="{% url 'orders:session_live' %}"><i class="bi bi-broadcast me-2 text-warning"></i> Active Live Session</a></li>
+                            <li>
+                                <a class="dropdown-item app-dropdown-item" href="{% url 'orders:session_live' %}">
+                                    <i class="bi bi-broadcast text-warning"></i>
+                                    <span>Active Live Session</span>
+                                </a>
+                            </li>
                             {% endif %}
-                            <li><a class="dropdown-item" href="{% url 'menu:my_reviews' %}"><i class="bi bi-star-half me-2 text-warning"></i> My Reviews</a></li>
-                            <li><a class="dropdown-item" href="{% url 'orders:my_orders' %}"><i class="bi bi-receipt-cutoff me-2"></i> Past Dining Records</a></li>
-                            <li><a class="dropdown-item" href="{% url 'accounts:profile' %}"><i class="bi bi-person-gear me-2"></i> Profile & Address</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}"><i class="bi bi-box-arrow-right me-2"></i> Sign Out</a></li>
+                            <li>
+                                <a class="dropdown-item app-dropdown-item" href="{% url 'menu:my_reviews' %}">
+                                    <i class="bi bi-star-half text-warning"></i>
+                                    <span>My Reviews</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item app-dropdown-item" href="{% url 'orders:my_orders' %}">
+                                    <i class="bi bi-receipt-cutoff text-primary"></i>
+                                    <span>Past Dining Records</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item app-dropdown-item" href="{% url 'accounts:profile' %}">
+                                    <i class="bi bi-person-gear text-info"></i>
+                                    <span>Profile & Address</span>
+                                </a>
+                            </li>
+
+                            <li><hr class="dropdown-divider my-1.5" style="border-color: var(--border-color);"></li>
+
+                            <!-- Theme Switcher Item -->
+                            <li>
+                                <button type="button" class="dropdown-item app-dropdown-item justify-content-between" onclick="changeTheme()" title="Toggle Dark/Light Mode">
+                                    <span class="d-flex align-items-center gap-2">
+                                        <i class="bi bi-moon-stars-fill text-warning dropdown-theme-icon"></i>
+                                        <span class="dropdown-theme-label">Dark Theme</span>
+                                    </span>
+                                    <span class="badge bg-surface-raised border text-body dropdown-theme-badge px-2 py-0.5" style="font-size: 0.68rem;">
+                                        Switch
+                                    </span>
+                                </button>
+                            </li>
+
+                            <li><hr class="dropdown-divider my-1.5" style="border-color: var(--border-color);"></li>
+
+                            <li>
+                                <a class="dropdown-item app-dropdown-item text-danger" href="{% url 'accounts:logout' %}">
+                                    <i class="bi bi-box-arrow-right"></i>
+                                    <span>Sign Out</span>
+                                </a>
+                            </li>
                         </ul>
                     </div>
                 {% else %}
@@ -1390,7 +1579,20 @@
                 }
             });
 
-            // 6. Broadcast event
+            // 6. Update dropdown theme switcher items
+            const isDark = (theme === 'dark');
+            document.querySelectorAll('.dropdown-theme-label').forEach(el => {
+                el.textContent = isDark ? 'Light Theme' : 'Dark Theme';
+            });
+            document.querySelectorAll('.dropdown-theme-icon').forEach(icon => {
+                icon.className = isDark ? 'bi bi-sun-fill text-warning dropdown-theme-icon' : 'bi bi-moon-stars-fill text-primary dropdown-theme-icon';
+            });
+            document.querySelectorAll('.dropdown-theme-badge').forEach(badge => {
+                badge.textContent = isDark ? 'Dark (On)' : 'Light';
+                badge.className = isDark ? 'badge bg-warning text-dark dropdown-theme-badge px-2 py-0.5' : 'badge bg-surface-raised border text-body dropdown-theme-badge px-2 py-0.5';
+            });
+
+            // 7. Broadcast event
             window.dispatchEvent(new CustomEvent('themechange', { detail: { theme } }));
             return theme;
         }
