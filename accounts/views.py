@@ -63,13 +63,13 @@ def firebase_login_view(request):
     first_name = parts[0]
     last_name = parts[1] if len(parts) > 1 else ''
 
-    # Get or create user
+    # Get or reuse existing user with matching email (case-insensitive)
     base_username = email.split('@')[0]
     username = base_username
     counter = 1
-    user = User.objects.filter(email=email).first()
+    user = User.objects.filter(email__iexact=email).order_by('-last_login', '-id').first()
     if not user:
-        while User.objects.filter(username=username).exists():
+        while User.objects.filter(username__iexact=username).exists():
             username = f"{base_username}{counter}"
             counter += 1
         user = User.objects.create_user(
@@ -89,7 +89,7 @@ def firebase_login_view(request):
     customer, _ = Customer.objects.get_or_create(user=user)
     if uid:
         customer.google_id = uid
-    if avatar_url:
+    if avatar_url and not customer.avatar_url:
         customer.avatar_url = avatar_url
     customer.save()
 
@@ -98,10 +98,23 @@ def firebase_login_view(request):
     login(request, user)
     messages.success(request, f"Welcome, {customer.name}! Signed in via Google.")
 
+    # Determine resolved redirect based on role or explicit next_url
+    resolved_redirect = next_url
+    if hasattr(user, 'staff_profile'):
+        role = user.staff_profile.role
+        if role == StaffProfile.ROLE_KITCHEN:
+            resolved_redirect = reverse('orders:kitchen_dashboard')
+        elif role == StaffProfile.ROLE_WAITER:
+            resolved_redirect = reverse('orders:waiter_dashboard')
+        else:
+            resolved_redirect = reverse('orders:manager_dashboard')
+    elif user.is_superuser:
+        resolved_redirect = reverse('orders:manager_dashboard')
+
     if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.content_type == 'application/json':
         return JsonResponse({
             'success': True,
-            'redirect_url': next_url,
+            'redirect_url': resolved_redirect,
             'user': {
                 'name': customer.name,
                 'email': customer.email,
@@ -109,7 +122,7 @@ def firebase_login_view(request):
             }
         })
 
-    return redirect(next_url)
+    return redirect(resolved_redirect)
 
 
 def google_login_view(request):
@@ -190,17 +203,21 @@ def google_login_view(request):
         google_id = f"goog_{abs(hash(email))}"
         avatar_url = f"https://ui-avatars.com/api/?name={first_name}+{last_name}&background=4285F4&color=fff&size=128"
 
-        # Create or retrieve user
-        username = email.split('@')[0]
-        user, created = User.objects.get_or_create(
-            email=email,
-            defaults={
-                'username': username,
-                'first_name': first_name,
-                'last_name': last_name,
-            }
-        )
-        if created:
+        # Retrieve existing user with matching email (case-insensitive) or create new
+        user = User.objects.filter(email__iexact=email).order_by('-last_login', '-id').first()
+        if not user:
+            base_username = email.split('@')[0]
+            username = base_username
+            counter = 1
+            while User.objects.filter(username__iexact=username).exists():
+                username = f"{base_username}{counter}"
+                counter += 1
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                first_name=first_name,
+                last_name=last_name
+            )
             user.set_unusable_password()
             user.save()
         else:
@@ -212,12 +229,26 @@ def google_login_view(request):
         # Update or create customer profile
         customer, _ = Customer.objects.get_or_create(user=user)
         customer.google_id = google_id
-        customer.avatar_url = avatar_url
+        if avatar_url and not customer.avatar_url:
+            customer.avatar_url = avatar_url
         customer.save()
 
         # Log user into Django session
+        user.backend = 'django.contrib.auth.backends.ModelBackend'
         login(request, user)
         messages.success(request, f"Welcome, {customer.name}! Signed in via Google.")
+
+        if hasattr(user, 'staff_profile'):
+            role = user.staff_profile.role
+            if role == StaffProfile.ROLE_KITCHEN:
+                return redirect('orders:kitchen_dashboard')
+            elif role == StaffProfile.ROLE_WAITER:
+                return redirect('orders:waiter_dashboard')
+            else:
+                return redirect('orders:manager_dashboard')
+        elif user.is_superuser:
+            return redirect('orders:manager_dashboard')
+
         return redirect(next_url)
 
     return render(request, 'accounts/google_login.html', {

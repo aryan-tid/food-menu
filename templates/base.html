@@ -707,6 +707,51 @@
             border: 1px solid #fca5a5 !important;
         }
 
+        /* Universal Veg / Non-Veg Square Badges (FSSAI standard) */
+        .zomato-veg-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 15px;
+            height: 15px;
+            border: 1.5px solid #16a34a;
+            border-radius: 3.5px;
+            background: #ffffff;
+            padding: 1px;
+            flex-shrink: 0;
+            vertical-align: middle;
+            box-sizing: border-box;
+        }
+        .zomato-veg-badge::after {
+            content: "";
+            width: 7px;
+            height: 7px;
+            background: #16a34a;
+            border-radius: 50%;
+        }
+        .zomato-nonveg-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 15px;
+            height: 15px;
+            border: 1.5px solid #dc2626;
+            border-radius: 3.5px;
+            background: #ffffff;
+            padding: 1px;
+            flex-shrink: 0;
+            vertical-align: middle;
+            box-sizing: border-box;
+        }
+        .zomato-nonveg-badge::after {
+            content: "";
+            width: 0;
+            height: 0;
+            border-left: 3.5px solid transparent;
+            border-right: 3.5px solid transparent;
+            border-bottom: 6px solid #dc2626;
+        }
+
         /* High-Contrast Robust Dark Mode Global Overrides */
         :root[data-theme="dark"] body {
             background-color: var(--bg-body);
@@ -1009,39 +1054,39 @@
     <!-- Desktop & Mobile Top Header -->
     {% if staff_profile or user.is_superuser %}
     <!-- DEDICATED STAFF OPERATIONS HEADER -->
-    <header class="glass-nav sticky-top border-bottom" style="border-color: rgba(245, 158, 11, 0.4) !important;">
+    <header class="glass-nav sticky-top border-bottom" style="border-color: rgba(245, 158, 11, 0.25) !important;">
         <div class="container d-flex align-items-center justify-content-between py-2 flex-nowrap" style="gap: 8px;">
             <!-- Staff Brand with Role Badge -->
-            <a href="{% if staff_profile.role == 'Kitchen' %}{% url 'orders:kitchen_dashboard' %}{% elif staff_profile.role == 'Waiter' %}{% url 'orders:waiter_dashboard' %}{% else %}{% url 'orders:manager_dashboard' %}{% endif %}" class="d-flex align-items-center gap-2 text-decoration-none flex-shrink-0 brand-logo-link staff-brand-link">
-                <span class="d-inline-flex align-items-center justify-content-center bg-warning text-dark rounded-circle shadow-sm flex-shrink-0" style="width: 34px; height: 34px;">
-                    <i class="bi bi-shield-lock-fill fs-6"></i>
+            <a href="{% if staff_profile.role == 'Kitchen' %}{% url 'orders:kitchen_dashboard' %}{% elif staff_profile.role == 'Waiter' %}{% url 'orders:waiter_dashboard' %}{% else %}{% url 'orders:manager_dashboard' %}{% endif %}" class="d-flex align-items-center gap-2.5 text-decoration-none flex-shrink-0 brand-logo-link staff-brand-link">
+                <span class="d-inline-flex align-items-center justify-content-center rounded-circle shadow-sm flex-shrink-0" style="width: 36px; height: 36px; background: linear-gradient(135deg, #f59e0b, #ea580c); color: #ffffff;">
+                    <i class="bi bi-shield-shaded fs-6"></i>
                 </span>
                 <div style="min-width: 0; overflow: hidden;">
-                    <span class="navbar-brand-title d-block text-truncate" style="font-size: 1.1rem; line-height: 1.2;">{{ restaurant.name|default:"Spice Garden" }}</span>
-                    <span class="badge bg-warning text-dark px-1.5 py-0 fw-bold" style="font-size: 0.65rem;">
+                    <span class="navbar-brand-title d-block text-truncate" style="font-size: 1.15rem; line-height: 1.2;">{{ restaurant.name|default:"Spice Garden" }}</span>
+                    <span class="badge rounded-pill px-2 py-0.5 fw-bold" style="font-size: 0.65rem; background: rgba(245, 158, 11, 0.16); color: #b45309; border: 1px solid rgba(245, 158, 11, 0.35);">
                         {% if staff_profile.role == 'Kitchen' %}👨‍🍳 Chef KDS{% elif staff_profile.role == 'Waiter' %}🧑‍💼 Floor Waiter{% else %}🛡️ Manager{% endif %}
                     </span>
                 </div>
             </a>
 
-            <!-- Quick Staff Navigation Tabs (Desktop & Tablet) -->
-            <div class="d-none d-md-flex align-items-center gap-2">
-                <a href="{% url 'orders:kitchen_dashboard' %}" class="btn btn-sm {% if request.resolver_match.url_name == 'kitchen_dashboard' %}btn-warning text-dark fw-bold shadow-sm{% else %}btn-outline-surface{% endif %} rounded-pill px-3">
-                    <i class="bi bi-egg-fried me-1"></i> Kitchen KDS
+            <!-- Quick Staff Navigation Tabs (Desktop & Tablet) Segmented Control -->
+            <div class="d-none d-md-flex align-items-center gap-1 p-1 rounded-pill bg-surface-raised border" style="font-size: 0.82rem;">
+                <a href="{% url 'orders:kitchen_dashboard' %}" class="btn btn-sm {% if request.resolver_match.url_name == 'kitchen_dashboard' %}btn-warning text-dark fw-bold shadow-sm{% else %}border-0 bg-transparent text-secondary{% endif %} rounded-pill px-3 py-1">
+                    <i class="bi bi-egg-fried me-1 text-warning"></i> Kitchen KDS
                 </a>
-                <a href="{% url 'orders:waiter_dashboard' %}" class="btn btn-sm {% if request.resolver_match.url_name == 'waiter_dashboard' %}btn-info text-dark fw-bold shadow-sm{% else %}btn-outline-surface{% endif %} rounded-pill px-3">
-                    <i class="bi bi-person-badge me-1"></i> Waiter Floor
+                <a href="{% url 'orders:waiter_dashboard' %}" class="btn btn-sm {% if request.resolver_match.url_name == 'waiter_dashboard' %}btn-info text-dark fw-bold shadow-sm{% else %}border-0 bg-transparent text-secondary{% endif %} rounded-pill px-3 py-1">
+                    <i class="bi bi-person-badge me-1 text-info"></i> Waiter Floor
                 </a>
                 {% if staff_profile.is_manager or user.is_superuser %}
-                <a href="{% url 'orders:manager_dashboard' %}" class="btn btn-sm {% if request.resolver_match.url_name == 'manager_dashboard' %}btn-danger text-white fw-bold shadow-sm{% else %}btn-outline-surface{% endif %} rounded-pill px-3">
-                    <i class="bi bi-speedometer2 me-1"></i> Manager Console
+                <a href="{% url 'orders:manager_dashboard' %}" class="btn btn-sm {% if request.resolver_match.url_name == 'manager_dashboard' %}btn-danger text-white fw-bold shadow-sm{% else %}border-0 bg-transparent text-secondary{% endif %} rounded-pill px-3 py-1">
+                    <i class="bi bi-speedometer2 me-1 text-danger"></i> Manager Console
                 </a>
-                <a href="/admin/" class="btn btn-sm btn-outline-surface rounded-pill px-3" title="Master Database Admin">
+                <a href="/admin/" class="btn btn-sm border-0 bg-transparent text-secondary rounded-pill px-3 py-1" title="Master Database Admin">
                     <i class="bi bi-database-gear me-1 text-warning"></i> Django Admin
                 </a>
                 {% endif %}
-                <a href="{% url 'menu:menu_list' %}" class="btn btn-sm btn-outline-surface rounded-pill px-3" title="View Customer Digital Menu">
-                    <i class="bi bi-eye me-1"></i> Customer View
+                <a href="{% url 'menu:menu_list' %}" class="btn btn-sm {% if request.resolver_match.url_name == 'menu_list' %}btn-brand text-white fw-bold shadow-sm{% else %}border-0 bg-transparent text-secondary{% endif %} rounded-pill px-3 py-1" title="View Customer Digital Menu">
+                    <i class="bi bi-eye me-1 {% if request.resolver_match.url_name == 'menu_list' %}text-white{% else %}text-success{% endif %}"></i> Customer View
                 </a>
             </div>
 
@@ -1055,9 +1100,10 @@
                 </button>
                 {% endif %}
                 <div class="dropdown">
-                    <button class="btn btn-sm btn-outline-surface dropdown-toggle d-flex align-items-center gap-1.5 p-1 px-2.5 rounded-pill" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-person-badge"></i>
-                        <span class="d-none d-lg-inline">{{ user.first_name|default:user.username }}</span>
+                    <button class="btn btn-sm p-0 rounded-circle border-0 shadow-sm user-avatar-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="{{ user.get_full_name|default:user.username }}">
+                        <div class="rounded-circle bg-warning text-dark d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 32px; height: 32px; font-size: 0.85rem; border: 1.5px solid rgba(245, 158, 11, 0.45);">
+                            {{ user.first_name|default:user.username|slice:":1"|upper }}
+                        </div>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 app-dropdown-menu mt-2">
                         <!-- Staff Profile Header Card -->
@@ -1147,22 +1193,22 @@
     {% else %}
     <!-- DEDICATED CUSTOMER HEADER (Responsive, Single-Line, Compact) -->
     <header class="glass-nav sticky-top">
-        <div class="container d-flex align-items-center justify-content-between py-2 flex-nowrap" style="gap: 8px;">
-            <!-- Brand Logo & Name (Truncated on mobile to prevent 4-line wrapping) -->
-            <a href="{% url 'menu:home' %}" class="d-flex align-items-center gap-2 text-decoration-none flex-shrink-0 brand-logo-link">
-                <span class="d-inline-flex align-items-center justify-content-center bg-danger text-white rounded-circle shadow-sm flex-shrink-0" style="width: 34px; height: 34px;">
+        <div class="container d-flex align-items-center justify-content-between py-2 flex-nowrap" style="gap: 12px;">
+            <!-- Brand Logo & Name (Truncated smoothly on mobile to prevent wrapping) -->
+            <a href="{% url 'menu:home' %}" class="d-flex align-items-center gap-2 text-decoration-none min-w-0 flex-shrink-1 brand-logo-link">
+                <span class="d-inline-flex align-items-center justify-content-center bg-danger text-white rounded-circle shadow-sm flex-shrink-0" style="width: 32px; height: 32px;">
                     <i class="bi bi-fire fs-6"></i>
                 </span>
                 <div style="min-width: 0; overflow: hidden;">
-                    <span class="navbar-brand-title d-block text-truncate" style="font-size: 1.15rem; line-height: 1.2;">{{ restaurant.name|default:"Spice Garden" }}</span>
+                    <span class="navbar-brand-title d-block text-truncate" style="font-size: 1.08rem; line-height: 1.2; max-width: clamp(120px, 34vw, 240px);">{{ restaurant.name|default:"Spice Garden" }}</span>
                     <span class="small text-muted d-none d-md-block" style="font-size: 0.68rem; margin-top: -2px;">Digital Dining</span>
                 </div>
             </a>
 
             <!-- Center Table Chip Selector (Compact Pill with Padlock / Green Dot) -->
-            <div class="d-flex align-items-center justify-content-center flex-shrink-1" style="min-width: 0;">
-                <button type="button" class="table-chip px-2.5 py-1 d-flex align-items-center gap-1.5" data-bs-toggle="modal" data-bs-target="#tableModal" title="Select or Change Table" style="font-size: 0.8rem; white-space: nowrap;">
-                    <i class="bi bi-geo-alt-fill text-danger" style="font-size: 0.78rem;"></i>
+            <div class="d-flex align-items-center justify-content-center flex-shrink-0">
+                <button type="button" class="table-chip px-2.5 py-1 d-flex align-items-center gap-1.5" data-bs-toggle="modal" data-bs-target="#tableModal" title="Select or Change Table" style="font-size: 0.78rem; white-space: nowrap;">
+                    <i class="bi bi-geo-alt-fill text-danger" style="font-size: 0.76rem;"></i>
                     {% if current_table_number %}
                         <span class="fw-bold">{{ current_table_number }}</span>
                         {% if current_table.is_locked %}
@@ -1176,8 +1222,8 @@
                 </button>
             </div>
 
-            <!-- Right Actions: Theme, Cart, Call Staff, User -->
-            <div class="d-flex align-items-center gap-1 gap-md-2 flex-shrink-0">
+            <!-- Right Actions: Theme, Cart, Call Staff, User Avatar -->
+            <div class="d-flex align-items-center gap-1.5 gap-md-2 flex-shrink-0">
                 <!-- Theme Switcher -->
                 {% if not user.is_authenticated %}
                 <button type="button" class="theme-toggle-btn p-1 px-2" onclick="changeTheme()" title="Toggle Light/Dark Theme">
@@ -1205,18 +1251,17 @@
                     </span>
                 </a>
 
-                <!-- User Dropdown / Sign-In (Clean Avatar without Down Arrow) -->
+                <!-- User Dropdown (Avatar Only in Both Desktop & Mobile) -->
                 {% if user.is_authenticated %}
                     <div class="dropdown">
-                        <button class="btn btn-sm btn-outline-surface d-flex align-items-center p-1 rounded-circle border-0 shadow-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Account Menu">
+                        <button class="btn btn-sm p-0 rounded-circle border-0 shadow-sm user-avatar-btn" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="{{ user.get_full_name|default:user.username }}">
                             {% if user.customer_profile.avatar_url %}
-                                <img src="{{ user.customer_profile.avatar_url }}" width="26" height="26" class="rounded-circle" alt="avatar" style="object-fit: cover;">
+                                <img src="{{ user.customer_profile.avatar_url }}" width="32" height="32" class="rounded-circle" alt="avatar" style="object-fit: cover; border: 1.5px solid var(--border-color);">
                             {% else %}
-                                <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center fw-bold" style="width: 26px; height: 26px; font-size: 0.85rem;">
-                                    <i class="bi bi-person-circle"></i>
+                                <div class="rounded-circle bg-primary bg-opacity-15 text-primary d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 32px; height: 32px; font-size: 0.85rem; border: 1.5px solid rgba(234, 88, 12, 0.25);">
+                                    {{ user.first_name|default:user.username|slice:":1"|upper }}
                                 </div>
                             {% endif %}
-                            <span class="d-none d-lg-inline ms-1.5 pe-1 fw-medium" style="font-size: 0.82rem;">{{ user.first_name|default:user.username }}</span>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 app-dropdown-menu mt-2">
                             <!-- Customer Profile Header Card -->
@@ -1331,8 +1376,8 @@
         {% block content %}{% endblock %}
     </main>
 
-    <!-- Persistent Floating Live Order Bar (Visible strictly to dining customer with active order) -->
-    {% if not staff_profile and not user.is_superuser %}
+    <!-- Persistent Floating Live Order Bar (Visible strictly to dining customer with active order on non-tracking pages) -->
+    {% if not staff_profile and not user.is_superuser and request.resolver_match.url_name != 'session_live' and request.resolver_match.url_name != 'session_live_detail' and request.resolver_match.url_name != 'order_live' %}
     <div class="live-order-bar" id="liveOrderBar" style="display: {% if active_order %}block{% else %}none{% endif %};">
         <div class="live-order-card">
             <div class="d-flex align-items-center gap-2">

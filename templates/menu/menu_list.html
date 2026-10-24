@@ -4,17 +4,203 @@
 
 {% block extra_css %}
 <style>
-    /* Sticky Filter Toolbar */
+    /* Modern Sticky Filter Toolbar */
     .sticky-filter-bar {
         position: sticky;
-        top: 60px;
+        top: 56px;
         z-index: 1010;
         background: var(--bg-nav);
-        backdrop-filter: blur(14px);
-        -webkit-backdrop-filter: blur(14px);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
         border-bottom: 1px solid var(--border-color);
-        padding: 0.75rem 0;
+        padding: 0.65rem 0 0.50rem 0;
         margin-bottom: 1.25rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+        transition: background-color 0.2s ease, border-color 0.2s ease;
+        overflow-x: clip;
+    }
+
+    /* Modern Floating Search Capsule */
+    .modern-search-capsule {
+        display: flex;
+        align-items: center;
+        background: var(--bg-surface);
+        border: 1.5px solid var(--border-color);
+        border-radius: 999px;
+        padding: 0 10px 0 12px;
+        height: 38px;
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+        transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    }
+    .modern-search-capsule:focus-within {
+        background: var(--bg-surface);
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 3px var(--color-primary-light), 0 4px 16px rgba(0, 0, 0, 0.06);
+    }
+    .modern-search-icon {
+        color: var(--text-muted);
+        font-size: 0.88rem;
+        margin-right: 8px;
+        flex-shrink: 0;
+        transition: color 0.2s ease;
+    }
+    .modern-search-capsule:focus-within .modern-search-icon {
+        color: var(--color-primary);
+    }
+    .modern-search-input {
+        width: 0;
+        flex: 1 1 0%;
+        min-width: 0 !important;
+        border: none;
+        background: transparent;
+        outline: none;
+        font-size: 0.84rem;
+        font-weight: 500;
+        color: var(--text-primary);
+        padding: 0;
+    }
+    .modern-search-input::placeholder {
+        color: var(--text-muted);
+        font-weight: 400;
+        font-size: 0.82rem;
+    }
+    .modern-search-clear-btn {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--bg-surface-raised);
+        border: 1px solid var(--border-color);
+        color: var(--text-muted);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.65rem;
+        cursor: pointer;
+        text-decoration: none;
+        flex-shrink: 0;
+        margin-left: 5px;
+        transition: all 0.15s ease;
+    }
+    .modern-search-clear-btn:hover {
+        background: var(--color-primary-light);
+        color: var(--color-primary);
+        border-color: var(--color-primary);
+    }
+
+    /* Modern Pure Veg Interactive Filter Pill */
+    .pure-veg-toggle-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: 38px;
+        padding: 3px 9px 3px 8px;
+        border-radius: 999px;
+        background: var(--bg-surface);
+        border: 1.5px solid var(--border-color);
+        color: var(--text-secondary);
+        cursor: pointer;
+        user-select: none;
+        flex-shrink: 0;
+        white-space: nowrap;
+        transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    }
+    .pure-veg-toggle-pill:hover {
+        border-color: #86efac;
+        background: var(--bg-surface-raised);
+        color: var(--text-primary);
+    }
+    .pure-veg-toggle-pill.active {
+        background: rgba(22, 163, 74, 0.10);
+        border-color: #16a34a;
+        color: #15803d;
+        box-shadow: 0 2px 10px rgba(22, 163, 74, 0.20);
+    }
+    :root[data-theme="dark"] .pure-veg-toggle-pill.active {
+        background: rgba(34, 197, 94, 0.15);
+        border-color: #22c55e;
+        color: #4ade80;
+        box-shadow: 0 2px 12px rgba(34, 197, 94, 0.25);
+    }
+    .pure-veg-toggle-pill:active {
+        transform: scale(0.97);
+    }
+    .pure-veg-label {
+        font-size: 0.76rem;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+        white-space: nowrap;
+    }
+
+    /* iOS-Style Tactile Micro Switch */
+    .modern-switch-track {
+        width: 25px;
+        height: 14px;
+        border-radius: 999px;
+        background: #cbd5e1;
+        position: relative;
+        display: inline-block;
+        flex-shrink: 0;
+        transition: background-color 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    :root[data-theme="dark"] .modern-switch-track {
+        background: rgba(255, 255, 255, 0.20);
+    }
+    .modern-switch-thumb {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #ffffff;
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
+        transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .pure-veg-toggle-pill.active .modern-switch-track {
+        background: #16a34a;
+    }
+    :root[data-theme="dark"] .pure-veg-toggle-pill.active .modern-switch-track {
+        background: #22c55e;
+    }
+    .pure-veg-toggle-pill.active .modern-switch-thumb {
+        transform: translateX(11px);
+    }
+
+    @media (min-width: 576px) {
+        .modern-search-capsule {
+            height: 42px;
+            padding: 0 12px 0 14px;
+        }
+        .modern-search-input {
+            font-size: 0.88rem;
+        }
+        .modern-search-icon {
+            font-size: 0.92rem;
+            margin-right: 9px;
+        }
+        .pure-veg-toggle-pill {
+            height: 42px;
+            padding: 4px 12px 4px 10px;
+            gap: 8px;
+        }
+        .pure-veg-label {
+            font-size: 0.80rem;
+        }
+        .modern-switch-track {
+            width: 32px;
+            height: 18px;
+        }
+        .modern-switch-thumb {
+            width: 14px;
+            height: 14px;
+        }
+        .pure-veg-toggle-pill.active .modern-switch-thumb {
+            transform: translateX(14px);
+        }
     }
 
     /* Category Pill Carousel */
@@ -22,8 +208,9 @@
         display: flex;
         gap: 8px;
         overflow-x: auto;
-        padding-bottom: 4px;
+        padding: 4px 2px 6px 2px;
         scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
     }
     .category-scroll-container::-webkit-scrollbar {
         display: none;
@@ -32,18 +219,31 @@
         white-space: nowrap;
         border-radius: 999px;
         padding: 6px 16px;
-        font-size: 0.85rem;
+        font-size: 0.82rem;
         font-weight: 600;
         text-decoration: none;
-        color: var(--text-primary);
+        color: var(--text-secondary);
         background: var(--bg-surface);
-        border: 1px solid var(--border-color);
-        transition: all 0.2s;
+        border: 1.5px solid var(--border-color);
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
     }
-    .category-pill:hover, .category-pill.active {
-        background: var(--color-primary);
-        color: #ffffff !important;
+    .category-pill:hover {
+        color: var(--text-primary);
         border-color: var(--color-primary);
+        background: var(--bg-surface-raised);
+        transform: translateY(-1px);
+    }
+    .category-pill.active {
+        background: linear-gradient(135deg, var(--color-primary, #ea580c), #f97316);
+        color: #ffffff !important;
+        border-color: transparent;
+        font-weight: 700;
+        box-shadow: 0 4px 14px rgba(234, 88, 12, 0.32);
+        transform: translateY(-1px);
     }
 
     /* Zomato-Styled Food Card */
@@ -340,48 +540,50 @@
 {% endblock %}
 
 {% block content %}
-<!-- Sticky Filter Toolbar (Search + Veg Filter) -->
+<!-- Modern Sticky Filter Toolbar (Search + Pure Veg Filter + Category Strip) -->
 <div class="sticky-filter-bar shadow-sm">
     <div class="container">
-        <form method="GET" action="{% url 'menu:menu_list' %}" id="menuFilterForm" class="row g-2 align-items-center">
+        <form method="GET" action="{% url 'menu:menu_list' %}" id="menuFilterForm" class="m-0">
             {% if selected_category_id %}
                 <input type="hidden" name="category" value="{{ selected_category_id }}" id="selectedCategoryInput">
             {% endif %}
 
-            <!-- Search Field -->
-            <div class="col-8 col-md-9">
-                <div class="input-group input-group-sm">
-                    <span class="input-group-text bg-transparent border-end-0 text-muted">
-                        <i class="bi bi-search"></i>
-                    </span>
-                    <input type="text" name="q" class="form-control form-control-sm border-start-0 ps-0" placeholder="Search dishes, tandoori, curries, drinks..." value="{{ search_query|default:'' }}">
-                    {% if search_query %}
-                        <a href="{% url 'menu:menu_list' %}{% if selected_category_id %}?category={{ selected_category_id }}{% endif %}" class="btn btn-sm btn-outline-secondary">
-                            <i class="bi bi-x-lg"></i>
-                        </a>
-                    {% endif %}
+            <!-- Top Row: Modern Search Box + Tactile Pure Veg Toggle -->
+            <div class="d-flex align-items-center gap-1.5 gap-sm-2.5 mb-2.5 w-100 min-w-0" style="max-width: 100%;">
+                <!-- Expanding Modern Search Capsule -->
+                <div class="flex-grow-1 min-w-0" style="min-width: 0;">
+                    <div class="modern-search-capsule">
+                        <i class="bi bi-search modern-search-icon"></i>
+                        <input type="text" name="q" class="modern-search-input" placeholder="Search dishes..." value="{{ search_query|default:'' }}" autocomplete="off">
+                        {% if search_query %}
+                            <a href="{% url 'menu:menu_list' %}{% if selected_category_id %}?category={{ selected_category_id }}{% endif %}{% if veg_only %}&veg=1{% endif %}" class="modern-search-clear-btn" title="Clear search">
+                                <i class="bi bi-x-lg"></i>
+                            </a>
+                        {% endif %}
+                    </div>
                 </div>
-            </div>
 
-            <!-- Veg Only Switch -->
-            <div class="col-4 col-md-3 text-end">
-                <div class="form-check form-switch d-inline-flex align-items-center gap-2 m-0 p-0 ps-2">
-                    <input class="form-check-input ms-0 me-1" type="checkbox" role="switch" id="vegFilterSwitch" name="veg" value="1" {% if veg_only %}checked{% endif %} onchange="handleVegToggle(this)">
-                    <label class="form-check-label fw-bold small text-success" for="vegFilterSwitch" style="font-size: 0.78rem;">
-                        <span class="zomato-veg-badge me-1" style="vertical-align: middle;"></span> Pure Veg
-                    </label>
-                </div>
+                <!-- Modern Pure Veg Interactive Filter Pill (Compact on Mobile) -->
+                <label class="pure-veg-toggle-pill flex-shrink-0 mb-0 {% if veg_only %}active{% endif %}" for="vegFilterSwitch" title="Click to filter Pure Vegetarian dishes">
+                    <input type="checkbox" id="vegFilterSwitch" name="veg" value="1" {% if veg_only %}checked{% endif %} onchange="handleVegToggle(this)" class="d-none">
+                    <span class="zomato-veg-badge flex-shrink-0"></span>
+                    <span class="pure-veg-label"><span class="d-none d-sm-inline">Pure </span>Veg</span>
+                    <span class="modern-switch-track flex-shrink-0">
+                        <span class="modern-switch-thumb"></span>
+                    </span>
+                </label>
             </div>
         </form>
 
         <!-- Category Horizontal Scroll Bar -->
-        <div class="category-scroll-container mt-2 pt-1" id="categoryPillStrip">
+        <div class="category-scroll-container" id="categoryPillStrip">
             <a href="{% if categorized_menu %}#top{% else %}{% url 'menu:menu_list' %}{% if veg_only %}?veg=1{% endif %}{% endif %}" class="category-pill {% if not selected_category_id %}active{% endif %}" id="pill-cat-all" data-cat-id="all" {% if categorized_menu %}onclick="smoothScrollToCategory('menuListingTop', event, 'all')"{% endif %}>
-                All Dishes
+                <i class="bi bi-grid-fill" style="font-size: 0.72rem;"></i>
+                <span>All Dishes</span>
             </a>
             {% for cat in categories %}
                 <a href="{% if categorized_menu %}#cat-section-{{ cat.id }}{% else %}{% url 'menu:menu_list' %}?category={{ cat.id }}{% if veg_only %}&veg=1{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}{% endif %}" class="category-pill {% if selected_category_id == cat.id %}active{% endif %}" id="pill-cat-{{ cat.id }}" data-cat-id="{{ cat.id }}" {% if categorized_menu %}onclick="smoothScrollToCategory('cat-section-{{ cat.id }}', event, '{{ cat.id }}')"{% endif %}>
-                    {{ cat.name }}
+                    <span>{{ cat.name }}</span>
                 </a>
             {% endfor %}
         </div>
