@@ -1,0 +1,484 @@
+{% extends 'base.html' %}
+
+{% block title %}Sign In - {{ restaurant.name|default:"Spice Garden" }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .login-container-wrap {
+        min-height: calc(100vh - 200px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 1rem;
+    }
+    .login-card-shell {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        border-radius: 24px;
+        box-shadow: var(--card-shadow);
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+        max-width: 480px;
+    }
+    @media (max-width: 480px) {
+        .login-container-wrap {
+            padding: 1rem 0.5rem;
+            min-height: calc(100vh - 160px);
+        }
+        .login-card-shell {
+            border-radius: 20px;
+        }
+        .login-tab-pill-btn {
+            font-size: 0.8rem !important;
+            padding: 7px 8px !important;
+        }
+        .icon-badge-glow {
+            width: 52px !important;
+            height: 52px !important;
+            border-radius: 14px !important;
+            margin-bottom: 0.75rem !important;
+        }
+        .icon-badge-glow svg {
+            width: 28px !important;
+            height: 28px !important;
+        }
+    }
+    :root[data-theme="dark"] .login-card-shell {
+        box-shadow: 0 24px 60px -10px rgba(0, 0, 0, 0.75), 0 0 0 1px var(--border-color);
+    }
+    .login-card-accent-bar {
+        height: 4px;
+        background: linear-gradient(90deg, #f97316 0%, #ea580c 50%, #f59e0b 100%);
+    }
+    .login-tabs-pill {
+        background-color: var(--bg-surface-raised);
+        border: 1px solid var(--border-color);
+        padding: 4px;
+    }
+    .login-tab-pill-btn {
+        background: transparent;
+        border: none;
+        color: var(--text-muted);
+        font-size: 0.88rem;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        padding: 9px 16px;
+    }
+    .login-tab-pill-btn:hover {
+        color: var(--text-primary);
+    }
+    .login-tab-pill-btn.active {
+        background: var(--bg-surface) !important;
+        color: var(--color-primary) !important;
+        font-weight: 700;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+        border: 1px solid var(--border-color);
+    }
+    .google-auth-btn {
+        background: #ffffff;
+        color: #1f2937;
+        border: 1.5px solid var(--border-color);
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .google-auth-btn:hover {
+        background: #f8fafc;
+        color: #0f172a;
+        border-color: #cbd5e1;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+    }
+    :root[data-theme="dark"] .google-auth-btn {
+        background: #ffffff;
+        color: #111827;
+        border: 1.5px solid rgba(255, 255, 255, 0.25);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+    :root[data-theme="dark"] .google-auth-btn:hover {
+        background: #f1f5f9;
+        color: #000000;
+    }
+    .icon-badge-glow {
+        width: 64px;
+        height: 64px;
+        border-radius: 18px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--bg-surface-raised);
+        border: 1px solid var(--border-color);
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-container-wrap">
+    <div class="login-card-shell p-3 p-sm-4 p-md-5">
+        <!-- Top Colored Accent Gradient Bar -->
+        <div class="position-absolute top-0 start-0 end-0 login-card-accent-bar"></div>
+
+        <!-- Segmented Tab Switcher: Customer vs Staff -->
+        <div class="login-tabs-pill mb-4 rounded-pill d-flex">
+            <button type="button" class="login-tab-pill-btn flex-fill rounded-pill fw-semibold {% if active_tab != 'staff' %}active{% endif %}" id="btn-customer-tab" onclick="switchLoginMode('customer')">
+                <i class="bi bi-google me-1"></i> Customer Login
+            </button>
+            <button type="button" class="login-tab-pill-btn flex-fill rounded-pill fw-semibold {% if active_tab == 'staff' %}active{% endif %}" id="btn-staff-tab" onclick="switchLoginMode('staff')">
+                <i class="bi bi-shield-lock-fill me-1"></i> Staff Portal
+            </button>
+        </div>
+
+        <!-- =========================================================
+             PANEL 1: Customer Google Sign-In (Firebase Auth)
+             ========================================================= -->
+        <div id="customer-panel" class="{% if active_tab == 'staff' %}d-none{% endif %}">
+            <div class="text-center mb-4">
+                <div class="icon-badge-glow mb-3">
+                    <svg width="34" height="34" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                    </svg>
+                </div>
+                <h4 class="brand-font fw-bold mb-1">Customer Sign In / Sign Up</h4>
+                <p class="text-muted small mb-0">Instant 1-click access for diners. Automatically links table dining, consolidated cart orders, and live tracking.</p>
+            </div>
+
+            <!-- Dynamic Error Notice Container -->
+            <div id="firebaseErrorAlert" class="alert alert-warning py-2 small d-none" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                <span id="firebaseErrorMsg"></span>
+            </div>
+
+            <!-- Single 1-Click Google Sign-In & Sign-Up Button -->
+            <div class="mb-3">
+                <button type="button" id="firebaseGoogleBtn" class="google-auth-btn w-100 py-3 rounded-pill fw-bold d-flex align-items-center justify-content-center gap-2 gap-sm-3 shadow-sm hover-elevate" onclick="handleFirebaseGoogleSignIn()">
+                    <svg width="22" height="22" viewBox="0 0 24 24" class="flex-shrink-0">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                    </svg>
+                    <span>Continue with Google</span>
+                </button>
+            </div>
+
+            <!-- Perks Summary Badges -->
+            <div class="d-flex flex-wrap justify-content-center gap-1.5 my-3">
+                <span class="badge bg-surface-raised border text-body fw-normal py-1 px-2" style="font-size: 0.72rem;">
+                    <i class="bi bi-shield-check text-success me-1"></i>Table Locking
+                </span>
+                <span class="badge bg-surface-raised border text-body fw-normal py-1 px-2" style="font-size: 0.72rem;">
+                    <i class="bi bi-lightning-charge text-warning me-1"></i>Fast Re-orders
+                </span>
+                <span class="badge bg-surface-raised border text-body fw-normal py-1 px-2" style="font-size: 0.72rem;">
+                    <i class="bi bi-receipt text-info me-1"></i>Digital Bills
+                </span>
+            </div>
+
+            <!-- Popup Fallback Link -->
+            <div class="mb-3 text-center">
+                <button type="button" class="btn btn-link btn-sm text-decoration-none text-muted p-0" onclick="handleDirectRedirectSignIn(event)" style="font-size: 0.8rem;">
+                    <i class="bi bi-box-arrow-up-right me-1"></i> Popup blocked? Click for full-page redirect
+                </button>
+            </div>
+        </div>
+
+        <!-- =========================================================
+             PANEL 2: Restaurant Staff Login
+             ========================================================= -->
+        <div id="staff-panel" class="{% if active_tab != 'staff' %}d-none{% endif %}">
+            <div class="text-center mb-4">
+                <div class="icon-badge-glow mb-3" style="color: #f59e0b; background: rgba(245, 158, 11, 0.1); border-color: rgba(245, 158, 11, 0.3);">
+                    <i class="bi bi-shield-lock-fill fs-2"></i>
+                </div>
+                <h4 class="brand-font fw-bold mb-1">Staff Operations Portal</h4>
+                <p class="text-muted small mb-0">Authorized floor access for Kitchen, Waiter, and Restaurant Manager accounts.</p>
+            </div>
+
+            <!-- Staff Login Form -->
+            <form method="POST" action="{% url 'accounts:google_login' %}">
+                {% csrf_token %}
+                <input type="hidden" name="login_type" value="staff">
+                <input type="hidden" name="next" value="{{ next }}">
+
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-secondary">Staff Username</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-person"></i></span>
+                        <input type="text" name="username" class="form-control" placeholder="Enter username (e.g. manager, waiter)" required autofocus>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label small fw-semibold text-secondary">Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-key"></i></span>
+                        <input type="password" id="staffPasswordInput" name="password" class="form-control" placeholder="••••••••" required>
+                        <button type="button" class="btn btn-outline-surface border-start-0 text-muted px-3" onclick="toggleStaffPassword(this)" title="Toggle password visibility">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-brand w-100 py-3 fw-bold rounded-pill d-flex align-items-center justify-content-center gap-2 shadow-sm">
+                    <i class="bi bi-box-arrow-in-right"></i> Sign In to Staff Console
+                </button>
+            </form>
+        </div>
+
+        <div class="text-center mt-4 pt-2 border-top">
+            <a href="{% url 'menu:menu_list' %}" class="text-decoration-none small text-muted">
+                <i class="bi bi-arrow-left me-1"></i> Back to Digital Food Menu
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Firebase App and Firebase Auth Web SDK (Compat v10) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+
+<script>
+    // Tab Mode Switcher
+    function switchLoginMode(mode) {
+        const custBtn = document.getElementById('btn-customer-tab');
+        const staffBtn = document.getElementById('btn-staff-tab');
+        const custPanel = document.getElementById('customer-panel');
+        const staffPanel = document.getElementById('staff-panel');
+
+        if (mode === 'staff') {
+            custBtn.classList.remove('active');
+            staffBtn.classList.add('active');
+            custPanel.classList.add('d-none');
+            staffPanel.classList.remove('d-none');
+            const usernameInput = staffPanel.querySelector('input[name="username"]');
+            if (usernameInput) usernameInput.focus();
+        } else {
+            staffBtn.classList.remove('active');
+            custBtn.classList.add('active');
+            staffPanel.classList.add('d-none');
+            custPanel.classList.remove('d-none');
+        }
+    }
+
+    // Toggle Password Visibility
+    function toggleStaffPassword(btn) {
+        const input = document.getElementById('staffPasswordInput');
+        const icon = btn.querySelector('i');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.className = 'bi bi-eye-slash text-warning';
+        } else {
+            input.type = 'password';
+            icon.className = 'bi bi-eye';
+        }
+    }
+
+    // Firebase Authentication Configuration
+    const firebaseConfig = {
+        apiKey: "{{ firebase_config.apiKey|default:'' }}",
+        authDomain: "{{ firebase_config.authDomain|default:'' }}",
+        projectId: "{{ firebase_config.projectId|default:'' }}",
+        storageBucket: "{{ firebase_config.storageBucket|default:'' }}",
+        messagingSenderId: "{{ firebase_config.messagingSenderId|default:'' }}",
+        appId: "{{ firebase_config.appId|default:'' }}"
+    };
+
+    let firebaseInitialized = false;
+    if (firebaseConfig.apiKey && firebaseConfig.projectId) {
+        try {
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+            }
+            firebaseInitialized = true;
+        } catch(e) {
+            console.warn("Firebase Init notice:", e);
+        }
+    }
+
+    function showFirebaseError(msg) {
+        const box = document.getElementById('firebaseErrorAlert');
+        const text = document.getElementById('firebaseErrorMsg');
+        if (box && text) {
+            text.innerHTML = msg;
+            box.classList.remove('d-none');
+        }
+    }
+
+    function getGoogleProvider() {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        provider.addScope('email');
+        provider.addScope('profile');
+        provider.setCustomParameters({ prompt: 'select_account' });
+        return provider;
+    }
+
+    function getFriendlyErrorMessage(err) {
+        if (!err) return "An unknown authentication error occurred.";
+        if (err.code === 'auth/operation-not-allowed') {
+            return "Google Sign-In is not enabled yet in your Firebase Console. Go to <strong>Firebase Console &rarr; Authentication &rarr; Sign-in method &rarr; Google &rarr; Enable</strong>.";
+        } else if (err.code === 'auth/unauthorized-domain') {
+            const currentHost = window.location.hostname;
+            return `Domain <strong>${currentHost}</strong> is not authorized in Firebase. Add <code>${currentHost}</code> under <strong>Firebase Console &rarr; Authentication &rarr; Settings &rarr; Authorized domains</strong>.`;
+        } else if (err.code === 'auth/network-request-failed') {
+            return "Network error: Unable to reach Google servers. Please check your internet connection.";
+        }
+        return `Google Auth Notice: ${err.message || err.code}`;
+    }
+
+    let hasSubmitted = false;
+
+    // Listen to Firebase Auth state changes
+    if (firebaseInitialized) {
+        firebase.auth().onAuthStateChanged(async (user) => {
+            if (user && sessionStorage.getItem('firebase_auth_initiated') === 'true' && !hasSubmitted) {
+                hasSubmitted = true;
+                sessionStorage.removeItem('firebase_auth_initiated');
+                const btn = document.getElementById('firebaseGoogleBtn');
+                if (btn) {
+                    btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status"></span> Authenticated! Syncing dining profile...`;
+                }
+                try {
+                    const idToken = await user.getIdToken();
+                    submitFirebaseUser(idToken, user.email, user.displayName, user.photoURL, user.uid);
+                } catch(e) {
+                    console.error("Token fetch error:", e);
+                    hasSubmitted = false;
+                }
+            }
+        });
+    }
+
+    // Handle return from full-page Google Redirect on page load
+    if (firebaseInitialized) {
+        firebase.auth().getRedirectResult()
+            .then(async (result) => {
+                if (result && result.user && !hasSubmitted) {
+                    hasSubmitted = true;
+                    sessionStorage.removeItem('firebase_auth_initiated');
+                    const btn = document.getElementById('firebaseGoogleBtn');
+                    if (btn) {
+                        btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status"></span> Finalizing Google login...`;
+                    }
+                    const user = result.user;
+                    const idToken = await user.getIdToken();
+                    submitFirebaseUser(idToken, user.email, user.displayName, user.photoURL, user.uid);
+                }
+            })
+            .catch((err) => {
+                console.error("Firebase Redirect Result Error:", err);
+                if (err.code !== 'auth/popup-closed-by-user' && err.code !== 'auth/cancelled-popup-request') {
+                    showFirebaseError(getFriendlyErrorMessage(err));
+                }
+            });
+    }
+
+    function handleFirebaseGoogleSignIn() {
+        const btn = document.getElementById('firebaseGoogleBtn');
+        const originalHtml = btn.innerHTML;
+
+        if (!firebaseInitialized) {
+            showFirebaseError("Firebase project configuration not detected in <code>.env</code>. Please check your Firebase settings.");
+            return;
+        }
+
+        sessionStorage.setItem('firebase_auth_initiated', 'true');
+        hasSubmitted = false;
+
+        const provider = getGoogleProvider();
+
+        btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status"></span> Connecting to Google...`;
+
+        firebase.auth().signInWithPopup(provider)
+            .then(async (result) => {
+                if (result && result.user && !hasSubmitted) {
+                    hasSubmitted = true;
+                    sessionStorage.removeItem('firebase_auth_initiated');
+                    btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status"></span> Authenticated! Connecting...`;
+                    const user = result.user;
+                    const idToken = await user.getIdToken();
+                    submitFirebaseUser(idToken, user.email, user.displayName, user.photoURL, user.uid);
+                }
+            })
+            .catch(async (err) => {
+                console.warn("Popup flow notice (" + err.code + ").");
+
+                if (err.code === 'auth/popup-blocked' || err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
+                    btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status"></span> Redirecting to Google Sign-In...`;
+                    try {
+                        await firebase.auth().signInWithRedirect(provider);
+                    } catch (redirErr) {
+                        btn.innerHTML = originalHtml;
+                        showFirebaseError(getFriendlyErrorMessage(redirErr));
+                    }
+                } else {
+                    btn.innerHTML = originalHtml;
+                    showFirebaseError(getFriendlyErrorMessage(err));
+                }
+            });
+    }
+
+    function handleDirectRedirectSignIn(e) {
+        if (e) e.preventDefault();
+        const btn = document.getElementById('firebaseGoogleBtn');
+        if (btn) {
+            btn.innerHTML = `<span class="spinner-border spinner-border-sm me-2" role="status"></span> Redirecting to Google...`;
+        }
+
+        if (!firebaseInitialized) {
+            showFirebaseError("Firebase project configuration not detected in <code>.env</code>.");
+            return;
+        }
+
+        sessionStorage.setItem('firebase_auth_initiated', 'true');
+        hasSubmitted = false;
+
+        const provider = getGoogleProvider();
+        firebase.auth().signInWithRedirect(provider)
+            .catch(err => {
+                if (btn) btn.innerHTML = `<span>Continue with Google</span>`;
+                showFirebaseError(getFriendlyErrorMessage(err));
+            });
+    }
+
+    function submitFirebaseUser(idToken, email, name, avatarUrl, uid) {
+        const formData = new URLSearchParams();
+        formData.append('id_token', idToken);
+        formData.append('email', email);
+        formData.append('name', name || '');
+        formData.append('avatar_url', avatarUrl || '');
+        formData.append('uid', uid || '');
+        formData.append('next', '{{ next|escapejs }}');
+
+        fetch("{% url 'accounts:firebase_login' %}", {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = data.redirect_url;
+            } else {
+                showFirebaseError("Login Error: " + (data.error || "Unable to establish customer session."));
+                const btn = document.getElementById('firebaseGoogleBtn');
+                if (btn) btn.innerHTML = `<span>Continue with Google</span>`;
+            }
+        })
+        .catch(err => {
+            console.error("Firebase Login Sync Error:", err);
+            window.location.href = '{{ next|escapejs }}';
+        });
+    }
+</script>
+{% endblock %}

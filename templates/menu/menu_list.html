@@ -1,0 +1,993 @@
+{% extends 'base.html' %}
+
+{% block title %}Digital Menu - {{ restaurant.name|default:"Spice Garden" }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Sticky Filter Toolbar */
+    .sticky-filter-bar {
+        position: sticky;
+        top: 60px;
+        z-index: 1010;
+        background: var(--bg-nav);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border-bottom: 1px solid var(--border-color);
+        padding: 0.75rem 0;
+        margin-bottom: 1.25rem;
+    }
+
+    /* Category Pill Carousel */
+    .category-scroll-container {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+        scrollbar-width: none;
+    }
+    .category-scroll-container::-webkit-scrollbar {
+        display: none;
+    }
+    .category-pill {
+        white-space: nowrap;
+        border-radius: 999px;
+        padding: 6px 16px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-decoration: none;
+        color: var(--text-primary);
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        transition: all 0.2s;
+    }
+    .category-pill:hover, .category-pill.active {
+        background: var(--color-primary);
+        color: #ffffff !important;
+        border-color: var(--color-primary);
+    }
+
+    /* Zomato-Styled Food Card */
+    .zomato-dish-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        border-radius: 18px;
+        padding: 1.15rem;
+        height: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 1rem;
+        cursor: pointer;
+        position: relative;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+    .zomato-dish-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+        border-color: var(--color-primary);
+    }
+
+    /* Veg / Non-Veg Square Badges */
+    .zomato-veg-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 17px;
+        height: 17px;
+        border: 2px solid #16a34a;
+        border-radius: 4px;
+        background: #ffffff;
+        padding: 1px;
+    }
+    .zomato-veg-badge::after {
+        content: "";
+        width: 7px;
+        height: 7px;
+        background: #16a34a;
+        border-radius: 50%;
+    }
+
+    .zomato-nonveg-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 17px;
+        height: 17px;
+        border: 2px solid #dc2626;
+        border-radius: 4px;
+        background: #ffffff;
+        padding: 1px;
+    }
+    .zomato-nonveg-badge::after {
+        content: "";
+        width: 0;
+        height: 0;
+        border-left: 4.5px solid transparent;
+        border-right: 4.5px solid transparent;
+        border-bottom: 7px solid #dc2626;
+    }
+
+    /* Dish Info Column */
+    .zomato-dish-info {
+        flex: 1;
+        min-width: 0;
+    }
+    .zomato-dish-title {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.25rem;
+        line-height: 1.3;
+    }
+    .zomato-dish-price {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.35rem;
+    }
+    .zomato-dish-desc {
+        color: var(--text-secondary);
+        font-size: 0.82rem;
+        line-height: 1.4;
+        margin-bottom: 0.5rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    /* Right Media Container with Floating Overlapping Action */
+    .zomato-media-container {
+        position: relative;
+        width: 125px;
+        height: 125px;
+        flex-shrink: 0;
+        margin-bottom: 12px;
+    }
+    .zomato-media-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 14px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+    }
+
+    /* Floating Pill overlapping bottom of the image */
+    .zomato-action-wrapper {
+        position: absolute;
+        bottom: -13px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 5;
+    }
+
+    /* Zomato Signature "+ ADD" Button */
+    .zomato-add-pill {
+        background: #ffffff;
+        color: #16a34a;
+        border: 1px solid #bbf7d0;
+        border-radius: 8px;
+        font-weight: 800;
+        font-size: 0.85rem;
+        padding: 5px 18px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        transition: transform 0.15s, box-shadow 0.15s, background-color 0.15s;
+    }
+    .zomato-add-pill:hover {
+        transform: scale(1.04);
+        background: #f0fdf4;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.16);
+    }
+    [data-theme="dark"] .zomato-add-pill {
+        background: var(--bg-surface-raised);
+        color: #4ade80;
+        border-color: rgba(74, 222, 128, 0.4);
+    }
+
+    /* In-Cart Stepper Capsule */
+    .zomato-stepper-capsule {
+        background: #0f172a;
+        color: #ffffff;
+        border-radius: 8px;
+        border: 1px solid rgba(245, 158, 11, 0.5);
+        padding: 3px 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: space-between;
+        min-width: 95px;
+        height: 32px;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+    }
+    .zomato-stepper-btn {
+        background: transparent;
+        border: none;
+        color: #f59e0b;
+        font-weight: 700;
+        padding: 0 4px;
+        display: inline-flex;
+        align-items: center;
+        cursor: pointer;
+    }
+    .zomato-stepper-qty {
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: #ffffff;
+        min-width: 20px;
+        text-align: center;
+    }
+
+    /* Floating Bottom Cart Bar (Zomato Style) */
+    .zomato-bottom-cart-bar {
+        position: fixed;
+        bottom: 74px; /* Elevated clearly above mobile bottom navigation bar */
+        left: 50%;
+        transform: translateX(-50%);
+        width: calc(100% - 28px);
+        max-width: 480px;
+        z-index: 1040;
+        background: #0f172a;
+        border: 1px solid rgba(245, 158, 11, 0.5);
+        color: #ffffff;
+        border-radius: 999px;
+        padding: 9px 18px;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        animation: slideUpCart 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @media (min-width: 992px) {
+        .zomato-bottom-cart-bar {
+            bottom: 24px; /* On desktop screens where bottom navigation is hidden */
+        }
+    }
+    @keyframes slideUpCart {
+        from { transform: translate(-50%, 40px); opacity: 0; }
+        to { transform: translate(-50%, 0); opacity: 1; }
+    }
+
+    /* Category Section Styles for Organized All Dishes View */
+    .menu-category-section {
+        margin-bottom: 2.75rem;
+        scroll-margin-top: 140px;
+    }
+    .menu-category-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-bottom: 0.65rem;
+        margin-bottom: 1.25rem;
+        border-bottom: 2px solid var(--border-color);
+        position: relative;
+    }
+    .menu-category-header::after {
+        content: "";
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 48px;
+        height: 2px;
+        background: var(--color-primary);
+        border-radius: 2px;
+    }
+    .menu-category-title {
+        font-family: var(--font-brand);
+        font-weight: 800;
+        font-size: 1.35rem;
+        color: var(--text-primary);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    /* Mobile Responsive Dish Card Tuning */
+    @media (max-width: 576px) {
+        .zomato-dish-card {
+            padding: 0.85rem;
+            border-radius: 14px;
+            gap: 0.75rem;
+        }
+        .zomato-media-container {
+            width: 96px;
+            height: 96px;
+            margin-bottom: 10px;
+        }
+        .zomato-dish-title {
+            font-size: 0.95rem;
+            line-height: 1.25;
+            margin-bottom: 0.2rem;
+        }
+        .zomato-dish-price {
+            font-size: 0.92rem;
+            margin-bottom: 0.25rem;
+        }
+        .zomato-dish-desc {
+            font-size: 0.78rem;
+            -webkit-line-clamp: 2;
+            margin-bottom: 0.25rem;
+        }
+        .zomato-add-pill {
+            padding: 4px 12px;
+            font-size: 0.78rem;
+        }
+        .zomato-stepper-capsule {
+            min-width: 82px;
+            height: 28px;
+            padding: 2px 6px;
+        }
+        .zomato-stepper-btn {
+            font-size: 0.8rem;
+        }
+        .zomato-stepper-qty {
+            font-size: 0.8rem;
+            min-width: 16px;
+        }
+        .menu-category-title {
+            font-size: 1.15rem;
+        }
+        .menu-category-section {
+            margin-bottom: 1.75rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Sticky Filter Toolbar (Search + Veg Filter) -->
+<div class="sticky-filter-bar shadow-sm">
+    <div class="container">
+        <form method="GET" action="{% url 'menu:menu_list' %}" id="menuFilterForm" class="row g-2 align-items-center">
+            {% if selected_category_id %}
+                <input type="hidden" name="category" value="{{ selected_category_id }}" id="selectedCategoryInput">
+            {% endif %}
+
+            <!-- Search Field -->
+            <div class="col-8 col-md-9">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-transparent border-end-0 text-muted">
+                        <i class="bi bi-search"></i>
+                    </span>
+                    <input type="text" name="q" class="form-control form-control-sm border-start-0 ps-0" placeholder="Search dishes, tandoori, curries, drinks..." value="{{ search_query|default:'' }}">
+                    {% if search_query %}
+                        <a href="{% url 'menu:menu_list' %}{% if selected_category_id %}?category={{ selected_category_id }}{% endif %}" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-x-lg"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Veg Only Switch -->
+            <div class="col-4 col-md-3 text-end">
+                <div class="form-check form-switch d-inline-flex align-items-center gap-2 m-0 p-0 ps-2">
+                    <input class="form-check-input ms-0 me-1" type="checkbox" role="switch" id="vegFilterSwitch" name="veg" value="1" {% if veg_only %}checked{% endif %} onchange="handleVegToggle(this)">
+                    <label class="form-check-label fw-bold small text-success" for="vegFilterSwitch" style="font-size: 0.78rem;">
+                        <span class="zomato-veg-badge me-1" style="vertical-align: middle;"></span> Pure Veg
+                    </label>
+                </div>
+            </div>
+        </form>
+
+        <!-- Category Horizontal Scroll Bar -->
+        <div class="category-scroll-container mt-2 pt-1" id="categoryPillStrip">
+            <a href="{% if categorized_menu %}#top{% else %}{% url 'menu:menu_list' %}{% if veg_only %}?veg=1{% endif %}{% endif %}" class="category-pill {% if not selected_category_id %}active{% endif %}" id="pill-cat-all" data-cat-id="all" {% if categorized_menu %}onclick="smoothScrollToCategory('menuListingTop', event, 'all')"{% endif %}>
+                All Dishes
+            </a>
+            {% for cat in categories %}
+                <a href="{% if categorized_menu %}#cat-section-{{ cat.id }}{% else %}{% url 'menu:menu_list' %}?category={{ cat.id }}{% if veg_only %}&veg=1{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}{% endif %}" class="category-pill {% if selected_category_id == cat.id %}active{% endif %}" id="pill-cat-{{ cat.id }}" data-cat-id="{{ cat.id }}" {% if categorized_menu %}onclick="smoothScrollToCategory('cat-section-{{ cat.id }}', event, '{{ cat.id }}')"{% endif %}>
+                    {{ cat.name }}
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="container pb-5" id="menuListingTop" style="padding-bottom: 125px !important;">
+    <!-- Active Table Status Bar & Item Count -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="brand-font fw-bold mb-0">
+                {% if selected_category_id %}
+                    {% for cat in categories %}{% if cat.id == selected_category_id %}{{ cat.name }}{% endif %}{% endfor %}
+                {% elif search_query %}
+                    Search Results for "{{ search_query }}"
+                {% else %}
+                    Our Signature Menu
+                {% endif %}
+            </h4>
+            <span class="text-muted small">{{ menu_items.count }} mouth-watering dish{{ menu_items.count|pluralize }}</span>
+        </div>
+
+        <div>
+            {% if current_table_number %}
+                <span class="badge bg-surface-raised text-body border p-2 px-3 rounded-pill shadow-sm">
+                    <i class="bi bi-geo-alt-fill text-danger me-1"></i> Table: <strong>{{ current_table_number }}</strong>
+                </span>
+            {% else %}
+                <button class="btn btn-sm btn-outline-surface rounded-pill px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#tableModal">
+                    <i class="bi bi-qr-code-scan me-1"></i> Select Table
+                </button>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if categorized_menu %}
+        <!-- De-cluttered Categorized Menu Sections (All Dishes View) -->
+        {% for section in categorized_menu %}
+        <div class="menu-category-section" id="cat-section-{{ section.category.id }}">
+            <div class="menu-category-header">
+                <div class="d-flex align-items-center gap-2">
+                    <h3 class="menu-category-title">{{ section.category.name }}</h3>
+                    <span class="badge bg-surface-raised border text-secondary rounded-pill px-2.5 py-1" style="font-size: 0.75rem;">
+                        {{ section.items|length }} dish{{ section.items|length|pluralize }}
+                    </span>
+                </div>
+                {% if section.category.description %}
+                    <span class="text-muted small d-none d-md-inline">{{ section.category.description }}</span>
+                {% endif %}
+            </div>
+
+            <div class="row g-3 g-md-4">
+                {% for item in section.items %}
+                <div class="col-12 col-md-6">
+                    <div class="zomato-dish-card shadow-sm" onclick="openItemDetailModal({{ item.id }}, '{{ item.name|escapejs }}', '{{ item.description|escapejs }}', '{{ item.price }}', {{ item.is_veg|yesno:'true,false' }}, '{{ item.category.name|escapejs }}', '{{ item.average_rating|default:'' }}', '{{ item.reviews.count }}', '{{ item.get_image_url }}')">
+                        <!-- Left: Food details -->
+                        <div class="zomato-dish-info">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                {% if item.is_veg %}
+                                    <span class="zomato-veg-badge" title="Vegetarian"></span>
+                                {% else %}
+                                    <span class="zomato-nonveg-badge" title="Non-Vegetarian"></span>
+                                {% endif %}
+                                
+                                {% if item.average_rating %}
+                                    <span class="badge bg-warning bg-opacity-25 text-warning-emphasis fw-bold px-2 py-0.5 rounded-pill" style="font-size: 0.72rem;">
+                                        <i class="bi bi-star-fill text-warning me-1"></i>{{ item.average_rating }}
+                                    </span>
+                                {% endif %}
+                            </div>
+
+                            <h5 class="zomato-dish-title">{{ item.name }}</h5>
+                            <div class="zomato-dish-price">₹{{ item.price }}</div>
+                            
+                            <p class="zomato-dish-desc">
+                                {{ item.description }}
+                            </p>
+
+                            <div class="d-flex align-items-center gap-2 mt-2">
+                                <span class="small text-muted" style="font-size: 0.76rem;">
+                                    <i class="bi bi-chat-heart text-danger me-1"></i>
+                                    {% if item.reviews.count %}{{ item.reviews.count }} review{{ item.reviews.count|pluralize }}{% else %}Be first to review{% endif %}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Right: Food Image with Overlapping Floating "+ ADD" or Stepper Button -->
+                        <div class="zomato-media-container" onclick="event.stopPropagation();">
+                            <img src="{{ item.get_image_url }}" alt="{{ item.name }}" loading="lazy">
+                            
+                            <div class="zomato-action-wrapper" id="item-stepper-{{ item.id }}">
+                                <button type="button" class="zomato-add-pill" onclick="handleItemAdd({{ item.id }})">
+                                    ADD <i class="bi bi-plus-lg"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <!-- Filtered Flat Listing (Category or Search Result) -->
+        <div class="row g-3 g-md-4">
+            {% for item in menu_items %}
+            <div class="col-12 col-md-6">
+                <div class="zomato-dish-card shadow-sm" onclick="openItemDetailModal({{ item.id }}, '{{ item.name|escapejs }}', '{{ item.description|escapejs }}', '{{ item.price }}', {{ item.is_veg|yesno:'true,false' }}, '{{ item.category.name|escapejs }}', '{{ item.average_rating|default:'' }}', '{{ item.reviews.count }}', '{{ item.get_image_url }}')">
+                    <!-- Left: Food details -->
+                    <div class="zomato-dish-info">
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            {% if item.is_veg %}
+                                <span class="zomato-veg-badge" title="Vegetarian"></span>
+                            {% else %}
+                                <span class="zomato-nonveg-badge" title="Non-Vegetarian"></span>
+                            {% endif %}
+                            
+                            {% if item.average_rating %}
+                                <span class="badge bg-warning bg-opacity-25 text-warning-emphasis fw-bold px-2 py-0.5 rounded-pill" style="font-size: 0.72rem;">
+                                    <i class="bi bi-star-fill text-warning me-1"></i>{{ item.average_rating }}
+                                </span>
+                            {% endif %}
+
+                            <span class="badge bg-surface-raised text-body border" style="font-size: 0.68rem;">{{ item.category.name }}</span>
+                        </div>
+
+                        <h5 class="zomato-dish-title">{{ item.name }}</h5>
+                        <div class="zomato-dish-price">₹{{ item.price }}</div>
+                        
+                        <p class="zomato-dish-desc">
+                            {{ item.description }}
+                        </p>
+
+                        <div class="d-flex align-items-center gap-2 mt-2">
+                            <span class="small text-muted" style="font-size: 0.76rem;">
+                                <i class="bi bi-chat-heart text-danger me-1"></i>
+                                {% if item.reviews.count %}{{ item.reviews.count }} review{{ item.reviews.count|pluralize }}{% else %}Be first to review{% endif %}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Right: Food Image with Overlapping Floating "+ ADD" or Stepper Button -->
+                    <div class="zomato-media-container" onclick="event.stopPropagation();">
+                        <img src="{{ item.get_image_url }}" alt="{{ item.name }}" loading="lazy">
+                        
+                        <div class="zomato-action-wrapper" id="item-stepper-{{ item.id }}">
+                            <button type="button" class="zomato-add-pill" onclick="handleItemAdd({{ item.id }})">
+                                ADD <i class="bi bi-plus-lg"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 py-5 text-center">
+                <div class="p-5 card-surface rounded-4 text-center">
+                    <i class="bi bi-search fs-1 text-muted mb-3 d-block"></i>
+                    <h5 class="fw-bold mb-1">No dishes match your filter</h5>
+                    <p class="text-muted small mb-3">Try searching for other dishes or disable the pure-veg filter.</p>
+                    <a href="{% url 'menu:menu_list' %}" class="btn btn-outline-surface btn-sm rounded-pill px-4">
+                        Reset Filter
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+
+<!-- Floating Bottom Cart Bar (Zomato Style) -->
+<div class="zomato-bottom-cart-bar" id="zomatoBottomCartBar" style="display: {% if cart_count > 0 %}flex{% else %}none{% endif %};">
+    <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-bag-check-fill fs-5 text-warning"></i>
+        <div>
+            <div class="fw-bold small">
+                <span class="cart-badge-count">{{ cart_count|default:"0" }}</span> item(s) in Cart
+            </div>
+            <div class="text-white-50" style="font-size: 0.72rem;">Table: {{ current_table_number|default:"Dine-In" }}</div>
+        </div>
+    </div>
+    <a href="{% url 'orders:cart' %}" class="btn btn-warning btn-sm rounded-pill px-3 fw-bold text-dark text-nowrap">
+        View Cart <i class="bi bi-chevron-right ms-1"></i>
+    </a>
+</div>
+
+<!-- Modal / Bottom Sheet: Food Item Details & Customer Reviews -->
+<div class="modal fade" id="itemDetailModal" tabindex="-1" aria-labelledby="itemDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content card-surface border-0 shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <div class="d-flex align-items-center gap-2">
+                    <span id="modalVegTag"></span>
+                    <span class="badge bg-light text-muted border" id="modalCategoryBadge"></span>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-4 align-items-start">
+                    <div class="col-md-7">
+                        <img id="modalItemImg" src="" class="rounded-3 w-100 object-fit-cover mb-3 shadow-sm" style="height: 220px;" alt="Food Image">
+                        <h3 class="brand-font fw-bold mb-1" id="modalItemTitle"></h3>
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <span class="badge bg-warning text-dark fw-bold" id="modalItemRating"></span>
+                            <span class="text-muted small" id="modalReviewCount"></span>
+                        </div>
+                        <p class="text-muted" id="modalItemDesc"></p>
+                        <h4 class="fw-bold text-danger mb-4">₹<span id="modalItemPrice"></span></h4>
+
+                        <!-- Add to Cart Action inside Modal -->
+                        <div class="d-flex align-items-center gap-2 mb-4">
+                            <div id="modal-stepper-container">
+                                <button type="button" class="btn btn-brand px-4 py-2" id="modalAddCartBtn">
+                                    <i class="bi bi-plus-lg me-1"></i> Add to Order
+                                </button>
+                            </div>
+                            <a href="{% url 'orders:cart' %}" class="btn btn-outline-surface px-4 py-2">
+                                <i class="bi bi-bag-check me-1"></i> Go to Cart
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Customer Reviews & Submission section -->
+                    <div class="col-md-5 border-start-md">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold mb-0"><i class="bi bi-chat-heart text-danger me-1"></i> Customer Ratings</h6>
+                            <span class="badge bg-secondary rounded-pill" id="modalReviewsTotalBadge">0</span>
+                        </div>
+                        
+                        <!-- Review Submission Form -->
+                        {% if user.is_authenticated %}
+                        <form id="reviewSubmissionForm" method="POST" action="" onsubmit="handleReviewSubmit(event)" class="p-3 bg-surface-raised rounded-3 mb-3 border">
+                            {% csrf_token %}
+                            <label class="form-label small fw-semibold" id="reviewFormLabel">Rate this dish</label>
+                            <div class="mb-2">
+                                <select name="rating" id="reviewInputRating" class="form-select form-select-sm" required>
+                                    <option value="5">⭐⭐⭐⭐⭐ 5 Stars</option>
+                                    <option value="4">⭐⭐⭐⭐ 4 Stars</option>
+                                    <option value="3">⭐⭐⭐ 3 Stars</option>
+                                    <option value="2">⭐⭐ 2 Stars</option>
+                                    <option value="1">⭐ 1 Star</option>
+                                </select>
+                            </div>
+                            <div class="mb-2">
+                                <textarea name="comment" id="reviewInputComment" class="form-control form-control-sm" rows="2" placeholder="How was this dish?" required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-brand btn-sm w-100" id="reviewSubmitBtn">Post Review</button>
+                        </form>
+                        {% else %}
+                        <div class="p-3 bg-surface-raised rounded-3 text-center mb-3 border small">
+                            <a href="{% url 'accounts:google_login' %}" class="text-decoration-none fw-bold text-danger">Sign in with Google</a> to rate this dish!
+                        </div>
+                        {% endif %}
+
+                        <!-- Customer Reviews Dynamic List -->
+                        <div id="modalReviewsList" class="d-flex flex-column gap-2" style="max-height: 250px; overflow-y: auto;">
+                            <div class="text-center py-3 text-muted small">
+                                <span class="spinner-border spinner-border-sm me-1"></span> Loading diner reviews...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // 1. Dietary Preference Memory in localStorage
+    function handleVegToggle(checkbox) {
+        localStorage.setItem('foodmenu_veg_only', checkbox.checked ? '1' : '0');
+        checkbox.form.submit();
+    }
+
+    let isUserClickScrolling = false;
+    let scrollTimeout = null;
+
+    function setActiveCategoryPill(catId) {
+        document.querySelectorAll('.category-scroll-container .category-pill').forEach(pill => {
+            pill.classList.remove('active');
+        });
+        const targetPill = document.getElementById(catId === 'all' ? 'pill-cat-all' : `pill-cat-${catId}`);
+        if (targetPill) {
+            targetPill.classList.add('active');
+            targetPill.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+    }
+
+    // Smooth scroll to category section when all dishes are displayed
+    function smoothScrollToCategory(sectionId, evt, catId) {
+        if (evt) evt.preventDefault();
+        const el = document.getElementById(sectionId);
+        if (el) {
+            isUserClickScrolling = true;
+            setActiveCategoryPill(catId);
+            const offset = 140; // account for sticky top search and category bar
+            const top = el.getBoundingClientRect().top + window.scrollY - offset;
+            window.scrollTo({ top, behavior: 'smooth' });
+
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                isUserClickScrolling = false;
+            }, 800);
+        }
+    }
+
+    // 2. Open Item Detail Modal with Dynamic Reviews Loading
+    let activeModalItemId = null;
+    function openItemDetailModal(id, name, desc, price, isVeg, catName, rating, reviewCount, imgUrl) {
+        activeModalItemId = id;
+        document.getElementById('modalItemTitle').textContent = name;
+        document.getElementById('modalItemDesc').textContent = desc;
+        document.getElementById('modalItemPrice').textContent = price;
+        document.getElementById('modalCategoryBadge').textContent = catName;
+        if (imgUrl) {
+            document.getElementById('modalItemImg').src = imgUrl;
+            document.getElementById('modalItemImg').style.display = 'block';
+        } else {
+            document.getElementById('modalItemImg').style.display = 'none';
+        }
+
+        const vegTag = document.getElementById('modalVegTag');
+        if (isVeg) {
+            vegTag.className = 'zomato-veg-badge';
+            vegTag.innerHTML = '';
+        } else {
+            vegTag.className = 'zomato-nonveg-badge';
+            vegTag.innerHTML = '';
+        }
+
+        const ratingBadge = document.getElementById('modalItemRating');
+        if (rating) {
+            ratingBadge.style.display = 'inline-block';
+            ratingBadge.innerHTML = `<i class="bi bi-star-fill me-1"></i>${rating}`;
+            document.getElementById('modalReviewCount').textContent = `(${reviewCount} reviews)`;
+        } else {
+            ratingBadge.style.display = 'none';
+            document.getElementById('modalReviewCount').textContent = 'No reviews yet';
+        }
+
+        // Set form action for reviews
+        const reviewForm = document.getElementById('reviewSubmissionForm');
+        if (reviewForm) {
+            reviewForm.action = `/item/${id}/review/`;
+        }
+
+        updateModalStepperUI(id, cartStore[id] || 0);
+
+        // Fetch all reviews dynamically for this dish
+        loadItemReviews(id);
+
+        const modal = new bootstrap.Modal(document.getElementById('itemDetailModal'));
+        modal.show();
+    }
+
+    // Load Dish Reviews via API
+    function loadItemReviews(itemId) {
+        const reviewsContainer = document.getElementById('modalReviewsList');
+        reviewsContainer.innerHTML = '<div class="text-center py-3 text-muted small"><span class="spinner-border spinner-border-sm me-1"></span> Loading reviews...</div>';
+
+        fetch(`/api/item/${itemId}/reviews/`)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('modalReviewsTotalBadge').textContent = data.review_count || 0;
+                if (!data.reviews || data.reviews.length === 0) {
+                    reviewsContainer.innerHTML = '<p class="small text-muted py-2 text-center mb-0">No reviews yet. Be the first to share your thoughts!</p>';
+                    return;
+                }
+
+                let html = '';
+                data.reviews.forEach(r => {
+                    const stars = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
+                    html += `
+                        <div class="p-2 border rounded-3 bg-surface-raised">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <strong class="small text-dark">${r.customer_name} ${r.is_mine ? '<span class="badge bg-primary text-white" style="font-size:0.6rem;">You</span>' : ''}</strong>
+                                <span class="badge bg-warning text-dark" style="font-size: 0.68rem;">${r.rating}★</span>
+                            </div>
+                            <p class="small text-secondary mb-1">${r.comment}</p>
+                            <span class="text-muted" style="font-size: 0.68rem;">${r.date}</span>
+                        </div>
+                    `;
+                });
+                reviewsContainer.innerHTML = html;
+            })
+            .catch(err => {
+                reviewsContainer.innerHTML = '<p class="small text-muted py-2 text-center mb-0">Ratings help fellow diners discover the best food.</p>';
+            });
+    }
+
+    // Submit Review AJAX handler
+    function handleReviewSubmit(e) {
+        e.preventDefault();
+        const form = e.target;
+        const btn = document.getElementById('reviewSubmitBtn');
+        const formData = new FormData(form);
+        formData.append('format', 'json');
+
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Posting...';
+
+        fetch(form.action, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            btn.disabled = false;
+            btn.innerHTML = 'Post Review';
+            if (data.success) {
+                if (window.showAppToast) showAppToast(data.message, 'success');
+                form.reset();
+                if (activeModalItemId) {
+                    loadItemReviews(activeModalItemId);
+                }
+            } else {
+                alert(data.error || 'Could not post review.');
+            }
+        })
+        .catch(err => {
+            btn.disabled = false;
+            btn.innerHTML = 'Post Review';
+            form.submit();
+        });
+    }
+
+    // 3. AJAX Add Item with Zomato Floating Overlapping Stepper Capsule
+    let cartStore = {};
+
+    function handleItemAdd(itemId) {
+        updateItemQty(itemId, 'increase');
+    }
+
+    function updateModalStepperUI(itemId, qty) {
+        const container = document.getElementById('modal-stepper-container');
+        if (!container || activeModalItemId !== itemId) return;
+
+        if (qty > 0) {
+            container.innerHTML = `
+                <div class="d-inline-flex align-items-center rounded-pill shadow-sm px-2 py-1 border" style="height: 40px; background: #0f172a; border-color: rgba(245, 158, 11, 0.4) !important;">
+                    <button type="button" class="btn btn-sm btn-link text-warning p-0 px-2 fw-bold text-decoration-none" onclick="updateItemQty(${itemId}, 'decrease')" title="Decrease">
+                        <i class="bi bi-dash-lg fs-6"></i>
+                    </button>
+                    <span class="fw-bold px-2 text-white text-center" style="min-width: 28px; font-size: 0.95rem;">${qty} in Cart</span>
+                    <button type="button" class="btn btn-sm btn-link text-warning p-0 px-2 fw-bold text-decoration-none" onclick="updateItemQty(${itemId}, 'increase')" title="Increase">
+                        <i class="bi bi-plus-lg fs-6"></i>
+                    </button>
+                </div>
+            `;
+        } else {
+            container.innerHTML = `
+                <button type="button" class="btn btn-brand px-4 py-2" onclick="handleItemAdd(${itemId})">
+                    <i class="bi bi-plus-lg me-1"></i> Add to Order
+                </button>
+            `;
+        }
+    }
+
+    function updateStepperUI(itemId, qty) {
+        const container = document.getElementById(`item-stepper-${itemId}`);
+        if (container) {
+            if (qty > 0) {
+                container.innerHTML = `
+                    <div class="zomato-stepper-capsule">
+                        <button type="button" class="zomato-stepper-btn" onclick="updateItemQty(${itemId}, 'decrease')" title="Decrease">
+                            <i class="bi bi-dash-lg"></i>
+                        </button>
+                        <span class="zomato-stepper-qty">${qty}</span>
+                        <button type="button" class="zomato-stepper-btn" onclick="updateItemQty(${itemId}, 'increase')" title="Increase">
+                            <i class="bi bi-plus-lg"></i>
+                        </button>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <button type="button" class="zomato-add-pill" onclick="handleItemAdd(${itemId})">
+                        ADD <i class="bi bi-plus-lg"></i>
+                    </button>
+                `;
+            }
+        }
+
+        updateModalStepperUI(itemId, qty);
+    }
+
+    function updateItemQty(itemId, action) {
+        fetch(`/api/cart/update/${itemId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({'action': action})
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                if (data.item_qty > 0) {
+                    cartStore[itemId] = data.item_qty;
+                } else {
+                    delete cartStore[itemId];
+                }
+
+                // Update badge counts across navbar, mobile bottom nav, and floating bottom cart
+                document.querySelectorAll('.cart-badge-count').forEach(el => el.textContent = data.cart_count);
+                updateStepperUI(itemId, data.item_qty);
+
+                // Show/hide floating bottom cart
+                const bottomCart = document.getElementById('zomatoBottomCartBar');
+                const liveOrderBar = document.getElementById('liveOrderBar');
+                if (bottomCart) {
+                    bottomCart.style.display = data.cart_count > 0 ? 'flex' : 'none';
+                }
+                if (liveOrderBar) {
+                    liveOrderBar.style.display = data.cart_count > 0 ? 'none' : ({% if active_order %}true{% else %}false{% endif %} ? 'block' : 'none');
+                }
+
+                if (data.item_qty === 0) {
+                    showAppToast('Item removed from cart');
+                } else if (action === 'increase') {
+                    showAppToast(`Updated quantity: ${data.item_qty}`);
+                }
+            }
+        })
+        .catch(err => console.error('Cart stepper error:', err));
+    }
+
+    // 4. Initial Card Synchronization on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        try {
+            const initialCart = {{ cart_json|safe }};
+            cartStore = { ...initialCart };
+            for (const [idStr, qty] of Object.entries(initialCart)) {
+                updateStepperUI(parseInt(idStr), qty);
+            }
+            if (Object.keys(initialCart).length > 0) {
+                const liveOrderBar = document.getElementById('liveOrderBar');
+                if (liveOrderBar) liveOrderBar.style.display = 'none';
+            }
+        } catch(e) {
+            console.debug('Cart init err:', e);
+        }
+
+        // 5. Hash-Based Auto-Scroll: if URL has #cat-section-X, scroll there after load
+        const hash = window.location.hash;
+        if (hash && hash.startsWith('#cat-section-')) {
+            const catId = hash.replace('#cat-section-', '');
+            const targetEl = document.getElementById(hash.slice(1));
+            if (targetEl) {
+                setTimeout(() => {
+                    smoothScrollToCategory(hash.slice(1), null, catId);
+                }, 350);
+            }
+        }
+
+        // 6. Real-Time ScrollSpy: update active category pill & scroll strip as user scrolls
+        {% if categorized_menu %}
+        const sections = document.querySelectorAll('.menu-category-section');
+        let spyTimeout = null;
+
+        function updateScrollSpy() {
+            if (isUserClickScrolling) return;
+
+            const scrollY = window.scrollY;
+            const triggerOffset = 180; // offset below sticky top bar
+
+            // If at the very top, highlight "All Dishes"
+            if (scrollY < 200) {
+                setActiveCategoryPill('all');
+                return;
+            }
+
+            let currentSectionId = null;
+            sections.forEach(sec => {
+                const rect = sec.getBoundingClientRect();
+                if (rect.top <= triggerOffset && rect.bottom > triggerOffset) {
+                    currentSectionId = sec.id.replace('cat-section-', '');
+                }
+            });
+
+            // If scrolled past the last section
+            if (!currentSectionId && sections.length > 0) {
+                const lastSection = sections[sections.length - 1];
+                if (lastSection.getBoundingClientRect().top < triggerOffset) {
+                    currentSectionId = lastSection.id.replace('cat-section-', '');
+                }
+            }
+
+            if (currentSectionId) {
+                setActiveCategoryPill(currentSectionId);
+            }
+        }
+
+        window.addEventListener('scroll', () => {
+            if (!spyTimeout) {
+                spyTimeout = setTimeout(() => {
+                    updateScrollSpy();
+                    spyTimeout = null;
+                }, 80);
+            }
+        }, { passive: true });
+        {% endif %}
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,685 @@
+/* ==============================================================================
+   SPICE GARDEN CUSTOM DJANGO ADMIN THEME
+   Fully compatible with Django Dark & Light modes, Outfit & Plus Jakarta Sans
+   ============================================================================== */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+/* -------------------------------------------------------------
+ * 1. ROOT VARIABLES FOR LIGHT MODE
+ * ------------------------------------------------------------- */
+:root,
+html[data-theme="light"] {
+  --primary: #d97706;
+  --primary-fg: #ffffff;
+  --secondary: #0f172a;
+  --accent: #f59e0b;
+
+  --body-fg: #0f172a;
+  --body-bg: #f8fafc;
+  --body-quiet-color: #64748b;
+  --body-medium-color: #334155;
+  --body-loud-color: #020617;
+
+  --header-bg: #090d16;
+  --header-color: #ffffff;
+  --header-link-color: #f8fafc;
+  --header-branding-color: #f59e0b;
+
+  --breadcrumbs-bg: #0f172a;
+  --breadcrumbs-fg: #94a3b8;
+  --breadcrumbs-link-fg: #f59e0b;
+
+  --link-fg: #d97706;
+  --link-hover-color: #b45309;
+  --link-selected-fg: #d97706;
+
+  --hairline-color: #e2e8f0;
+  --border-color: #e2e8f0;
+  --card-bg: #ffffff;
+  --card-border: #e2e8f0;
+  --input-bg: #ffffff;
+  --input-border: #cbd5e1;
+  --input-fg: #0f172a;
+
+  --darkened-bg: #f1f5f9;
+  --selected-bg: #fef3c7;
+  --selected-row: #fffbeb;
+
+  --button-fg: #0f172a;
+  --button-bg: #f59e0b;
+  --button-hover-bg: #d97706;
+  --default-button-bg: #f59e0b;
+  --default-button-hover-bg: #d97706;
+
+  --font-family-primary: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-display: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color-scheme: light;
+}
+
+/* -------------------------------------------------------------
+ * 2. ROOT VARIABLES FOR DARK MODE
+ * ------------------------------------------------------------- */
+html[data-theme="dark"],
+@media (prefers-color-scheme: dark) {
+  :root,
+  html[data-theme="dark"] {
+    --primary: #f59e0b;
+    --primary-fg: #090d16;
+    --secondary: #1e293b;
+    --accent: #fbbf24;
+
+    --body-fg: #f1f5f9;
+    --body-bg: #0b0f19;
+    --body-quiet-color: #94a3b8;
+    --body-medium-color: #cbd5e1;
+    --body-loud-color: #ffffff;
+
+    --header-bg: #030712;
+    --header-color: #ffffff;
+    --header-link-color: #f8fafc;
+    --header-branding-color: #f59e0b;
+
+    --breadcrumbs-bg: #090d16;
+    --breadcrumbs-fg: #64748b;
+    --breadcrumbs-link-fg: #f59e0b;
+
+    --link-fg: #f59e0b;
+    --link-hover-color: #fbbf24;
+    --link-selected-fg: #f59e0b;
+
+    --hairline-color: #1e293b;
+    --border-color: #1f2937;
+    --card-bg: #111827;
+    --card-border: #1f2937;
+    --input-bg: #090d16;
+    --input-border: #374151;
+    --input-fg: #f8fafc;
+
+    --darkened-bg: #111827;
+    --selected-bg: #1f2937;
+    --selected-row: #2d2305;
+
+    --button-fg: #090d16;
+    --button-bg: #f59e0b;
+    --button-hover-bg: #d97706;
+    --default-button-bg: #f59e0b;
+    --default-button-hover-bg: #d97706;
+
+    --font-family-primary: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-display: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color-scheme: dark;
+  }
+}
+
+/* -------------------------------------------------------------
+ * 3. GLOBAL PAGE STYLING
+ * ------------------------------------------------------------- */
+body {
+  font-family: var(--font-family-primary) !important;
+  color: var(--body-fg) !important;
+  background-color: var(--body-bg) !important;
+  margin: 0;
+  padding: 0;
+}
+
+#content {
+  padding: 24px 32px !important;
+}
+
+#content h1 {
+  font-family: var(--font-display) !important;
+  font-weight: 800 !important;
+  font-size: 1.55rem !important;
+  letter-spacing: -0.02em !important;
+  color: var(--body-fg) !important;
+  margin: 0 0 20px 0 !important;
+}
+
+/* -------------------------------------------------------------
+ * 4. HEADER & TOP BRAND BAR
+ * ------------------------------------------------------------- */
+#header {
+  background: linear-gradient(135deg, #030712 0%, #090d16 50%, #171105 100%) !important;
+  color: #ffffff !important;
+  border-bottom: 2px solid rgba(245, 158, 11, 0.45) !important;
+  padding: 12px 28px !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25) !important;
+}
+
+#header h1, #header h1 a {
+  font-family: var(--font-display) !important;
+  font-weight: 800 !important;
+  font-size: 1.35rem !important;
+  color: #ffffff !important;
+  text-decoration: none !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#header h1 a:hover {
+  color: var(--accent) !important;
+}
+
+#user-tools {
+  font-family: var(--font-family-primary) !important;
+  font-size: 0.82rem !important;
+  font-weight: 500 !important;
+  color: #94a3b8 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+#user-tools a {
+  background: rgba(255, 255, 255, 0.08) !important;
+  padding: 5px 12px !important;
+  border-radius: 9999px !important;
+  color: #f8fafc !important;
+  text-decoration: none !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  transition: all 0.2s ease !important;
+}
+
+#user-tools a:hover {
+  background: var(--accent) !important;
+  color: #090d16 !important;
+  border-color: var(--accent) !important;
+}
+
+/* -------------------------------------------------------------
+ * 5. BREADCRUMBS
+ * ------------------------------------------------------------- */
+div.breadcrumbs {
+  background: var(--breadcrumbs-bg) !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  padding: 10px 28px !important;
+  font-size: 0.8rem !important;
+  color: var(--breadcrumbs-fg) !important;
+}
+
+div.breadcrumbs a {
+  color: var(--accent) !important;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+}
+
+div.breadcrumbs a:hover {
+  text-decoration: underline !important;
+}
+
+/* -------------------------------------------------------------
+ * 6. NAVIGATION SIDEBAR (#nav-sidebar)
+ * ------------------------------------------------------------- */
+#nav-sidebar {
+  background-color: var(--body-bg) !important;
+  border-right: 1px solid var(--border-color) !important;
+  padding: 12px 10px !important;
+}
+
+.toggle-nav-sidebar {
+  background-color: var(--body-bg) !important;
+  border-right: 1px solid var(--border-color) !important;
+  color: var(--accent) !important;
+}
+
+#nav-sidebar #nav-filter {
+  background-color: var(--input-bg) !important;
+  color: var(--input-fg) !important;
+  border: 1px solid var(--input-border) !important;
+  border-radius: 8px !important;
+  padding: 7px 10px !important;
+  font-size: 0.8rem !important;
+  margin-bottom: 12px !important;
+}
+
+#nav-sidebar #nav-filter:focus {
+  border-color: var(--accent) !important;
+  outline: none !important;
+}
+
+#nav-sidebar .module {
+  background: var(--card-bg) !important;
+  border: 1px solid var(--card-border) !important;
+  border-radius: 12px !important;
+  margin-bottom: 12px !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+}
+
+#nav-sidebar .module caption,
+#nav-sidebar table caption {
+  background: rgba(245, 158, 11, 0.08) !important;
+  color: #f59e0b !important;
+  font-family: var(--font-display) !important;
+  font-weight: 800 !important;
+  font-size: 0.72rem !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  padding: 10px 14px !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  text-align: left !important;
+}
+
+#nav-sidebar .module caption a,
+#nav-sidebar table caption a {
+  color: #f59e0b !important;
+  text-decoration: none !important;
+}
+
+#nav-sidebar table th,
+#nav-sidebar table td {
+  background: transparent !important;
+  border-bottom: 1px solid var(--hairline-color) !important;
+  padding: 8px 12px !important;
+  color: var(--body-fg) !important;
+}
+
+#nav-sidebar tr:hover th,
+#nav-sidebar tr:hover td {
+  background: var(--darkened-bg) !important;
+}
+
+#nav-sidebar a.section {
+  color: var(--body-fg) !important;
+  font-weight: 500 !important;
+  text-decoration: none !important;
+}
+
+#nav-sidebar a.section:hover {
+  color: var(--accent) !important;
+}
+
+#nav-sidebar .addlink {
+  color: #10b981 !important;
+  font-weight: 600 !important;
+}
+
+/* -------------------------------------------------------------
+ * 7. FORM CONTAINERS & FIELDSETS
+ * ------------------------------------------------------------- */
+.module,
+fieldset.module {
+  background: var(--card-bg) !important;
+  border: 1px solid var(--card-border) !important;
+  border-radius: 14px !important;
+  margin-bottom: 20px !important;
+  padding: 18px 22px !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04) !important;
+}
+
+fieldset .fieldset-heading,
+fieldset .inline-heading {
+  background: var(--darkened-bg) !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--body-fg) !important;
+  border-radius: 8px !important;
+  padding: 8px 14px !important;
+  font-family: var(--font-display) !important;
+  font-weight: 700 !important;
+  margin-bottom: 14px !important;
+}
+
+.form-row {
+  padding: 14px 0 !important;
+  border-bottom: 1px solid var(--hairline-color) !important;
+  background: transparent !important;
+}
+
+.form-row:last-child {
+  border-bottom: none !important;
+}
+
+.form-row label,
+label {
+  color: var(--body-fg) !important;
+  font-family: var(--font-family-primary) !important;
+  font-weight: 600 !important;
+  font-size: 0.84rem !important;
+  margin-bottom: 6px !important;
+  display: block !important;
+}
+
+/* -------------------------------------------------------------
+ * 8. FORM INPUTS & DROPDOWNS
+ * ------------------------------------------------------------- */
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="url"],
+input[type="number"],
+input[type="tel"],
+textarea,
+select,
+.vTextField,
+.vLargeTextField {
+  background-color: var(--input-bg) !important;
+  color: var(--input-fg) !important;
+  border: 1px solid var(--input-border) !important;
+  border-radius: 8px !important;
+  padding: 9px 12px !important;
+  font-family: var(--font-family-primary) !important;
+  font-size: 0.88rem !important;
+  min-width: 280px;
+  max-width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+input:focus,
+textarea:focus,
+select:focus,
+.vTextField:focus {
+  border-color: var(--accent) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.25) !important;
+}
+
+select {
+  height: auto !important;
+  cursor: pointer;
+}
+
+select option {
+  background-color: var(--input-bg) !important;
+  color: var(--input-fg) !important;
+  padding: 6px 10px !important;
+}
+
+/* Related Widget Icons (Pencil, Green Plus, Eye) */
+.related-widget-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.related-widget-wrapper-link {
+  opacity: 0.85;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.related-widget-wrapper-link:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+/* -------------------------------------------------------------
+ * 9. SUBMIT BUTTONS & FOOTER BAR (.submit-row)
+ * ------------------------------------------------------------- */
+.submit-row {
+  background: var(--card-bg) !important;
+  border: 1px solid var(--card-border) !important;
+  border-radius: 12px !important;
+  padding: 14px 18px !important;
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 10px !important;
+  margin-top: 24px !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04) !important;
+}
+
+.submit-row input[type="submit"],
+.submit-row input[type="button"],
+.submit-row a {
+  margin: 0 !important;
+  border-radius: 9999px !important;
+  font-family: var(--font-family-primary) !important;
+  font-weight: 700 !important;
+  font-size: 0.84rem !important;
+  padding: 9px 20px !important;
+  border: none !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+/* Primary Save Button */
+.submit-row input[name="_save"],
+.submit-row input.default {
+  background: #f59e0b !important;
+  color: #090d16 !important;
+}
+
+.submit-row input[name="_save"]:hover,
+.submit-row input.default:hover {
+  background: #d97706 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.35) !important;
+}
+
+/* Save & Add Another Button */
+.submit-row input[name="_addanother"] {
+  background: #1e293b !important;
+  color: #f8fafc !important;
+  border: 1px solid #334155 !important;
+}
+
+.submit-row input[name="_addanother"]:hover {
+  background: #334155 !important;
+  color: #ffffff !important;
+}
+
+/* Save & Continue Editing Button */
+.submit-row input[name="_continue"] {
+  background: transparent !important;
+  color: #f59e0b !important;
+  border: 1px solid #f59e0b !important;
+}
+
+.submit-row input[name="_continue"]:hover {
+  background: rgba(245, 158, 11, 0.15) !important;
+}
+
+/* Delete Link in Submit Row */
+.submit-row .deletelink {
+  background: #ef4444 !important;
+  color: #ffffff !important;
+  border-radius: 9999px !important;
+  padding: 8px 18px !important;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+}
+
+.submit-row .deletelink:hover {
+  background: #dc2626 !important;
+}
+
+/* -------------------------------------------------------------
+ * 10. CHANGELIST TABLES & DATA GRIDS
+ * ------------------------------------------------------------- */
+#changelist {
+  background: transparent !important;
+}
+
+#changelist table {
+  width: 100% !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  background: var(--card-bg) !important;
+  border: 1px solid var(--card-border) !important;
+  border-radius: 14px !important;
+  overflow: hidden !important;
+}
+
+#changelist table thead th {
+  background: var(--darkened-bg) !important;
+  color: var(--body-quiet-color) !important;
+  font-family: var(--font-family-primary) !important;
+  font-weight: 700 !important;
+  font-size: 0.74rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  padding: 12px 14px !important;
+  border-bottom: 1px solid var(--border-color) !important;
+}
+
+#changelist table tbody td,
+#changelist table tbody th {
+  padding: 12px 14px !important;
+  font-size: 0.86rem !important;
+  color: var(--body-fg) !important;
+  border-bottom: 1px solid var(--hairline-color) !important;
+  background: transparent !important;
+}
+
+#changelist table tbody tr:hover td,
+#changelist table tbody tr:hover th {
+  background: var(--darkened-bg) !important;
+}
+
+#changelist-filter {
+  background: var(--card-bg) !important;
+  border: 1px solid var(--card-border) !important;
+  border-radius: 14px !important;
+  padding: 16px !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04) !important;
+}
+
+#changelist-filter h2 {
+  font-family: var(--font-display) !important;
+  font-size: 0.85rem !important;
+  font-weight: 800 !important;
+  text-transform: uppercase !important;
+  color: #f59e0b !important;
+  padding: 0 0 8px 0 !important;
+  border-bottom: 2px solid #f59e0b !important;
+  background: transparent !important;
+}
+
+#changelist-filter h3 {
+  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+  color: var(--body-quiet-color) !important;
+  margin-top: 14px !important;
+}
+
+#changelist-filter li.selected a {
+  color: #f59e0b !important;
+  font-weight: 700 !important;
+}
+
+/* -------------------------------------------------------------
+ * 11. BADGES & STATUS PILLS
+ * ------------------------------------------------------------- */
+.badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.badge-success {
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #10b981 !important;
+  border: 1px solid rgba(16, 185, 129, 0.3) !important;
+}
+
+.badge-warning {
+  background: rgba(245, 158, 11, 0.15) !important;
+  color: #f59e0b !important;
+  border: 1px solid rgba(245, 158, 11, 0.3) !important;
+}
+
+.badge-danger {
+  background: rgba(239, 68, 68, 0.15) !important;
+  color: #ef4444 !important;
+  border: 1px solid rgba(239, 68, 68, 0.3) !important;
+}
+
+.badge-primary {
+  background: rgba(59, 130, 246, 0.15) !important;
+  color: #3b82f6 !important;
+  border: 1px solid rgba(59, 130, 246, 0.3) !important;
+}
+
+.badge-dark {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #f8fafc !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+/* -------------------------------------------------------------
+ * 12. DASHBOARD KPI CARDS & LAUNCHPAD
+ * ------------------------------------------------------------- */
+.admin-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.admin-kpi-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 18px 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.admin-kpi-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--body-quiet-color);
+  margin-bottom: 6px;
+}
+
+.admin-kpi-val {
+  font-family: var(--font-display);
+  font-size: 1.85rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--body-fg);
+}
+
+.admin-launchpad {
+  background: linear-gradient(135deg, #090d16 0%, #111827 50%, #1a1508 100%);
+  border-radius: 18px;
+  padding: 22px 24px;
+  margin-bottom: 24px;
+  color: #ffffff;
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+}
+
+.admin-launchpad h3 {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 800;
+  margin: 0 0 6px 0;
+  color: #f8fafc;
+}
+
+.launchpad-btn-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.launchpad-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  padding: 8px 16px;
+  border-radius: 9999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none !important;
+  transition: all 0.2s ease;
+}
+
+.launchpad-btn:hover {
+  background: #f59e0b;
+  color: #090d16 !important;
+  border-color: #f59e0b;
+  transform: translateY(-1px);
+}

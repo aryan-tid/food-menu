@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ item.name }} - {{ restaurant.name|default:"Spice Garden" }}{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width: 850px;">
+    <div class="mb-3">
+        <a href="{% url 'menu:menu_list' %}" class="btn btn-outline-surface btn-sm rounded-pill px-3">
+            <i class="bi bi-arrow-left me-1"></i> Back to Menu
+        </a>
+    </div>
+
+    <div class="card-surface p-4 p-md-5 mb-4">
+        <div class="row g-4 align-items-start">
+            <div class="col-md-7">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    {% if item.is_veg %}
+                        <span class="veg-tag"><i class="bi bi-record-circle"></i> VEG</span>
+                    {% else %}
+                        <span class="nonveg-tag"><i class="bi bi-caret-up-square-fill"></i> NON-VEG</span>
+                    {% endif %}
+                    <span class="badge bg-light text-dark border">{{ item.category.name }}</span>
+                </div>
+
+                <h2 class="brand-font fw-bold mb-2 text-dark">{{ item.name }}</h2>
+
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    {% if item.average_rating %}
+                        <span class="badge bg-warning text-dark"><i class="bi bi-star-fill me-1"></i>{{ item.average_rating }}</span>
+                        <span class="text-muted small">({{ item.reviews.count }} reviews)</span>
+                    {% else %}
+                        <span class="badge bg-light text-muted border">New Dish</span>
+                    {% endif %}
+                </div>
+
+                <p class="text-muted mb-4 lead fs-6">{{ item.description }}</p>
+
+                <h3 class="fw-bold text-danger mb-4">₹{{ item.price }}</h3>
+
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-brand px-4 py-2" onclick="ajaxAddToCart({{ item.id }})">
+                        <i class="bi bi-plus-lg me-1"></i> Add to Cart
+                    </button>
+                    <a href="{% url 'orders:cart' %}" class="btn btn-outline-surface px-4 py-2">
+                        <i class="bi bi-bag-check me-1"></i> View Cart
+                    </a>
+                </div>
+            </div>
+
+            <!-- Customer Reviews and Rating Form -->
+            <div class="col-md-5 border-start-md">
+                <h5 class="fw-bold mb-3"><i class="bi bi-chat-heart text-danger me-1"></i> Customer Reviews</h5>
+
+                {% if user.is_authenticated %}
+                <form method="POST" action="{% url 'menu:submit_review' item.id %}" class="p-3 bg-surface-raised rounded-3 border mb-3">
+                    {% csrf_token %}
+                    <label class="form-label small fw-semibold text-muted">Leave your Rating</label>
+                    <div class="mb-2">
+                        <select name="rating" class="form-select form-select-sm" required>
+                            <option value="5" {% if user_review and user_review.rating == 5 %}selected{% endif %}>⭐⭐⭐⭐⭐ 5 Stars</option>
+                            <option value="4" {% if user_review and user_review.rating == 4 %}selected{% endif %}>⭐⭐⭐⭐ 4 Stars</option>
+                            <option value="3" {% if user_review and user_review.rating == 3 %}selected{% endif %}>⭐⭐⭐ 3 Stars</option>
+                            <option value="2" {% if user_review and user_review.rating == 2 %}selected{% endif %}>⭐⭐ 2 Stars</option>
+                            <option value="1" {% if user_review and user_review.rating == 1 %}selected{% endif %}>⭐ 1 Star</option>
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <textarea name="comment" class="form-control form-control-sm" rows="2" placeholder="Tell other diners how this tasted..." required>{{ user_review.comment|default:'' }}</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-brand btn-sm w-100">
+                        {% if user_review %}Update Review{% else %}Submit Review{% endif %}
+                    </button>
+                </form>
+                {% else %}
+                <div class="p-3 bg-surface-raised rounded-3 text-center mb-3 border small">
+                    <a href="{% url 'accounts:google_login' %}?next={% url 'menu:item_detail' item.id %}" class="fw-bold text-danger text-decoration-none">Sign in with Google</a> to review this dish!
+                </div>
+                {% endif %}
+
+                <!-- Reviews list -->
+                <div class="d-flex flex-column gap-2" style="max-height: 280px; overflow-y: auto;">
+                    {% for rev in reviews %}
+                    <div class="p-2 border-bottom">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <strong class="small text-dark">{{ rev.customer.name }}</strong>
+                            <span class="badge bg-warning text-dark" style="font-size: 0.65rem;">{{ rev.rating }}★</span>
+                        </div>
+                        <p class="small text-muted mb-0">{{ rev.comment }}</p>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted small">No reviews yet. Be the first to try and review!</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

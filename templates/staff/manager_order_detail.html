@@ -1,0 +1,340 @@
+{% extends 'base.html' %}
+
+{% block title %}Order #{{ order.id }} - Manager Audit{% endblock %}
+
+{% block extra_css %}
+<style>
+    .order-audit-container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding-top: 1rem;
+        padding-bottom: 120px !important; /* Ample breathing room above fixed bottom navigation */
+        overflow-x: hidden;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    .order-hero-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        box-sizing: border-box;
+        max-width: 100%;
+        overflow: hidden;
+    }
+    @media (max-width: 576px) {
+        .order-audit-container {
+            padding-left: 0.75rem;
+            padding-right: 0.75rem;
+        }
+        .order-hero-card {
+            border-radius: 16px;
+            padding: 1.25rem 1rem !important;
+        }
+        .hero-title-amount {
+            font-size: 1.75rem !important;
+        }
+        .mobile-stack-btn {
+            width: 100%;
+        }
+        .mobile-stack-btn .btn, .mobile-stack-btn form {
+            flex: 1 1 100%;
+        }
+        .mobile-stack-btn button, .mobile-stack-btn a {
+            width: 100%;
+            text-align: center;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid order-audit-container">
+
+    <!-- Top Bar: Back Link & Quick Table Badge -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <a href="{% url 'orders:manager_dashboard' %}?order_filter=all" class="btn btn-sm btn-outline-surface rounded-pill px-3 py-1.5 fw-semibold d-inline-flex align-items-center gap-1.5">
+            <i class="bi bi-arrow-left"></i>
+            <span>Manager Orders</span>
+        </a>
+        <div class="d-flex align-items-center gap-1.5">
+            {% if order.table %}
+                <span class="badge bg-primary rounded-pill px-2.5 py-1 fw-bold">
+                    <i class="bi bi-geo-alt-fill me-1"></i>Table {{ order.table_number }}
+                </span>
+            {% else %}
+                <span class="badge bg-secondary rounded-pill px-2.5 py-1 fw-bold">Takeaway</span>
+            {% endif %}
+            <span class="badge {% if order.status == 'Completed' or order.status == 'Served' %}bg-success{% elif order.status == 'Cancelled' %}bg-danger{% else %}bg-warning text-dark{% endif %} rounded-pill px-2.5 py-1 fw-bold">
+                {{ order.status }}
+            </span>
+            <span class="badge {% if order.payment_status == 'Paid' %}bg-success{% else %}bg-warning text-dark{% endif %} rounded-pill px-2.5 py-1 fw-bold">
+                {{ order.payment_status }}
+            </span>
+        </div>
+    </div>
+
+    <!-- Executive Order Summary Header Card (Mobile-First) -->
+    <div class="order-hero-card shadow-sm p-3.5 p-sm-4 p-md-4 mb-3.5">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+            <div>
+                <span class="text-muted small text-uppercase fw-bold" style="letter-spacing: 0.5px; font-size: 0.72rem;">
+                    Order Ticket #{{ order.id }}
+                </span>
+                <div class="d-flex align-items-baseline gap-2 mt-1 mb-1">
+                    <h2 class="fw-black brand-font mb-0 text-success hero-title-amount" style="font-size: 2.25rem; letter-spacing: -0.5px;">
+                        ₹{{ order.total_amount|floatformat:2 }}
+                    </h2>
+                    <span class="text-muted small fw-semibold">Grand Total</span>
+                </div>
+                <div class="d-flex align-items-center gap-2 flex-wrap text-muted small mt-1.5" style="font-size: 0.78rem;">
+                    <span><i class="bi bi-person text-primary me-1"></i><strong style="color: var(--text-primary);">{{ order.customer.name }}</strong></span>
+                    <span>&bull;</span>
+                    <span><i class="bi bi-clock me-1"></i>Placed {{ order.order_date|date:"h:i A, d M" }}</span>
+                    <span>&bull;</span>
+                    <span>{{ order.items.count }} Item{{ order.items.count|pluralize }}</span>
+                </div>
+            </div>
+
+            <!-- Action Buttons Group (Stacked on mobile, inline on desktop) -->
+            <div class="d-flex align-items-center gap-2 flex-wrap mobile-stack-btn w-100 w-md-auto">
+                <a href="{% url 'orders:order_invoice' order.id %}" target="_blank" class="btn btn-brand text-white rounded-pill px-3.5 py-2 fw-semibold shadow-sm" style="font-size: 0.85rem;">
+                    <i class="bi bi-printer me-1.5"></i> Printable Receipt
+                </a>
+                <a href="{% url 'orders:order_live' order.id %}" target="_blank" class="btn btn-outline-surface rounded-pill px-3 py-2 fw-semibold" style="font-size: 0.85rem;">
+                    <i class="bi bi-eye me-1.5"></i> Live KDS Track
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2-Column Responsive Layout -->
+    <div class="row g-3 g-md-4">
+        <!-- Left Column: Itemized Dishes & Financial Breakdown -->
+        <div class="col-lg-8">
+            <div class="card-surface rounded-4 border shadow-sm p-3 p-sm-4 mb-3.5">
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-2.5 border-bottom">
+                    <h5 class="brand-font fw-bold mb-0 fs-6 fs-sm-5" style="color: var(--text-primary);">
+                        <i class="bi bi-receipt-cutoff text-primary me-2"></i>Ordered Dishes ({{ order.items.count }})
+                    </h5>
+                    <span class="badge bg-surface-raised border text-secondary rounded-pill px-2.5 py-1" style="font-size: 0.72rem;">
+                        {{ order.items.count }} Item{{ order.items.count|pluralize }} Placed
+                    </span>
+                </div>
+
+                <!-- Desktop Table View (md and up) -->
+                <div class="table-responsive d-none d-md-block mb-3">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead class="small text-secondary bg-surface-raised">
+                            <tr>
+                                <th class="ps-2">Item</th>
+                                <th>Category</th>
+                                <th class="text-center">Qty</th>
+                                <th class="text-end">Price</th>
+                                <th class="text-end pe-2">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for itm in order.items.all %}
+                            <tr>
+                                <td class="ps-2">
+                                    <div class="d-flex align-items-center gap-2.5">
+                                        <img src="{{ itm.menu_item.get_image_url }}" alt="{{ itm.menu_item.name }}" class="app-dish-thumb shadow-sm" loading="lazy">
+                                        <div>
+                                            <strong class="d-block" style="color: var(--text-primary); font-size: 0.90rem;">{{ itm.menu_item.name }}</strong>
+                                            {% if itm.is_cancelled %}
+                                                <span class="badge bg-danger rounded-pill px-1.5 py-0" style="font-size: 0.65rem;">Cancelled</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="badge bg-surface-raised border text-body" style="font-size: 0.72rem;">{{ itm.menu_item.category.name }}</span></td>
+                                <td class="text-center fw-bold">{{ itm.quantity }}</td>
+                                <td class="text-end text-muted small">₹{{ itm.price|floatformat:2 }}</td>
+                                <td class="text-end pe-2 fw-bold" style="color: var(--text-primary);">₹{{ itm.subtotal|floatformat:2 }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">No items recorded in this order.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Mobile Clean Items List (< 768px - Modular Responsive System) -->
+                <div class="d-md-none d-flex flex-column mb-3">
+                    {% for itm in order.items.all %}
+                    <div class="app-dish-item">
+                        <img src="{{ itm.menu_item.get_image_url }}" alt="{{ itm.menu_item.name }}" class="app-dish-thumb shadow-sm" loading="lazy">
+                        <div class="app-dish-info">
+                            <div class="d-flex align-items-center gap-1.5 flex-wrap">
+                                <span class="app-dish-name">{{ itm.menu_item.name }}</span>
+                                {% if itm.is_cancelled %}
+                                    <span class="badge bg-danger rounded-pill px-1.5 py-0" style="font-size: 0.62rem;">Cancelled</span>
+                                {% endif %}
+                            </div>
+                            <div class="app-dish-meta mt-1">
+                                <span class="fw-semibold">{{ itm.quantity }} &times; ₹{{ itm.price|floatformat:2 }}</span>
+                                <span class="text-secondary opacity-75">&bull; {{ itm.menu_item.category.name }}</span>
+                            </div>
+                        </div>
+                        <div class="app-dish-price">
+                            ₹{{ itm.subtotal|floatformat:2 }}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center text-muted small py-3">No items recorded in this order.</div>
+                    {% endfor %}
+                </div>
+
+                {% if order.special_instructions %}
+                <div class="p-2.5 bg-surface-raised rounded-3 text-warning small mb-3" style="font-size: 0.76rem;">
+                    <i class="bi bi-chat-left-text me-1 text-primary"></i> <strong>Kitchen Note:</strong> {{ order.special_instructions }}
+                </div>
+                {% endif %}
+
+                <!-- Receipt / Bill Summary Breakdown -->
+                <div class="p-3 bg-surface-raised rounded-3 border">
+                    <h6 class="fw-bold mb-2 small text-uppercase text-muted" style="letter-spacing: 0.5px;">Bill Summary</h6>
+                    <div class="d-flex justify-content-between align-items-center py-1">
+                        <span class="text-muted small">Items Subtotal:</span>
+                        <strong style="color: var(--text-primary);">₹{{ order.subtotal|floatformat:2 }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center py-1 border-top">
+                        <span class="text-muted small">GST (5%):</span>
+                        <span class="text-muted">₹{{ order.tax_amount|floatformat:2 }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center py-2 border-top">
+                        <span class="fw-bold fs-6" style="color: var(--text-primary);">Grand Total:</span>
+                        <h4 class="fw-black brand-font mb-0 text-success" style="letter-spacing: -0.5px;">₹{{ order.total_amount|floatformat:2 }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Customer Info, Payment Status, and Manager Controls -->
+        <div class="col-lg-4">
+            <!-- Guest Information Card -->
+            <div class="card-surface rounded-4 border shadow-sm p-3 p-sm-3.5 mb-3.5">
+                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                    <h6 class="fw-bold mb-0 text-uppercase small text-muted" style="letter-spacing: 0.5px;">
+                        <i class="bi bi-person-circle text-primary me-1.5"></i>Guest Details
+                    </h6>
+                    <span class="badge bg-surface-raised border text-body" style="font-size: 0.70rem;">
+                        {% if order.table %}Table {{ order.table_number }}{% else %}Takeaway{% endif %}
+                    </span>
+                </div>
+
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center fw-bold shadow-sm flex-shrink-0" style="width: 44px; height: 44px; font-size: 1.15rem;">
+                        {{ order.customer.name|slice:":1"|upper }}
+                    </div>
+                    <div class="min-w-0">
+                        <strong class="d-block text-truncate fs-6" style="color: var(--text-primary);">{{ order.customer.name }}</strong>
+                        <span class="text-muted small text-truncate d-block" style="font-size: 0.75rem;">@{{ order.customer.user.username }}</span>
+                    </div>
+                </div>
+
+                <div class="small">
+                    <div class="d-flex justify-content-between py-1.5 border-top">
+                        <span class="text-muted">Phone:</span>
+                        <span class="fw-semibold">{{ order.customer.phone|default:"Not provided" }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-1.5 border-top">
+                        <span class="text-muted">Email:</span>
+                        <span class="text-muted text-truncate" style="max-width: 170px;">{{ order.customer.email|default:"-" }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-1.5 border-top">
+                        <span class="text-muted">Dining Format:</span>
+                        <span class="badge bg-surface-raised border text-body">{% if order.table %}Dine-In (Table {{ order.table_number }}){% else %}Takeaway{% endif %}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Details & Manager Action Controls Card -->
+            <div class="card-surface rounded-4 border shadow-sm p-3 p-sm-3.5 mb-3.5">
+                <div class="d-flex justify-content-between align-items-center mb-2.5 pb-2 border-bottom">
+                    <h6 class="fw-bold mb-0 text-uppercase small text-muted" style="letter-spacing: 0.5px;">
+                        <i class="bi bi-wallet2 text-success me-1.5"></i>Payment Status
+                    </h6>
+                    <span class="badge {% if order.payment_status == 'Paid' %}bg-success{% else %}bg-warning text-dark{% endif %} rounded-pill px-2.5 py-1" style="font-size: 0.70rem;">
+                        {{ order.payment_status }}
+                    </span>
+                </div>
+
+                <!-- Modular Payment Transaction Display (Identical to Session Detail) -->
+                <div class="app-payment-item mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <div class="d-flex align-items-center">
+                            <div class="app-payment-icon {% if order.payment_method == 'ONLINE' or order.payment_method == 'ONLINE_UPI' or order.payment and order.payment.method == 'ONLINE_UPI' %}bg-primary bg-opacity-10 text-primary{% elif order.payment_method == 'CASH' or order.payment_method == 'CASH_COUNTER' or order.payment and order.payment.method == 'CASH_COUNTER' %}bg-success bg-opacity-10 text-success{% else %}bg-info bg-opacity-10 text-info{% endif %}">
+                                {% if order.payment_method == 'ONLINE' or order.payment_method == 'ONLINE_UPI' or order.payment and order.payment.method == 'ONLINE_UPI' %}
+                                    <i class="bi bi-qr-code"></i>
+                                {% elif order.payment_method == 'CASH' or order.payment_method == 'CASH_COUNTER' or order.payment and order.payment.method == 'CASH_COUNTER' %}
+                                    <i class="bi bi-cash"></i>
+                                {% else %}
+                                    <i class="bi bi-credit-card"></i>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <strong class="small d-block" style="color: var(--text-primary); line-height: 1.25;">
+                                    {{ order.get_payment_method_display }}
+                                </strong>
+                                <span class="text-muted" style="font-size: 0.70rem;">
+                                    {% if order.payment %}{{ order.payment.payment_date|date:"h:i A, d M" }}{% else %}{{ order.order_date|date:"h:i A, d M" }}{% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge {% if order.payment_status == 'Paid' %}bg-success{% else %}bg-warning text-dark{% endif %} rounded-pill px-2 py-0.5 d-inline-block mb-0.5" style="font-size: 0.68rem;">
+                                {{ order.payment_status }}
+                            </span>
+                            <div class="text-success fw-bold fs-6">₹{{ order.total_amount|floatformat:2 }}</div>
+                        </div>
+                    </div>
+                    {% if order.payment and order.payment.transaction_id %}
+                    <div class="pt-1 mt-1 text-muted font-monospace ps-5" style="font-size: 0.68rem;">
+                        Ref: <code>{{ order.payment.transaction_id }}</code>
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% if order.payment_status != 'Paid' %}
+                <form method="POST" action="{% url 'orders:manager_update_order_payment' order.id %}" class="mb-3">
+                    {% csrf_token %}
+                    <input type="hidden" name="payment_status" value="Paid">
+                    <button type="submit" class="btn btn-success w-100 rounded-pill py-2 fw-semibold" style="font-size: 0.85rem;" onclick="return confirm('Settle payment for Order #{{ order.id }} as Paid?')">
+                        <i class="bi bi-check-circle me-1"></i> Settle Payment as Paid
+                    </button>
+                </form>
+                {% endif %}
+
+                <!-- Order Status Update Form -->
+                <div class="pt-2.5 border-top">
+                    <label class="form-label small fw-bold text-muted mb-1.5" style="font-size: 0.75rem;">Change Status:</label>
+                    <form method="POST" action="{% url 'orders:manager_update_order_status' order.id %}" class="d-flex gap-2">
+                        {% csrf_token %}
+                        <select name="status" class="form-select form-select-sm rounded-pill" style="font-size: 0.80rem;">
+                            {% for code, label in status_choices %}
+                                <option value="{{ code }}" {% if order.status == code %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="btn btn-outline-primary btn-sm rounded-pill px-3">Save</button>
+                    </form>
+                </div>
+
+                {% if order.status != 'Cancelled' and order.status != 'Completed' %}
+                <div class="pt-3 mt-3 border-top">
+                    <form method="POST" action="{% url 'orders:manager_cancel_order' order.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-danger btn-sm w-100 rounded-pill py-1.5" onclick="return confirm('Emergency cancel Order #{{ order.id }}?')">
+                            <i class="bi bi-x-circle me-1"></i> Cancel Order
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

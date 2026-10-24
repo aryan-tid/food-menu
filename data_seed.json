@@ -1,0 +1,833 @@
+[
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$1500000$vVzPyLiEjB9xCsORuEAZfx$ktaQGEBOd39AU2gxyBJppaFwUhHeysiWNoHa1EvQ5rw=",
+    "last_login": "2026-10-23T19:55:47.142Z",
+    "is_superuser": true,
+    "username": "admin",
+    "first_name": "System",
+    "last_name": "Administrator",
+    "email": "admin@spicegarden.com",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2026-10-23T19:36:26.483Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "!ztMcEHIg8rFnxueEbWpFTNXFj5eXDuEirja7uvTt",
+    "last_login": "2026-10-23T20:07:56.399Z",
+    "is_superuser": false,
+    "username": "siddhivinayaktidake592",
+    "first_name": "Siddhivinayak",
+    "last_name": "Tidake",
+    "email": "siddhivinayaktidake592@gmail.com",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2026-10-23T20:04:27.400Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "auth.user",
+  "fields": {
+    "password": "pbkdf2_sha256$1500000$TbvzO4vUsW1CA1Z5I1RDCr$kfDsuIzoXjtvRYEecCRB5G4NR3XH8gbGEX4p6R537Jo=",
+    "last_login": null,
+    "is_superuser": false,
+    "username": "vaibhav",
+    "first_name": "Vaibhav",
+    "last_name": "L",
+    "email": "",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2026-10-23T21:20:28.794Z",
+    "groups": [],
+    "user_permissions": []
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "0rzwkmuegikwubmqhdx99mgfkgoffmd9",
+  "fields": {
+    "session_data": ".eJxVjMsOwiAQAP9lz4bwLNCjd7-BLLsgVdMmpT0Z_9006UGvM5N5Q8J9a2nvZU0TwwgKLr8sIz3LfAh-4HxfBC3ztk5ZHIk4bRe3hcvrerZ_g4a9wQhOeY2aTcixVqyWUJugVXBVyoGcjBRrjd74bJlLYReIrbZe0eCcNAifL-PuN9k:1xKL9L:PVxCbEqiw4oXHJtPeQTv6NsjLV70gm3OH8J2BnT611M",
+    "expire_date": "2026-11-06T19:41:59.516Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "1jn4j32x7pim8fsgn52li0i03yaj1hjn",
+  "fields": {
+    "session_data": ".eJxVjMsKwjAQAP9lzxKat-nRe78hbLJZU5UUmvYk_rsUetDrzDBviLhvNe69rHEmGEHD5ZclzM_SDkEPbPdF5KVt65zEkYjTdjEtVF63s_0bVOwVRlDFoA8lcUA2UkvSQQU9kLTKIcrgnb8mrzkbzzLjQGypWBWMY-s5Kfh8AeDSN-I:1xKLaV:tg_JjUkGlo4aHgL5isESP4iFQP8-HtYybXNYXRDHU5A",
+    "expire_date": "2026-11-06T20:10:03.473Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "25r7it2di1fevdycruqob32wrpesz275",
+  "fields": {
+    "session_data": ".eJxVjDsOwjAQBe_iGlmO499S0ucM0a7XwQFkS3FSIe6OLKWA9s3Me4sZjz3PR0vbvLK4CiMuvxthfKbSAT-w3KuMtezbSrIr8qRNTpXT63a6fwcZW-412cQBiH0c0SF4ZUkHAwEUDmydojAGPzjQS9LACImMiRTRqLhYcOLzBe5OOBs:1xKLat:hBccmUyooRvl4EsemCdlh-SjBvX5o5X751ADIsEcl_0",
+    "expire_date": "2026-11-06T20:10:27.055Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "5zyfa3vt2klew95i286kyauqetxrt97z",
+  "fields": {
+    "session_data": ".eJxVjMsOwiAQAP9lz4bwLNCjd7-BLLsgVdMmpT0Z_9006UGvM5N5Q8J9a2nvZU0TwwgKLr8sIz3LfAh-4HxfBC3ztk5ZHIk4bRe3hcvrerZ_g4a9wQhOeY2aTcixVqyWUJugVXBVyoGcjBRrjd74bJlLYReIrbZe0eCcNAifL-PuN9k:1xKL9b:r-iFK4U2cgwnZj3Jb6LvDtH2Mn-Hmz9BZlAFrYdELtk",
+    "expire_date": "2026-11-06T19:42:15.862Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "8m7sges4gvsk9zpxwo2h30n1mf49ubnz",
+  "fields": {
+    "session_data": ".eJxVjrkOgzAQBf9la2L5xDYlfbr0aL1rBxIEEkcV5d8jFIqkfTMavRd0uG99t6956QaGBhRUv1tCeubpAPzA6T4LmqdtGZI4FHHSVVxnzmN7un-BHtceGnDKa9RsQoqlYLGE2gStgitS1uRkpFhK9MYny5wzu0BstfWKauekQahgwzTm78nbRVp4fwACLDzg:1xKLDR:vKDfLm0EGR-NzaEqo3-7fMDBrQtSKzd9v9Bf0FBS6bs",
+    "expire_date": "2026-11-06T19:46:13.731Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "gfs97588hvbx3icqzihqvzyegzaceak4",
+  "fields": {
+    "session_data": "e30:1xKLCc:y5P4cwvkyGWeWhCghoN2fBLcIYLtXwnM5MAj2_I2wzs",
+    "expire_date": "2026-11-06T19:45:22.427Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "tgbwbilsvy5wimrz54sh4cq2d6xdqi1h",
+  "fields": {
+    "session_data": "eyJjYXJ0Ijp7fSwidGFibGVfaWQiOiJULTAxIn0:1xKMiL:_sXs4x2JhOKQsrrExvF-KoDSjI19r77L-OmlQ_dsLXY",
+    "expire_date": "2026-11-06T21:22:13.893Z"
+  }
+},
+{
+  "model": "sessions.session",
+  "pk": "x0jc6ze94p5ffdk5tpogv11isqymr6cn",
+  "fields": {
+    "session_data": ".eJxVjrEOgzAMBf_FM40iJ8SEsTtbd2QnodAikCBMiH-vUBna9d3p9HZoect9u61paYcINSAUv5tweKfpBPHF03NWYZ7yMog6FXXRVTVzTOP9cv8CPa891JDIYIVMHbKLSCTWoC5F-y64EHUgr60IJhRH7Aw760uxFVnxzjhvoIDAS4Z6PwrILGP63n3cNMLxAVU3P2s:1xKLsX:ARJuHmrvXFXU5dGd6y8pA8akZNsM0tUIwM4PL1lFhzo",
+    "expire_date": "2026-11-06T20:28:41.338Z"
+  }
+},
+{
+  "model": "accounts.staffprofile",
+  "pk": 1,
+  "fields": {
+    "user": [
+      "admin"
+    ],
+    "role": "MANAGER",
+    "phone": "+91 98220 00000",
+    "created_at": "2026-10-23T19:36:26.757Z"
+  }
+},
+{
+  "model": "accounts.staffprofile",
+  "pk": 2,
+  "fields": {
+    "user": [
+      "vaibhav"
+    ],
+    "role": "WAITER",
+    "phone": "",
+    "created_at": "2026-10-23T21:20:29.074Z"
+  }
+},
+{
+  "model": "accounts.customer",
+  "pk": 1,
+  "fields": {
+    "user": [
+      "siddhivinayaktidake592"
+    ],
+    "phone": "",
+    "address": null,
+    "google_id": "mCqTuh3DRkRLFfPVbDdyfTPRurv1",
+    "avatar_url": "https://lh3.googleusercontent.com/a/ACg8ocKCGJlbusAnv_InmREXSx0Ym1_ZI7_SdKNY3WwyU2zvuPcW7g=s96-c",
+    "created_at": "2026-10-23T20:04:27.424Z"
+  }
+},
+{
+  "model": "menu.restaurant",
+  "pk": 1,
+  "fields": {
+    "name": "Spice Garden Multi-Cuisine",
+    "address": "Main Gateway Road, City Center",
+    "phone": "+91 98220 12345",
+    "rating": "4.85",
+    "created_at": "2026-10-23T19:36:26.762Z"
+  }
+},
+{
+  "model": "menu.category",
+  "pk": 1,
+  "fields": {
+    "restaurant": 1,
+    "name": "Starters & Appetizers",
+    "description": ""
+  }
+},
+{
+  "model": "menu.category",
+  "pk": 2,
+  "fields": {
+    "restaurant": 1,
+    "name": "Main Course Curries",
+    "description": ""
+  }
+},
+{
+  "model": "menu.category",
+  "pk": 3,
+  "fields": {
+    "restaurant": 1,
+    "name": "Indian Breads & Rice",
+    "description": ""
+  }
+},
+{
+  "model": "menu.category",
+  "pk": 4,
+  "fields": {
+    "restaurant": 1,
+    "name": "Beverages & Desserts",
+    "description": ""
+  }
+},
+{
+  "model": "menu.menuitem",
+  "pk": 1,
+  "fields": {
+    "category": 1,
+    "name": "Paneer Tikka Angaara",
+    "description": "Char-grilled cottage cheese cubes marinated in spiced hung curd with bell peppers",
+    "price": "240.00",
+    "image": "",
+    "is_veg": true,
+    "is_available": true,
+    "created_at": "2026-10-23T19:36:26.803Z"
+  }
+},
+{
+  "model": "menu.menuitem",
+  "pk": 2,
+  "fields": {
+    "category": 1,
+    "name": "Crispy Corn Salt & Pepper",
+    "description": "Golden fried sweet corn tossed with freshly cracked black pepper and scallions",
+    "price": "180.00",
+    "image": "",
+    "is_veg": true,
+    "is_available": true,
+    "created_at": "2026-10-23T19:36:26.807Z"
+  }
+},
+{
+  "model": "menu.menuitem",
+  "pk": 3,
+  "fields": {
+    "category": 1,
+    "name": "Veg Manchurian Dry",
+    "description": "Indo-Chinese vegetable dumplings tossed in garlic soy and fresh coriander",
+    "price": "210.00",
+    "image": "",
+    "is_veg": true,
+    "is_available": true,
+    "created_at": "2026-10-23T19:36:26.811Z"
+  }
+},
+{
+  "model": "menu.menuitem",
+  "pk": 4,
+  "fields": {
+    "category": 1,
+    "name": "Chicken Tikka Kebab",
+    "description": "Succulent boneless chicken chunks char-grilled in a clay tandoor oven",
+    "price": "290.00",
+    "image": "",
+    "is_veg": false,
+    "is_available": true,
+    "created_at": "2026-10-23T19:36:26.816Z"
+  }
+},
+{
+  "model": "menu.menuitem",
+  "pk": 5,
+  "fields": {
+    "category": 2,
+    "name": "Paneer Butter Masala",
+    "description": "Fresh cottage cheese simmered in a velvety, buttery tomato and cashew gravy",
+    "price": "280.00",
+    "image": "",
+    "is_veg": true,
+    "is_available": true,
+    "created_at": "2026-10-23T19:36:26.823Z"
+  }
+},
+{
+  "model": "menu.menuitem",
+  "pk": 6,
+  "fields": {
+    "category": 2,
+    "name": "Dal Makhani Special",
+    "description": "Slow-cooked black lentils and kidney beans simmered overnight with butter and cream",
+    "price": "230.00",
+    "image": "",
+    "is_veg": true,
+    "is_available": true,
+    "created_at": "2026-10-23T19:36:26.827Z"
+  }
+},
+{
+  "model": "menu.menuitem",
+  "pk": 7,
+  "fields": {
+    "category": 2,
+    "name": "Kadhai Paneer",
+    "description": "Paneer cubes and crunchy bell peppers tossed in a robust crushed coriander and chilli masala",
+    "price": "270.00",
+    "image": "",
+    "is_veg": true,
+    "is_available": true,
+    "created_at": "2026-10-23T19:36:26.832Z"
+  }
+},
+{
+  "model": "menu.menuitem",
+  "pk": 8,
+  "fields": {
+    "category": 2,
+    "name": "Butter Chicken Delicacy",
+    "description": "Tender tandoori chicken simmered in rich satin-smooth tomato makhani gravy",
+    "price": "340.00",
+    "image": "",
+    "is_veg": false,
+    "is_available": true,
+    "created_at": "2026-10-23T19:36:26.836Z"
+  }
+},
+{
+  "model": "menu.menuitem",
+  "pk": 9,
+  "fields": {
+    "category": 3,
+    "name": "Butter Naan",
+    "description": "Traditional tandoor-baked leavened flatbread brushed with molten butter",
+    "price": "50.00",
+    "image": "",
+    "is_veg": true,
+    "is_available": true,
+    "created_at": "2026-10-23T19:36:26.843Z"
+  }
+},
+{
+  "model": "menu.menuitem",
+  "pk": 10,
+  "fields": {
+    "category": 3,
+    "name": "Tandoori Roti",
+    "description": "Crisp whole wheat bread roasted over glowing clay oven embers",
+    "price": "30.00",
+    "image": "",
+    "is_veg": true,
+    "is_available": true,
+    "created_at": "2026-10-23T19:36:26.847Z"
+  }
+},
+{
+  "model": "menu.menuitem",
+  "pk": 11,
+  "fields": {
+    "category": 3,
+    "name": "Jeera Fried Rice",
+    "description": "Fragrant aged Basmati rice tempered with aromatic cumin seeds and pure desi ghee",
+    "price": "160.00",
+    "image": "",
+    "is_veg": true,
+    "is_available": true,
+    "created_at": "2026-10-23T19:36:26.850Z"
+  }
+},
+{
+  "model": "menu.menuitem",
+  "pk": 12,
+  "fields": {
+    "category": 3,
+    "name": "Hyderabadi Veg Dum Biryani",
+    "description": "Slow-cooked spiced Basmati rice layered with garden vegetables and saffron milk",
+    "price": "280.00",
+    "image": "",
+    "is_veg": true,
+    "is_available": true,
+    "created_at": "2026-10-23T19:36:26.854Z"
+  }
+},
+{
+  "model": "menu.menuitem",
+  "pk": 13,
+  "fields": {
+    "category": 3,
+    "name": "Chicken Dum Biryani",
+    "description": "Authentic Dum biryani with tender chicken pieces, caramelized onions, and mint",
+    "price": "320.00",
+    "image": "",
+    "is_veg": false,
+    "is_available": true,
+    "created_at": "2026-10-23T19:36:26.859Z"
+  }
+},
+{
+  "model": "menu.menuitem",
+  "pk": 14,
+  "fields": {
+    "category": 4,
+    "name": "Royal Mango Lassi",
+    "description": "Chilled thick sweet yogurt beverage infused with fresh Alphonso mango pulp",
+    "price": "120.00",
+    "image": "",
+    "is_veg": true,
+    "is_available": true,
+    "created_at": "2026-10-23T19:36:26.867Z"
+  }
+},
+{
+  "model": "menu.menuitem",
+  "pk": 15,
+  "fields": {
+    "category": 4,
+    "name": "Fresh Mint Lime Soda",
+    "description": "Refreshing sparkling club soda with fresh lime juice, crushed mint, and rock salt",
+    "price": "80.00",
+    "image": "",
+    "is_veg": true,
+    "is_available": true,
+    "created_at": "2026-10-23T19:36:26.870Z"
+  }
+},
+{
+  "model": "menu.menuitem",
+  "pk": 16,
+  "fields": {
+    "category": 4,
+    "name": "Hot Gulab Jamun with Rabdi",
+    "description": "Melt-in-mouth milk dumplings soaked in cardamom rose syrup served with thick rabdi",
+    "price": "110.00",
+    "image": "",
+    "is_veg": true,
+    "is_available": true,
+    "created_at": "2026-10-23T19:36:26.874Z"
+  }
+},
+{
+  "model": "menu.menuitem",
+  "pk": 17,
+  "fields": {
+    "category": 4,
+    "name": "Matka Malai Kulfi",
+    "description": "Traditional slow-cooked condensed milk ice cream set in an earthen clay pot",
+    "price": "90.00",
+    "image": "",
+    "is_veg": true,
+    "is_available": true,
+    "created_at": "2026-10-23T19:36:26.878Z"
+  }
+},
+{
+  "model": "menu.review",
+  "pk": 1,
+  "fields": {
+    "customer": 1,
+    "menu_item": 15,
+    "rating": 5,
+    "comment": "nice",
+    "review_date": "2026-10-23T20:51:46.556Z"
+  }
+},
+{
+  "model": "orders.restauranttable",
+  "pk": 1,
+  "fields": {
+    "table_number": "T-01",
+    "capacity": 2,
+    "is_active": true,
+    "is_locked": false,
+    "current_customer": null,
+    "locked_at": null,
+    "created_at": "2026-10-23T19:36:26.767Z"
+  }
+},
+{
+  "model": "orders.restauranttable",
+  "pk": 2,
+  "fields": {
+    "table_number": "T-02",
+    "capacity": 4,
+    "is_active": true,
+    "is_locked": false,
+    "current_customer": null,
+    "locked_at": null,
+    "created_at": "2026-10-23T19:36:26.771Z"
+  }
+},
+{
+  "model": "orders.restauranttable",
+  "pk": 3,
+  "fields": {
+    "table_number": "T-03",
+    "capacity": 4,
+    "is_active": true,
+    "is_locked": false,
+    "current_customer": null,
+    "locked_at": null,
+    "created_at": "2026-10-23T19:36:26.775Z"
+  }
+},
+{
+  "model": "orders.restauranttable",
+  "pk": 4,
+  "fields": {
+    "table_number": "T-04",
+    "capacity": 6,
+    "is_active": true,
+    "is_locked": false,
+    "current_customer": null,
+    "locked_at": null,
+    "created_at": "2026-10-23T19:36:26.779Z"
+  }
+},
+{
+  "model": "orders.restauranttable",
+  "pk": 5,
+  "fields": {
+    "table_number": "T-05",
+    "capacity": 4,
+    "is_active": true,
+    "is_locked": false,
+    "current_customer": null,
+    "locked_at": null,
+    "created_at": "2026-10-23T19:36:26.783Z"
+  }
+},
+{
+  "model": "orders.restauranttable",
+  "pk": 6,
+  "fields": {
+    "table_number": "T-06",
+    "capacity": 2,
+    "is_active": true,
+    "is_locked": false,
+    "current_customer": null,
+    "locked_at": null,
+    "created_at": "2026-10-23T19:36:26.787Z"
+  }
+},
+{
+  "model": "orders.restauranttable",
+  "pk": 7,
+  "fields": {
+    "table_number": "T-07",
+    "capacity": 8,
+    "is_active": true,
+    "is_locked": false,
+    "current_customer": null,
+    "locked_at": null,
+    "created_at": "2026-10-23T19:36:26.791Z"
+  }
+},
+{
+  "model": "orders.restauranttable",
+  "pk": 8,
+  "fields": {
+    "table_number": "T-08",
+    "capacity": 4,
+    "is_active": true,
+    "is_locked": false,
+    "current_customer": null,
+    "locked_at": null,
+    "created_at": "2026-10-23T19:36:26.795Z"
+  }
+},
+{
+  "model": "orders.restauranttable",
+  "pk": 9,
+  "fields": {
+    "table_number": "VIP-1",
+    "capacity": 8,
+    "is_active": true,
+    "is_locked": false,
+    "current_customer": null,
+    "locked_at": null,
+    "created_at": "2026-10-23T19:52:57.879Z"
+  }
+},
+{
+  "model": "orders.diningsession",
+  "pk": 1,
+  "fields": {
+    "customer": 1,
+    "table": 2,
+    "table_number": "T-02",
+    "started_at": "2026-10-23T20:10:17.190Z",
+    "ended_at": "2026-10-23T20:40:19.687Z",
+    "is_active": false,
+    "total_spent": "535.50"
+  }
+},
+{
+  "model": "orders.diningsession",
+  "pk": 2,
+  "fields": {
+    "customer": 1,
+    "table": 2,
+    "table_number": "T-02",
+    "started_at": "2026-10-23T20:28:41.318Z",
+    "ended_at": "2026-10-23T20:40:19.675Z",
+    "is_active": false,
+    "total_spent": "84.00"
+  }
+},
+{
+  "model": "orders.order",
+  "pk": 1,
+  "fields": {
+    "session": 1,
+    "customer": 1,
+    "table": 2,
+    "table_number": "T-02",
+    "order_date": "2026-10-23T20:10:17.191Z",
+    "subtotal": "200.00",
+    "tax_amount": "10.00",
+    "total_amount": "210.00",
+    "status": "Completed",
+    "order_type": "Dine-In",
+    "payment_method": "PAY_LATER",
+    "payment_status": "Paid",
+    "special_instructions": ""
+  }
+},
+{
+  "model": "orders.order",
+  "pk": 2,
+  "fields": {
+    "session": 1,
+    "customer": 1,
+    "table": 2,
+    "table_number": "T-02",
+    "order_date": "2026-10-23T20:12:47.342Z",
+    "subtotal": "200.00",
+    "tax_amount": "10.00",
+    "total_amount": "210.00",
+    "status": "Completed",
+    "order_type": "Dine-In",
+    "payment_method": "PAY_LATER",
+    "payment_status": "Paid",
+    "special_instructions": ""
+  }
+},
+{
+  "model": "orders.order",
+  "pk": 3,
+  "fields": {
+    "session": 1,
+    "customer": 1,
+    "table": 2,
+    "table_number": "T-02",
+    "order_date": "2026-10-23T20:13:39.393Z",
+    "subtotal": "110.00",
+    "tax_amount": "5.50",
+    "total_amount": "115.50",
+    "status": "Completed",
+    "order_type": "Dine-In",
+    "payment_method": "PAY_LATER",
+    "payment_status": "Paid",
+    "special_instructions": ""
+  }
+},
+{
+  "model": "orders.order",
+  "pk": 4,
+  "fields": {
+    "session": 2,
+    "customer": 1,
+    "table": 2,
+    "table_number": "T-02",
+    "order_date": "2026-10-23T20:28:41.319Z",
+    "subtotal": "80.00",
+    "tax_amount": "4.00",
+    "total_amount": "84.00",
+    "status": "Completed",
+    "order_type": "Dine-In",
+    "payment_method": "PAY_LATER",
+    "payment_status": "Paid",
+    "special_instructions": ""
+  }
+},
+{
+  "model": "orders.orderitem",
+  "pk": 1,
+  "fields": {
+    "order": 1,
+    "menu_item": 15,
+    "quantity": 1,
+    "price": "80.00",
+    "is_cancelled": true
+  }
+},
+{
+  "model": "orders.orderitem",
+  "pk": 2,
+  "fields": {
+    "order": 1,
+    "menu_item": 16,
+    "quantity": 1,
+    "price": "110.00",
+    "is_cancelled": false
+  }
+},
+{
+  "model": "orders.orderitem",
+  "pk": 3,
+  "fields": {
+    "order": 1,
+    "menu_item": 17,
+    "quantity": 1,
+    "price": "90.00",
+    "is_cancelled": false
+  }
+},
+{
+  "model": "orders.orderitem",
+  "pk": 4,
+  "fields": {
+    "order": 2,
+    "menu_item": 16,
+    "quantity": 1,
+    "price": "110.00",
+    "is_cancelled": false
+  }
+},
+{
+  "model": "orders.orderitem",
+  "pk": 5,
+  "fields": {
+    "order": 2,
+    "menu_item": 17,
+    "quantity": 1,
+    "price": "90.00",
+    "is_cancelled": false
+  }
+},
+{
+  "model": "orders.orderitem",
+  "pk": 6,
+  "fields": {
+    "order": 3,
+    "menu_item": 16,
+    "quantity": 1,
+    "price": "110.00",
+    "is_cancelled": false
+  }
+},
+{
+  "model": "orders.orderitem",
+  "pk": 7,
+  "fields": {
+    "order": 4,
+    "menu_item": 15,
+    "quantity": 1,
+    "price": "80.00",
+    "is_cancelled": false
+  }
+},
+{
+  "model": "orders.payment",
+  "pk": 1,
+  "fields": {
+    "order": 1,
+    "method": "ONLINE_UPI",
+    "amount": "210.00",
+    "payment_date": "2026-10-23T20:10:17.195Z",
+    "status": "Paid",
+    "transaction_id": "TXN_SESS_1J95Z1NU99",
+    "collected_by": [
+      "admin"
+    ]
+  }
+},
+{
+  "model": "orders.payment",
+  "pk": 2,
+  "fields": {
+    "order": 2,
+    "method": "ONLINE_UPI",
+    "amount": "210.00",
+    "payment_date": "2026-10-23T20:12:47.345Z",
+    "status": "Paid",
+    "transaction_id": "TXN_SESS_1J95Z1NU99",
+    "collected_by": null
+  }
+},
+{
+  "model": "orders.payment",
+  "pk": 3,
+  "fields": {
+    "order": 3,
+    "method": "ONLINE_UPI",
+    "amount": "115.50",
+    "payment_date": "2026-10-23T20:13:39.396Z",
+    "status": "Paid",
+    "transaction_id": "TXN_SESS_1J95Z1NU99",
+    "collected_by": null
+  }
+},
+{
+  "model": "orders.payment",
+  "pk": 4,
+  "fields": {
+    "order": 4,
+    "method": "CASH_COUNTER",
+    "amount": "84.00",
+    "payment_date": "2026-10-23T20:28:41.323Z",
+    "status": "Paid",
+    "transaction_id": null,
+    "collected_by": [
+      "admin"
+    ]
+  }
+},
+{
+  "model": "orders.waiteralert",
+  "pk": 1,
+  "fields": {
+    "table": null,
+    "table_number": "Counter",
+    "customer": null,
+    "message": "Requesting bill / payment",
+    "created_at": "2026-10-23T20:19:32.975Z",
+    "is_resolved": true,
+    "resolved_by": [
+      "admin"
+    ]
+  }
+},
+{
+  "model": "orders.waiteralert",
+  "pk": 2,
+  "fields": {
+    "table": 2,
+    "table_number": "T-02",
+    "customer": 1,
+    "message": "Requesting bill / payment",
+    "created_at": "2026-10-23T20:20:00.354Z",
+    "is_resolved": true,
+    "resolved_by": [
+      "admin"
+    ]
+  }
+}
+]

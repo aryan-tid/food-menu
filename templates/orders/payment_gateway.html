@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}FastPay Gateway - Order #{{ order.id }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-4">
+    <div class="col-12 col-md-8 col-lg-5">
+        <div class="card-surface overflow-hidden shadow-lg border-0 rounded-4">
+            <!-- Gateway Top Brand Bar -->
+            <div class="p-4 text-center text-white" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+                <div class="d-inline-flex p-2 bg-white bg-opacity-10 rounded-circle mb-2 fs-4 text-warning">
+                    <i class="bi bi-shield-check"></i>
+                </div>
+                <h5 class="fw-bold mb-0">FastPay Digital Checkout</h5>
+                <span class="text-white-50 small" style="font-size: 0.75rem;">256-Bit SSL Encrypted Mock Gateway</span>
+            </div>
+
+            <div class="p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                    <div>
+                        <span class="text-muted small d-block">Order #{{ order.id }}</span>
+                        <h6 class="fw-bold mb-0" style="color: var(--text-primary);">Table {{ order.table_number|default:'Takeaway' }}</h6>
+                    </div>
+                    <div class="text-end">
+                        <span class="text-muted small d-block">Amount Due</span>
+                        <h4 class="fw-bold text-danger mb-0">₹{{ order.total_amount }}</h4>
+                    </div>
+                </div>
+
+                <form method="POST" id="gatewayPaymentForm">
+                    {% csrf_token %}
+
+                    <!-- Payment Mode Tabs -->
+                    <ul class="nav nav-pills nav-fill mb-3 bg-surface-raised p-1 rounded-3" id="paymentTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active small py-2 fw-semibold" id="upi-tab" data-bs-toggle="pill" data-bs-target="#upi-pane" type="button" role="tab" onclick="document.getElementById('methodInput').value='ONLINE_UPI'">
+                                <i class="bi bi-qr-code-scan me-1"></i> UPI QR Code
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link small py-2 fw-semibold" id="card-tab" data-bs-toggle="pill" data-bs-target="#card-pane" type="button" role="tab" onclick="document.getElementById('methodInput').value='ONLINE_CARD'">
+                                <i class="bi bi-credit-card me-1"></i> Card
+                            </button>
+                        </li>
+                    </ul>
+
+                    <input type="hidden" name="method" value="ONLINE_UPI" id="methodInput">
+
+                    <div class="tab-content mb-4" id="paymentTabContent">
+                        <!-- UPI Pane -->
+                        <div class="tab-pane fade show active text-center p-3 border rounded-3 bg-surface-raised" id="upi-pane" role="tabpanel">
+                            <div class="d-flex justify-content-between align-items-center mb-2 small text-muted">
+                                <span>Scan & Pay via GPay / PhonePe / Paytm</span>
+                                <span class="badge bg-danger rounded-pill"><i class="bi bi-stopwatch me-1"></i><span id="qrTimer">09:59</span></span>
+                            </div>
+
+                            <div class="d-inline-block p-2 bg-white rounded-3 shadow-sm mb-2">
+                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=restaurant@bank%26pn=SpiceGarden%26am={{ order.total_amount }}%26cu=INR" alt="UPI QR" width="140" height="140">
+                            </div>
+                            <div class="small fw-semibold text-secondary">UPI VPA: <code>spicegarden@okhdfcbank</code></div>
+                        </div>
+
+                        <!-- Card Pane -->
+                        <div class="tab-pane fade p-3 border rounded-3 bg-surface-raised" id="card-pane" role="tabpanel">
+                            <div class="mb-2">
+                                <label class="form-label small fw-semibold text-muted">Card Number</label>
+                                <input type="text" class="form-control form-control-sm" placeholder="4111 •••• •••• 1111" value="4111 2222 3333 4444">
+                            </div>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <label class="form-label small fw-semibold text-muted">Expiry</label>
+                                    <input type="text" class="form-control form-control-sm" placeholder="MM/YY" value="12/28">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small fw-semibold text-muted">CVV</label>
+                                    <input type="password" class="form-control form-control-sm" placeholder="123" value="999">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-brand w-100 py-3 rounded-3 fw-bold fs-6 shadow" id="confirmPaymentBtn">
+                        <i class="bi bi-shield-check me-1"></i> Approve & Settle ₹{{ order.total_amount }}
+                    </button>
+                </form>
+
+                <div class="text-center mt-3">
+                    <a href="{% url 'orders:order_live' order.id %}" class="small text-muted text-decoration-none">
+                        <i class="bi bi-arrow-left me-1"></i> Cancel and Pay at Counter
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Cosmetic countdown timer for UPI QR
+    let secondsLeft = 599;
+    const timerEl = document.getElementById('qrTimer');
+    setInterval(() => {
+        if (secondsLeft > 0) {
+            secondsLeft--;
+            const mins = Math.floor(secondsLeft / 60).toString().padStart(2, '0');
+            const secs = (secondsLeft % 60).toString().padStart(2, '0');
+            timerEl.textContent = `${mins}:${secs}`;
+        }
+    }, 1000);
+
+    document.getElementById('gatewayPaymentForm').addEventListener('submit', function() {
+        const btn = document.getElementById('confirmPaymentBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Processing Payment...';
+    });
+</script>
+{% endblock %}

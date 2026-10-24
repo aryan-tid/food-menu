@@ -1,0 +1,1054 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ restaurant.name|default:"Spice Garden" }} - Contemporary Dining & Digital Table Ordering{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ==========================================================================
+       MODERN RESTAURANT HERO SECTION
+       ========================================================================== */
+    .hero-epic-banner {
+        position: relative;
+        background: linear-gradient(180deg, rgba(15, 23, 42, 0.74) 0%, rgba(15, 23, 42, 0.94) 100%),
+                    url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1800&q=85') center/cover no-repeat;
+        border-radius: 22px;
+        color: #ffffff;
+        padding: 2rem 1.25rem;
+        margin-top: 0.25rem;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.45);
+    }
+    @media (min-width: 768px) {
+        .hero-epic-banner {
+            border-radius: 28px;
+            padding: 4.5rem 3.5rem;
+            margin-top: 0.5rem;
+        }
+    }
+
+    .hero-live-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        background: rgba(22, 163, 74, 0.22);
+        color: #4ade80;
+        border: 1px solid rgba(74, 222, 128, 0.45);
+        border-radius: 999px;
+        padding: 4px 12px;
+        font-size: 0.74rem;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+    }
+    .hero-live-beacon {
+        width: 7px;
+        height: 7px;
+        background-color: #22c55e;
+        border-radius: 50%;
+        box-shadow: 0 0 8px #22c55e;
+        animation: pulseBeacon 1.8s infinite;
+    }
+    @keyframes pulseBeacon {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.35; transform: scale(0.85); }
+    }
+
+    .hero-headline {
+        font-family: var(--font-brand);
+        font-size: 1.65rem;
+        font-weight: 900;
+        line-height: 1.18;
+        letter-spacing: -0.02em;
+        color: #ffffff !important;
+        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
+    }
+    @media (min-width: 768px) {
+        .hero-headline {
+            font-size: 3.5rem;
+            line-height: 1.1;
+        }
+    }
+
+    .hero-subtitle {
+        color: rgba(255, 255, 255, 0.88);
+        font-size: 0.90rem;
+        line-height: 1.5;
+        max-width: 620px;
+    }
+    @media (min-width: 768px) {
+        .hero-subtitle {
+            font-size: 1.05rem;
+            line-height: 1.6;
+        }
+    }
+
+    /* Trust Metric Badges in Hero */
+    .hero-trust-bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .hero-stat-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        padding: 5px 12px;
+        border-radius: 999px;
+        font-size: 0.76rem;
+        color: #f1f5f9;
+        white-space: nowrap;
+    }
+    @media (max-width: 576px) {
+        .hero-trust-bar {
+            flex-wrap: nowrap;
+            gap: 5px;
+            width: 100%;
+        }
+        .hero-stat-chip {
+            padding: 4px 8px !important;
+            font-size: 0.70rem !important;
+            flex: 1 1 0;
+            justify-content: center;
+            min-width: 0;
+        }
+        .hero-stat-chip span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    }
+    @media (min-width: 768px) {
+        .hero-stat-chip {
+            padding: 7px 15px;
+            font-size: 0.84rem;
+        }
+    }
+
+    .dish-count-pill {
+        background: #ffffff !important;
+        color: #ea580c !important;
+        font-weight: 800;
+        border-radius: 999px;
+        padding: 2px 8px;
+        font-size: 0.72rem;
+    }
+
+    /* ==========================================================================
+       SMART TABLE RIBBON
+       ========================================================================== */
+    .smart-table-ribbon {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        border-radius: 18px;
+        padding: 0.95rem 1.15rem;
+        box-shadow: var(--card-shadow);
+        margin-top: 0.75rem;
+        position: relative;
+        z-index: 10;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    @media (min-width: 768px) {
+        .smart-table-ribbon {
+            border-radius: 20px;
+            padding: 1.25rem 1.5rem;
+            margin-top: -24px;
+        }
+    }
+    .smart-table-ribbon:hover {
+        box-shadow: var(--card-shadow-hover);
+    }
+
+    /* ==========================================================================
+       POPULAR CATEGORIES (DESKTOP GRID & MOBILE SWIPE CAROUSEL)
+       ========================================================================== */
+    .category-scroll-strip {
+        display: flex;
+        gap: 10px;
+        overflow-x: auto;
+        padding: 4px 2px 10px 2px;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+    .category-scroll-strip::-webkit-scrollbar {
+        display: none;
+    }
+    .cuisine-category-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 0.9rem 0.6rem;
+        text-align: center;
+        text-decoration: none;
+        color: var(--text-primary);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+    .cuisine-category-card:hover {
+        transform: translateY(-3px);
+        border-color: var(--color-primary);
+        color: var(--color-primary);
+        box-shadow: 0 10px 24px -4px rgba(249, 115, 22, 0.2);
+    }
+    .category-avatar-circle {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: var(--bg-surface-raised);
+        border: 1px solid var(--border-color);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.45rem;
+        margin-bottom: 0.5rem;
+        transition: transform 0.2s;
+    }
+    @media (min-width: 768px) {
+        .cuisine-category-card {
+            border-radius: 20px;
+            padding: 1.25rem 1rem;
+            height: 100%;
+        }
+        .category-avatar-circle {
+            width: 58px;
+            height: 58px;
+            font-size: 1.75rem;
+            margin-bottom: 0.75rem;
+        }
+    }
+    .cuisine-category-card:hover .category-avatar-circle {
+        transform: scale(1.1);
+        background: var(--color-primary-light);
+    }
+
+    /* ==========================================================================
+       CHEF'S SIGNATURE SPECIALS (RESPONSIVE CARDS)
+       ========================================================================== */
+    /* Mobile Horizontal Card Layout */
+    .dish-card-mobile {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        padding: 1rem 1rem 1.25rem 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        box-shadow: var(--card-shadow);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        margin-bottom: 4px;
+    }
+    .dish-card-mobile:hover {
+        border-color: var(--color-primary);
+        box-shadow: var(--card-shadow-hover);
+    }
+    .dish-mobile-info {
+        flex: 1;
+        min-width: 0;
+    }
+    .dish-mobile-media {
+        position: relative;
+        width: 105px;
+        height: 105px;
+        flex-shrink: 0;
+    }
+    .dish-mobile-media img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+    .dish-mobile-action {
+        position: absolute;
+        bottom: -12px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 5;
+    }
+
+    /* Desktop Vertical Grid Card Layout */
+    .chef-dish-card-desktop {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        border-radius: 22px;
+        overflow: hidden;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-shadow: var(--card-shadow);
+        transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    }
+    .chef-dish-card-desktop:hover {
+        transform: translateY(-3px);
+        border-color: var(--color-primary);
+        box-shadow: var(--card-shadow-hover);
+    }
+    .dish-img-viewport-d {
+        position: relative;
+        height: 185px;
+        background: var(--bg-surface-raised);
+        overflow: hidden;
+    }
+    .dish-img-viewport-d img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.4s ease;
+    }
+    .chef-dish-card-desktop:hover .dish-img-viewport-d img {
+        transform: scale(1.05);
+    }
+
+    /* Food Badges that never hide in dark mode */
+    .tag-veg-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        font-size: 0.65rem;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+        padding: 2px 7px;
+        border-radius: 6px;
+        background: rgba(22, 163, 74, 0.12);
+        color: #16a34a;
+        border: 1px solid rgba(22, 163, 74, 0.4);
+    }
+    [data-theme="dark"] .tag-veg-pill {
+        background: rgba(34, 197, 94, 0.15);
+        color: #4ade80;
+        border-color: rgba(74, 222, 128, 0.4);
+    }
+    .tag-nonveg-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        font-size: 0.65rem;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+        padding: 2px 7px;
+        border-radius: 6px;
+        background: rgba(220, 38, 38, 0.12);
+        color: #dc2626;
+        border: 1px solid rgba(220, 38, 38, 0.4);
+    }
+    [data-theme="dark"] .tag-nonveg-pill {
+        background: rgba(239, 68, 68, 0.15);
+        color: #f87171;
+        border-color: rgba(248, 113, 113, 0.4);
+    }
+
+    /* Rating Chip */
+    .tag-rating-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        background: #f59e0b;
+        color: #0f172a !important;
+        font-weight: 800;
+        padding: 2px 7px;
+        border-radius: 999px;
+        font-size: 0.70rem;
+    }
+
+    /* Add Pill Button */
+    .zomato-add-btn {
+        background: #ffffff;
+        color: #16a34a;
+        border: 1px solid #86efac;
+        border-radius: 8px;
+        font-weight: 800;
+        font-size: 0.80rem;
+        padding: 4px 14px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.14);
+        cursor: pointer;
+        text-transform: uppercase;
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        transition: transform 0.15s, background-color 0.15s;
+    }
+    .zomato-add-btn:hover {
+        transform: scale(1.05);
+        background: #f0fdf4;
+    }
+    [data-theme="dark"] .zomato-add-btn {
+        background: var(--bg-surface-raised);
+        color: #4ade80;
+        border-color: rgba(74, 222, 128, 0.4);
+    }
+
+    /* Inline Stepper Capsule */
+    .stepper-capsule {
+        background: #0f172a;
+        color: #ffffff;
+        border-radius: 8px;
+        border: 1px solid rgba(245, 158, 11, 0.6);
+        padding: 2px 6px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: space-between;
+        min-width: 86px;
+        height: 29px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+    }
+    .stepper-capsule button {
+        background: transparent;
+        border: none;
+        color: #f59e0b;
+        font-weight: 800;
+        padding: 0 4px;
+        cursor: pointer;
+        font-size: 0.85rem;
+    }
+    .stepper-capsule span {
+        font-size: 0.82rem;
+        font-weight: 800;
+        color: #ffffff;
+        min-width: 18px;
+        text-align: center;
+    }
+
+    /* ==========================================================================
+       CULINARY PHILOSOPHY PILLARS
+       ========================================================================== */
+    .philosophy-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        border-radius: 18px;
+        padding: 1.15rem 1rem;
+        height: 100%;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    @media (min-width: 768px) {
+        .philosophy-card {
+            border-radius: 20px;
+            padding: 1.6rem 1.4rem;
+        }
+    }
+    .philosophy-card:hover {
+        transform: translateY(-3px);
+        box-shadow: var(--card-shadow-hover);
+    }
+    .philosophy-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        margin-bottom: 0.85rem;
+    }
+    @media (min-width: 768px) {
+        .philosophy-icon {
+            width: 48px;
+            height: 48px;
+            font-size: 1.4rem;
+            margin-bottom: 1.15rem;
+        }
+    }
+
+    /* ==========================================================================
+       DINER REVIEWS & TESTIMONIALS
+       ========================================================================== */
+    .review-bubble-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        border-radius: 18px;
+        padding: 1.15rem;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-shadow: var(--card-shadow);
+    }
+    @media (min-width: 768px) {
+        .review-bubble-card {
+            border-radius: 20px;
+            padding: 1.4rem;
+        }
+    }
+    .review-quote-text {
+        color: var(--text-primary) !important;
+        font-size: 0.88rem;
+        line-height: 1.45;
+    }
+
+    /* ==========================================================================
+       LOCATION HUB CARD
+       ========================================================================== */
+    .location-hub-card {
+        background: linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-surface-raised) 100%);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        padding: 1.35rem 1.15rem;
+    }
+    @media (min-width: 768px) {
+        .location-hub-card {
+            border-radius: 24px;
+            padding: 2.25rem 2rem;
+        }
+    }
+    .location-label {
+        color: var(--text-primary) !important;
+        font-weight: 700;
+        display: block;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-2" style="padding-bottom: 110px !important;">
+
+    <!-- =======================================================================
+         SECTION 1: HERO BANNER (ATMOSPHERIC, MODERN FINE DINING)
+         ======================================================================= -->
+    <section class="hero-epic-banner text-center text-md-start mb-3 mb-md-4">
+        <div class="row align-items-center">
+            <div class="col-lg-9 col-xl-8">
+                <!-- Live Floor Status Badge -->
+                <div class="mb-2 mb-md-3">
+                    <span class="hero-live-pill shadow-sm">
+                        <span class="hero-live-beacon"></span>
+                        <span>Open Daily &bull; 11:00 AM – 11:30 PM</span>
+                    </span>
+                </div>
+
+                <!-- Headline -->
+                <h1 class="hero-headline mb-2 mb-md-3">
+                    Authentic Royal Flavors, Crafted for Your Table.
+                </h1>
+
+                <!-- Subtitle -->
+                <p class="hero-subtitle mb-3 mb-md-4">
+                    Experience aromatic charcoal tandoor delights, slow-simmered rich curries, and handcrafted desserts delivered straight to your table.
+                </p>
+
+                <!-- Primary Call-to-Actions -->
+                <div class="d-flex flex-column flex-sm-row gap-2 gap-md-2.5 justify-content-center justify-content-md-start mb-3 mb-md-4">
+                    <a href="{% url 'menu:menu_list' %}" class="btn btn-brand px-3.5 py-2.5 py-md-3 fs-6 rounded-pill d-inline-flex align-items-center justify-content-center gap-2 shadow-lg fw-bold hover-elevate">
+                        <i class="bi bi-book-half fs-5"></i>
+                        <span>Explore Menu</span>
+                        <span class="dish-count-pill ms-1">
+                            {{ total_dishes_count }} Dishes
+                        </span>
+                    </a>
+
+                    <button type="button" class="btn btn-outline-light px-3.5 py-2.5 py-md-3 fs-6 rounded-pill d-inline-flex align-items-center justify-content-center gap-1.5 fw-semibold" data-bs-toggle="modal" data-bs-target="#tableModal">
+                        <i class="bi bi-qr-code-scan text-warning"></i>
+                        {% if current_table_number %}
+                            <span>Table {{ current_table_number }}</span>
+                        {% else %}
+                            <span>Select Table</span>
+                        {% endif %}
+                    </button>
+
+                    {% if active_session %}
+                    <a href="{% url 'orders:session_live' %}" class="btn btn-warning text-dark px-3.5 py-2.5 py-md-3 fs-6 rounded-pill d-inline-flex align-items-center justify-content-center gap-1.5 fw-bold shadow">
+                        <i class="bi bi-broadcast"></i>
+                        <span>Track Table {{ active_session.table_number }}</span>
+                    </a>
+                    {% endif %}
+                </div>
+
+                <!-- Trust Badges -->
+                <div class="hero-trust-bar justify-content-center justify-content-md-start">
+                    <div class="hero-stat-chip">
+                        <i class="bi bi-star-fill text-warning"></i>
+                        <span><strong>4.9★</strong> Rating</span>
+                    </div>
+                    <div class="hero-stat-chip">
+                        <i class="bi bi-fire text-danger"></i>
+                        <span>Clay Tandoor</span>
+                    </div>
+                    <div class="hero-stat-chip">
+                        <i class="bi bi-shield-check text-success"></i>
+                        <span>Farm-Fresh</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =======================================================================
+         SECTION 2: SMART TABLE SEATING RIBBON (DIRECT DINING TRIGGER)
+         ======================================================================= -->
+    <section class="mb-4 mb-md-5">
+        <div class="smart-table-ribbon">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2.5 gap-md-3">
+                <div class="d-flex align-items-center gap-2.5">
+                    <div class="d-inline-flex align-items-center justify-content-center bg-danger bg-opacity-10 text-danger rounded-circle flex-shrink-0" style="width: 42px; height: 42px; font-size: 1.25rem;">
+                        <i class="bi bi-geo-alt-fill"></i>
+                    </div>
+                    <div>
+                        {% if current_table_number %}
+                            <div class="d-flex align-items-center gap-1.5">
+                                <h6 class="fw-bold mb-0" style="color: var(--text-primary); font-size: 0.98rem;">Seated at Table {{ current_table_number }}</h6>
+                                <span class="badge bg-success rounded-pill px-2 py-0.5" style="font-size: 0.65rem;">Ready to Order</span>
+                            </div>
+                            <span class="text-muted small" style="font-size: 0.78rem;">Orders link directly to Table {{ current_table_number }}'s active floor ticket.</span>
+                        {% else %}
+                            <h6 class="fw-bold mb-0" style="color: var(--text-primary); font-size: 0.98rem;">Dine-In Table Ordering</h6>
+                            <span class="text-muted small" style="font-size: 0.78rem;">Scan the QR sticker on your table or select table number below.</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="d-flex align-items-center gap-2 w-100 w-md-auto justify-content-end pt-1 pt-md-0 border-top border-md-0">
+                    <button type="button" class="btn btn-outline-surface btn-sm rounded-pill px-3 py-1.5 fw-semibold" data-bs-toggle="modal" data-bs-target="#tableModal" style="font-size: 0.82rem;">
+                        <i class="bi bi-arrow-repeat me-1"></i>
+                        {% if current_table_number %}Switch Table{% else %}Choose Table{% endif %}
+                    </button>
+                    <a href="{% url 'menu:menu_list' %}" class="btn btn-brand btn-sm rounded-pill px-3 py-1.5 fw-bold text-nowrap" style="font-size: 0.82rem;">
+                        <i class="bi bi-cart-plus me-1"></i> Start Order
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =======================================================================
+         SECTION 3: POPULAR CUISINE & COURSE CATEGORIES
+         ======================================================================= -->
+    <section class="mb-4 mb-md-5">
+        <div class="d-flex justify-content-between align-items-end mb-3 pb-2 border-bottom">
+            <div>
+                <span class="text-uppercase small fw-bold text-muted" style="letter-spacing: 0.05em; font-size: 0.75rem;">Curated Selections</span>
+                <h3 class="brand-font fw-bold mb-0 fs-4 fs-md-3" style="color: var(--text-primary);">Explore by Category</h3>
+            </div>
+            <a href="{% url 'menu:menu_list' %}" class="btn btn-sm btn-outline-surface rounded-pill px-3 fw-semibold" style="font-size: 0.80rem;">
+                All Dishes <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+
+        <!-- Mobile Horizontal Carousel View (< 768px) -->
+        <div class="d-md-none category-scroll-strip">
+            {% for cat in categories %}
+            <a href="{% url 'menu:menu_list' %}#cat-section-{{ cat.id }}" class="cuisine-category-card flex-shrink-0" style="width: 100px;">
+                <div class="category-avatar-circle">
+                    {% if "Starter" in cat.name or "Appetizer" in cat.name %}🍢
+                    {% elif "Main" in cat.name or "Curry" in cat.name %}🍛
+                    {% elif "Bread" in cat.name or "Roti" in cat.name or "Naan" in cat.name %}🫓
+                    {% elif "Rice" in cat.name or "Biryani" in cat.name %}🍚
+                    {% elif "Beverage" in cat.name or "Drink" in cat.name or "Shake" in cat.name %}🍹
+                    {% elif "Dessert" in cat.name or "Sweet" in cat.name %}🍨
+                    {% else %}🍽️
+                    {% endif %}
+                </div>
+                <strong class="d-block text-truncate w-100" style="font-size: 0.80rem; color: var(--text-primary);">{{ cat.name }}</strong>
+                <span class="text-muted" style="font-size: 0.68rem;">{{ cat.items.count }} dishes</span>
+            </a>
+            {% endfor %}
+        </div>
+
+        <!-- Desktop Grid View (>= 768px) -->
+        <div class="d-none d-md-flex row g-3">
+            {% for cat in categories %}
+            <div class="col-sm-4 col-lg-2">
+                <a href="{% url 'menu:menu_list' %}#cat-section-{{ cat.id }}" class="cuisine-category-card">
+                    <div class="category-avatar-circle">
+                        {% if "Starter" in cat.name or "Appetizer" in cat.name %}🍢
+                        {% elif "Main" in cat.name or "Curry" in cat.name %}🍛
+                        {% elif "Bread" in cat.name or "Roti" in cat.name or "Naan" in cat.name %}🫓
+                        {% elif "Rice" in cat.name or "Biryani" in cat.name %}🍚
+                        {% elif "Beverage" in cat.name or "Drink" in cat.name or "Shake" in cat.name %}🍹
+                        {% elif "Dessert" in cat.name or "Sweet" in cat.name %}🍨
+                        {% else %}🍽️
+                        {% endif %}
+                    </div>
+                    <strong class="d-block mb-1 text-truncate w-100" style="font-size: 0.92rem; color: var(--text-primary);">{{ cat.name }}</strong>
+                    <span class="text-muted small" style="font-size: 0.75rem;">{{ cat.items.count }} dish{{ cat.items.count|pluralize }}</span>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- =======================================================================
+         SECTION 4: CHEF'S SIGNATURE SHOWCASE (ZOMATO STYLE RESPONSIVE FOOD CARDS)
+         ======================================================================= -->
+    <section class="mb-4 mb-md-5">
+        <div class="d-flex justify-content-between align-items-end mb-3 pb-2 border-bottom">
+            <div>
+                <span class="text-uppercase small fw-bold text-danger" style="letter-spacing: 0.05em; font-size: 0.75rem;">
+                    <i class="bi bi-fire me-1"></i>Most Loved Dishes
+                </span>
+                <h3 class="brand-font fw-bold mb-0 fs-4 fs-md-3" style="color: var(--text-primary);">Chef's Signature Specials</h3>
+            </div>
+            <a href="{% url 'menu:menu_list' %}" class="btn btn-sm btn-outline-surface rounded-pill px-3 fw-semibold" style="font-size: 0.80rem;">
+                Full Menu <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+
+        <!-- Mobile Horizontal Food Cards (< 768px) with Clean Spacing -->
+        <div class="d-md-none d-flex flex-column gap-4 pt-1 pb-3">
+            {% for item in featured_items %}
+            <div class="dish-card-mobile">
+                <!-- Left: Food details -->
+                <div class="dish-mobile-info">
+                    <div class="d-flex align-items-center gap-1.5 mb-1">
+                        {% if item.is_veg %}
+                            <span class="tag-veg-pill"><i class="bi bi-record-circle-fill me-1"></i>VEG</span>
+                        {% else %}
+                            <span class="tag-nonveg-pill"><i class="bi bi-caret-up-square-fill me-1"></i>NON-VEG</span>
+                        {% endif %}
+
+                        {% if item.average_rating %}
+                            <span class="tag-rating-chip"><i class="bi bi-star-fill me-0.5"></i>{{ item.average_rating }}</span>
+                        {% endif %}
+                    </div>
+                    <h6 class="fw-bold mb-1 text-truncate" style="font-size: 0.95rem; color: var(--text-primary);">{{ item.name }}</h6>
+                    <p class="text-muted small mb-1" style="font-size: 0.76rem; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;">
+                        {{ item.description }}
+                    </p>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="fw-black brand-font fs-6" style="color: var(--color-primary);">₹{{ item.price }}</span>
+                        <span class="badge bg-surface-raised border text-secondary" style="font-size: 0.65rem;">{{ item.category.name }}</span>
+                    </div>
+                </div>
+
+                <!-- Right: Food image with overlapping action button -->
+                <div class="dish-mobile-media">
+                    <img src="{{ item.get_image_url }}" alt="{{ item.name }}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300&fit=crop'">
+                    <div class="dish-mobile-action" id="home-stepper-m-{{ item.id }}">
+                        <button type="button" class="zomato-add-btn" onclick="handleHomeStepper({{ item.id }}, 'increase')">
+                            ADD <i class="bi bi-plus-lg"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Desktop Grid Cards (>= 768px) -->
+        <div class="d-none d-md-flex row g-3 g-md-4">
+            {% for item in featured_items %}
+            <div class="col-md-6 col-lg-4">
+                <div class="chef-dish-card-desktop">
+                    <div>
+                        <!-- Dish Image Viewport with Floating Badges -->
+                        <div class="dish-img-viewport-d">
+                            <img src="{{ item.get_image_url }}" alt="{{ item.name }}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&fit=crop'">
+                            
+                            <!-- Veg / Non-Veg Indicator -->
+                            <div class="position-absolute top-0 start-0 m-2.5">
+                                {% if item.is_veg %}
+                                    <span class="tag-veg-pill shadow-sm"><i class="bi bi-record-circle-fill me-1"></i>PURE VEG</span>
+                                {% else %}
+                                    <span class="tag-nonveg-pill shadow-sm"><i class="bi bi-caret-up-square-fill me-1"></i>NON-VEG</span>
+                                {% endif %}
+                            </div>
+
+                            <!-- Star Rating Badge -->
+                            <div class="position-absolute top-0 end-0 m-2.5">
+                                {% if item.average_rating %}
+                                    <span class="tag-rating-chip shadow-sm"><i class="bi bi-star-fill me-1"></i>{{ item.average_rating }}</span>
+                                {% else %}
+                                    <span class="badge bg-dark bg-opacity-75 text-white shadow-sm px-2 py-1 rounded-pill" style="font-size: 0.68rem;">Chef Choice</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Card Body -->
+                        <div class="p-3 pb-2">
+                            <div class="d-flex align-items-center gap-1.5 mb-1">
+                                <span class="badge bg-surface-raised border text-secondary text-truncate" style="font-size: 0.68rem; max-width: 120px;">
+                                    {{ item.category.name }}
+                                </span>
+                                <span class="text-muted small" style="font-size: 0.72rem;">
+                                    &bull; {% if item.reviews.count %}{{ item.reviews.count }} review{{ item.reviews.count|pluralize }}{% else %}Be first to review{% endif %}
+                                </span>
+                            </div>
+                            <h5 class="fw-bold mb-1 text-truncate" style="font-size: 1.05rem; color: var(--text-primary);">{{ item.name }}</h5>
+                            <p class="text-muted small mb-0" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 0.8rem; line-height: 1.38;">
+                                {{ item.description }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Price & Inline Stepper Action -->
+                    <div class="p-3 pt-2 border-top d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="text-muted small d-block" style="font-size: 0.70rem; line-height: 1;">Price</span>
+                            <span class="fw-black brand-font fs-5" style="color: var(--color-primary);">₹{{ item.price }}</span>
+                        </div>
+                        <div id="home-stepper-{{ item.id }}">
+                            <button type="button" class="btn btn-brand btn-sm px-3.5 py-1.5 rounded-pill d-inline-flex align-items-center gap-1.5 shadow-sm fw-bold" onclick="handleHomeStepper({{ item.id }}, 'increase')">
+                                <i class="bi bi-plus-lg"></i> Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- =======================================================================
+         SECTION 5: CULINARY PHILOSOPHY & DINING PILLARS
+         ======================================================================= -->
+    <section class="mb-4 mb-md-5">
+        <div class="text-center mb-3 mb-md-4">
+            <span class="text-uppercase small fw-bold text-muted" style="letter-spacing: 0.05em; font-size: 0.75rem;">Our Standards</span>
+            <h3 class="brand-font fw-bold fs-4 fs-md-3" style="color: var(--text-primary);">The Spice Garden Dining Experience</h3>
+            <p class="text-muted small mx-auto mb-0" style="max-width: 580px; font-size: 0.84rem;">
+                Where traditional culinary heritage meets modern contactless hospitality.
+            </p>
+        </div>
+
+        <div class="row g-2 g-md-3 g-lg-4">
+            <div class="col-6 col-lg-3">
+                <div class="philosophy-card text-center text-sm-start">
+                    <div class="philosophy-icon bg-success bg-opacity-10 text-success mx-auto mx-sm-0">
+                        <i class="bi bi-flower1"></i>
+                    </div>
+                    <h5 class="fw-bold mb-1" style="font-size: 0.88rem; color: var(--text-primary);">Farm-Fresh Quality</h5>
+                    <p class="text-muted small mb-0" style="font-size: 0.76rem; line-height: 1.35;">
+                        Procured daily vegetables, cold-pressed oils, and spices stone-ground fresh.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-6 col-lg-3">
+                <div class="philosophy-card text-center text-sm-start">
+                    <div class="philosophy-icon bg-danger bg-opacity-10 text-danger mx-auto mx-sm-0">
+                        <i class="bi bi-fire"></i>
+                    </div>
+                    <h5 class="fw-bold mb-1" style="font-size: 0.88rem; color: var(--text-primary);">Charcoal Tandoor</h5>
+                    <p class="text-muted small mb-0" style="font-size: 0.76rem; line-height: 1.35;">
+                        Slow-roasted clay oven recipes sealed with authentic charcoal smoky aroma.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-6 col-lg-3">
+                <div class="philosophy-card text-center text-sm-start">
+                    <div class="philosophy-icon bg-warning bg-opacity-10 text-warning mx-auto mx-sm-0">
+                        <i class="bi bi-phone-fill"></i>
+                    </div>
+                    <h5 class="fw-bold mb-1" style="font-size: 0.88rem; color: var(--text-primary);">Smart QR Ordering</h5>
+                    <p class="text-muted small mb-0" style="font-size: 0.76rem; line-height: 1.35;">
+                        Order dishes & extra rounds directly from your smartphone at your own pace.
+                    </p>
+                </div>
+            </div>
+
+            <div class="col-6 col-lg-3">
+                <div class="philosophy-card text-center text-sm-start">
+                    <div class="philosophy-icon bg-info bg-opacity-10 text-info mx-auto mx-sm-0">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <h5 class="fw-bold mb-1" style="font-size: 0.88rem; color: var(--text-primary);">5-Star Hygiene</h5>
+                    <p class="text-muted small mb-0" style="font-size: 0.76rem; line-height: 1.35;">
+                        FSSAI-certified kitchen practices, temperature control, and sanitization.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =======================================================================
+         SECTION 6: REAL DINER TESTIMONIALS & REVIEWS
+         ======================================================================= -->
+    {% if customer_reviews %}
+    <section class="mb-4 mb-md-5">
+        <div class="d-flex justify-content-between align-items-end mb-3 pb-2 border-bottom">
+            <div>
+                <span class="text-uppercase small fw-bold text-warning" style="letter-spacing: 0.05em; font-size: 0.75rem;">Guest Impressions</span>
+                <h3 class="brand-font fw-bold mb-0 fs-4 fs-md-3" style="color: var(--text-primary);">What Our Diners Say</h3>
+            </div>
+            <a href="{% url 'menu:menu_list' %}" class="btn btn-sm btn-outline-surface rounded-pill px-3 fw-semibold" style="font-size: 0.80rem;">
+                Rate a Dish <i class="bi bi-star-fill text-warning ms-1"></i>
+            </a>
+        </div>
+
+        <div class="row g-2.5 g-md-3 g-lg-4">
+            {% for r in customer_reviews %}
+            <div class="col-12 col-md-6">
+                <div class="review-bubble-card">
+                    <div>
+                        <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="tag-rating-chip">{{ r.rating }}★</span>
+                                <span class="fw-semibold small text-truncate" style="font-size: 0.84rem; max-width: 180px; color: var(--text-primary);">
+                                    {{ r.menu_item.name }}
+                                </span>
+                            </div>
+                            <span class="text-muted" style="font-size: 0.72rem;">{{ r.review_date|date:"d M Y" }}</span>
+                        </div>
+                        <p class="review-quote-text mb-3 fst-italic">
+                            "{{ r.comment }}"
+                        </p>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-2 pt-2 border-top">
+                        <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center fw-bold flex-shrink-0" style="width: 32px; height: 32px; font-size: 0.8rem;">
+                            {{ r.customer.name|slice:":1"|upper }}
+                        </div>
+                        <div>
+                            <strong class="d-block small" style="font-size: 0.85rem; color: var(--text-primary);">{{ r.customer.name }}</strong>
+                            <span class="text-muted small" style="font-size: 0.70rem;">Verified Diner</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- =======================================================================
+         SECTION 7: RESTAURANT AMBIANCE & LOCATION HUB
+         ======================================================================= -->
+    <section class="mb-4">
+        <div class="location-hub-card shadow-sm">
+            <div class="row align-items-center g-3 g-md-4">
+                <div class="col-lg-8">
+                    <span class="badge bg-surface-raised border text-secondary rounded-pill px-3 py-1 mb-2 fw-semibold" style="font-size: 0.75rem;">
+                        <i class="bi bi-clock-history me-1 text-warning"></i> Operating Hours & Seating
+                    </span>
+                    <h3 class="brand-font fw-bold mb-1.5 fs-4 fs-md-3" style="color: var(--text-primary);">{{ restaurant.name|default:"Spice Garden Multi-Cuisine" }}</h3>
+                    <p class="text-muted small mb-3">
+                        <i class="bi bi-geo-alt-fill text-danger me-1"></i> {{ restaurant.address|default:"Near COCSIT College, Latur, Maharashtra - 413512" }}
+                    </p>
+
+                    <div class="d-flex flex-wrap gap-2.5 gap-md-4 text-muted small" style="font-size: 0.82rem;">
+                        <div>
+                            <strong class="location-label"><i class="bi bi-telephone-fill text-success me-1"></i>Phone</strong>
+                            <span>{{ restaurant.phone|default:"+91 9822001122" }}</span>
+                        </div>
+                        <div>
+                            <strong class="location-label"><i class="bi bi-clock-fill text-warning me-1"></i>Dine-In Hours</strong>
+                            <span>11:00 AM – 11:30 PM (Daily)</span>
+                        </div>
+                        <div>
+                            <strong class="location-label"><i class="bi bi-shop me-1 text-primary"></i>Service</strong>
+                            <span>Dine-In, Takeaway, QR Orders</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4 text-lg-end">
+                    <div class="d-flex flex-column flex-sm-row flex-lg-column gap-2 justify-content-lg-end">
+                        <button type="button" class="btn btn-brand px-3.5 py-2 rounded-pill fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#tableModal" style="font-size: 0.88rem;">
+                            <i class="bi bi-qr-code me-1"></i> Select Dining Table
+                        </button>
+                        <a href="https://maps.google.com/?q={{ restaurant.address|default:'COCSIT College, Latur'|urlencode }}" target="_blank" class="btn btn-outline-surface px-3.5 py-2 rounded-pill fw-semibold" style="font-size: 0.85rem;">
+                            <i class="bi bi-map me-1 text-danger"></i> Google Maps Directions
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // 1. Direct Visit Table Selection Prompt (Non-intrusive)
+    {% if not has_table %}
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+            if (!sessionStorage.getItem('table_modal_dismissed')) {
+                const tableModalEl = document.getElementById('tableModal');
+                if (tableModalEl) {
+                    const tableModal = new bootstrap.Modal(tableModalEl);
+                    tableModal.show();
+                    sessionStorage.setItem('table_modal_dismissed', 'true');
+                }
+            }
+        }, 1800);
+    });
+    {% endif %}
+
+    // 2. Inline Stepper Capsule for Featured Dishes (Syncs both Desktop and Mobile cards)
+    function updateHomeStepperUI(itemId, qty) {
+        const desktopContainer = document.getElementById(`home-stepper-${itemId}`);
+        const mobileContainer = document.getElementById(`home-stepper-m-${itemId}`);
+
+        const desktopHtml = qty > 0 ? `
+            <div class="stepper-capsule">
+                <button type="button" onclick="handleHomeStepper(${itemId}, 'decrease')" title="Decrease">
+                    <i class="bi bi-dash-lg"></i>
+                </button>
+                <span>${qty}</span>
+                <button type="button" onclick="handleHomeStepper(${itemId}, 'increase')" title="Increase">
+                    <i class="bi bi-plus-lg"></i>
+                </button>
+            </div>
+        ` : `
+            <button type="button" class="btn btn-brand btn-sm px-3.5 py-1.5 rounded-pill d-inline-flex align-items-center gap-1.5 shadow-sm fw-bold" onclick="handleHomeStepper(${itemId}, 'increase')">
+                <i class="bi bi-plus-lg"></i> Add
+            </button>
+        `;
+
+        const mobileHtml = qty > 0 ? `
+            <div class="stepper-capsule">
+                <button type="button" onclick="handleHomeStepper(${itemId}, 'decrease')" title="Decrease">
+                    <i class="bi bi-dash-lg"></i>
+                </button>
+                <span>${qty}</span>
+                <button type="button" onclick="handleHomeStepper(${itemId}, 'increase')" title="Increase">
+                    <i class="bi bi-plus-lg"></i>
+                </button>
+            </div>
+        ` : `
+            <button type="button" class="zomato-add-btn" onclick="handleHomeStepper(${itemId}, 'increase')">
+                ADD <i class="bi bi-plus-lg"></i>
+            </button>
+        `;
+
+        if (desktopContainer) desktopContainer.innerHTML = desktopHtml;
+        if (mobileContainer) mobileContainer.innerHTML = mobileHtml;
+    }
+
+    function handleHomeStepper(itemId, action) {
+        fetch(`/api/cart/update/${itemId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({'action': action})
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                document.querySelectorAll('.cart-badge-count').forEach(el => el.textContent = data.cart_count);
+                updateHomeStepperUI(itemId, data.item_qty);
+                if (data.item_qty === 0) {
+                    showAppToast('Item removed from cart');
+                } else if (action === 'increase') {
+                    showAppToast(`Updated quantity: ${data.item_qty}`);
+                }
+            }
+        })
+        .catch(err => console.debug('Cart update err:', err));
+    }
+
+    // 3. Initial Synchronization with Session Cart
+    document.addEventListener('DOMContentLoaded', function() {
+        try {
+            const initialCart = {{ cart_json|safe }};
+            for (const [idStr, qty] of Object.entries(initialCart)) {
+                updateHomeStepperUI(parseInt(idStr), qty);
+            }
+        } catch(e) {
+            console.debug('Cart sync err:', e);
+        }
+    });
+</script>
+{% endblock %}

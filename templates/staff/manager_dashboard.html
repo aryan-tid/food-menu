@@ -1,0 +1,2252 @@
+{% extends 'base.html' %}
+
+{% block title %}Manager Admin Console - {{ restaurant.name|default:"Spice Garden" }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Manager Console Container Tuning */
+    .manager-console-container {
+        padding-top: 0.75rem;
+        padding-bottom: 95px !important;
+    }
+    @media (max-width: 576px) {
+        .manager-console-container {
+            padding-left: 14px !important;
+            padding-right: 14px !important;
+            padding-top: 0.5rem !important;
+            overflow-x: hidden;
+            box-sizing: border-box;
+        }
+    }
+
+    /* Mobile-Optimized Executive Hero */
+    .manager-hero-banner {
+        background: linear-gradient(135deg, #101217 0%, #151821 60%, #1e1915 100%);
+        color: #fff;
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    }
+    @media (max-width: 576px) {
+        .manager-hero-banner {
+            padding: 0.85rem 1rem !important;
+            border-radius: 16px !important;
+            margin-bottom: 0.75rem !important;
+        }
+        .manager-hero-banner h2 {
+            font-size: 1.05rem !important;
+            line-height: 1.25 !important;
+            margin-bottom: 0 !important;
+        }
+    }
+
+    /* Mobile Horizontal Scrollable Manager Tabs with Fade Affordance */
+    .manager-nav-wrapper {
+        position: relative;
+        margin-bottom: 1rem;
+    }
+    .manager-nav-wrapper::after {
+        content: '';
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        bottom: 2px;
+        width: 32px;
+        background: linear-gradient(to right, transparent, var(--bg-surface));
+        pointer-events: none;
+        border-top-right-radius: 999px;
+        border-bottom-right-radius: 999px;
+    }
+    @media (min-width: 992px) {
+        .manager-nav-wrapper::after {
+            display: none;
+        }
+    }
+    .manager-nav-scroll {
+        display: flex;
+        overflow-x: auto;
+        white-space: nowrap;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        gap: 6px;
+        padding: 5px !important;
+        border-radius: 999px;
+        margin-bottom: 0 !important;
+    }
+    .manager-nav-scroll::-webkit-scrollbar {
+        display: none;
+    }
+    .manager-nav-scroll .nav-item {
+        flex: 0 0 auto;
+    }
+    .manager-nav-scroll .nav-link {
+        white-space: nowrap;
+        border-radius: 999px;
+        padding: 6px 14px;
+        font-size: 0.80rem;
+        font-weight: 600;
+    }
+    @media (min-width: 992px) {
+        .manager-nav-scroll {
+            flex-wrap: wrap;
+        }
+        .manager-nav-scroll .nav-item {
+            flex: 1 1 0;
+        }
+    }
+
+    /* KPI Cards Executive Polish */
+    .kpi-title {
+        font-size: 0.72rem;
+        letter-spacing: 0.05em;
+    }
+    .kpi-val {
+        font-size: 1.45rem;
+        letter-spacing: -0.02em;
+    }
+    .kpi-sub {
+        font-size: 0.74rem;
+    }
+    .kpi-icon-box {
+        width: 32px;
+        height: 32px;
+        font-size: 0.95rem;
+        border-radius: 10px;
+    }
+    @media (max-width: 576px) {
+        .kpi-title {
+            font-size: 0.68rem !important;
+            letter-spacing: 0.03em !important;
+        }
+        .kpi-val {
+            font-size: 1.25rem !important;
+        }
+        .kpi-sub {
+            font-size: 0.70rem !important;
+        }
+        .kpi-icon-box {
+            width: 28px !important;
+            height: 28px !important;
+            font-size: 0.85rem !important;
+            border-radius: 8px !important;
+        }
+    }
+
+    .session-card-interactive {
+        transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+    }
+    .session-card-interactive:hover {
+        border-color: rgba(224, 83, 38, 0.4) !important;
+        box-shadow: var(--card-shadow-hover) !important;
+    }
+    .portal-links-scroll {
+        display: flex;
+        overflow-x: auto;
+        white-space: nowrap;
+        gap: 6px;
+        padding-bottom: 2px;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+    .portal-links-scroll::-webkit-scrollbar {
+        display: none;
+    }
+    .portal-links-scroll .btn {
+        font-size: 0.72rem !important;
+        padding: 4px 10px !important;
+        flex-shrink: 0;
+    }
+
+    /* Mobile Data Cards with Color-Coded Status Left Border */
+    .mobile-data-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 0.85rem 1rem;
+        box-shadow: var(--card-shadow);
+        transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .ticket-Pending { border-left: 4px solid #f59e0b !important; }
+    .ticket-Preparing { border-left: 4px solid #3b82f6 !important; }
+    .ticket-Ready { border-left: 4px solid #06b6d4 !important; }
+    .ticket-Served { border-left: 4px solid #10b981 !important; }
+    .ticket-Completed { border-left: 4px solid #64748b !important; }
+    .ticket-Cancelled { border-left: 4px solid #ef4444 !important; }
+
+    /* Hide Number Spinners across Manager Dashboard */
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    input[type=number] {
+        -moz-appearance: textfield;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-2.5 px-sm-3 px-md-4 py-2 py-sm-3 manager-console-container" style="max-width: 1440px;">
+<!-- Manager Console Executive Hero Banner -->
+<div class="rounded-4 p-3 p-sm-4 p-md-5 mb-3 mb-md-4 shadow-sm border border-secondary border-opacity-25 manager-hero-banner">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2 gap-md-3">
+        <div>
+            <div class="d-inline-flex align-items-center gap-1.5 px-2.5 py-0.5 rounded-pill mb-1 border border-warning border-opacity-25" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; font-size: 0.72rem; font-weight: 700;">
+                <i class="bi bi-graph-up-arrow"></i>
+                <span>Executive Management Suite</span>
+            </div>
+            <h2 class="brand-font fw-black mb-1 text-white fs-5 fs-md-2">Restaurant Analytics & Floor Operations</h2>
+            <p class="text-secondary small mb-0 d-none d-sm-block">Total administration: Staff roles, table QR tokens, menu stock control, and financial revenue audit.</p>
+        </div>
+        <div class="portal-links-scroll d-flex align-items-center gap-1.5 gap-md-2 w-100 w-md-auto">
+            <a href="{% url 'orders:kitchen_dashboard' %}" class="btn btn-dark btn-sm rounded-pill px-2.5 px-md-3 py-1 border border-secondary text-warning" style="font-size: 0.76rem;">
+                <i class="bi bi-fire me-1"></i> Kitchen KDS
+            </a>
+            <a href="{% url 'orders:waiter_dashboard' %}" class="btn btn-dark btn-sm rounded-pill px-2.5 px-md-3 py-1 border border-secondary text-success" style="font-size: 0.76rem;">
+                <i class="bi bi-person-badge me-1"></i> Waiter Floor
+            </a>
+            <a href="/admin/" class="btn btn-dark btn-sm rounded-pill px-2.5 px-md-3 py-1 border border-secondary text-info" style="font-size: 0.76rem;">
+                <i class="bi bi-database-gear me-1"></i> Django Admin
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Financial & Operations KPI Cards (Modular Design) -->
+<div class="row g-2 g-md-3 mb-3 mb-md-4 align-items-stretch">
+    <div class="col-6 col-md-3">
+        <div class="app-kpi-card">
+            <div class="d-flex align-items-center justify-content-between mb-1">
+                <span class="app-kpi-title">Total Revenue</span>
+                <div class="app-kpi-icon bg-success bg-opacity-10 text-success fw-bold">
+                    <i class="bi bi-currency-rupee"></i>
+                </div>
+            </div>
+            <div>
+                <h3 class="app-kpi-val text-success">₹{{ total_revenue|floatformat:2 }}</h3>
+                <span class="app-kpi-sub"><i class="bi bi-check-circle-fill text-success me-1"></i>Settled revenue</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="app-kpi-card">
+            <div class="d-flex align-items-center justify-content-between mb-1">
+                <span class="app-kpi-title">Today's Inflow</span>
+                <div class="app-kpi-icon bg-primary bg-opacity-10 text-primary fw-bold">
+                    <i class="bi bi-calendar-event"></i>
+                </div>
+            </div>
+            <div>
+                <h3 class="app-kpi-val text-primary">₹{{ today_revenue|floatformat:2 }}</h3>
+                <span class="app-kpi-sub">Today's closed tabs</span>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="app-kpi-card">
+            <div class="d-flex align-items-center justify-content-between mb-1">
+                <span class="app-kpi-title">Payment Mix</span>
+                <div class="app-kpi-icon bg-warning bg-opacity-10 text-warning fw-bold">
+                    <i class="bi bi-wallet2"></i>
+                </div>
+            </div>
+            <div>
+                <div class="d-flex justify-content-between align-items-baseline py-0.5">
+                    <span class="text-muted small" style="font-size: 0.72rem;">Cash</span>
+                    <strong class="text-success" style="font-size: 0.88rem;">₹{{ cash_revenue|floatformat:2 }}</strong>
+                </div>
+                <div class="d-flex justify-content-between align-items-baseline py-0.5 border-top">
+                    <span class="text-muted small" style="font-size: 0.72rem;">UPI</span>
+                    <strong class="text-primary" style="font-size: 0.88rem;">₹{{ online_revenue|floatformat:2 }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="app-kpi-card">
+            <div class="d-flex align-items-center justify-content-between mb-1">
+                <span class="app-kpi-title">Active Floor</span>
+                <div class="app-kpi-icon {% if active_orders_count > 0 %}bg-warning bg-opacity-10 text-warning{% else %}bg-surface-raised text-muted{% endif %} fw-bold">
+                    <i class="bi bi-bell-fill"></i>
+                </div>
+            </div>
+            <div>
+                <h3 class="app-kpi-val {% if active_orders_count > 0 %}text-warning{% else %}text-muted{% endif %}" id="kpi-active-orders">{{ active_orders_count }}</h3>
+                <span class="app-kpi-sub">Currently dining</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Navigation Tabs for Manager Modules -->
+<div class="manager-nav-wrapper">
+    <ul class="nav nav-pills manager-nav-scroll card-surface p-1.5 rounded-pill shadow-sm border" id="managerTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-semibold small" id="orders-tab" data-bs-toggle="pill" data-bs-target="#orders-pane" type="button" role="tab">
+                <i class="bi bi-receipt me-1"></i> Floor Orders (<span id="filter-active-tab-count">{{ active_orders_count }}</span>)
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-semibold small" id="staff-tab" data-bs-toggle="pill" data-bs-target="#staff-pane" type="button" role="tab">
+                <i class="bi bi-people-fill me-1"></i> Staff Roles
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-semibold small" id="qr-tab" data-bs-toggle="pill" data-bs-target="#qr-pane" type="button" role="tab">
+                <i class="bi bi-qr-code me-1"></i> Tables & QR
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-semibold small" id="menu-tab" data-bs-toggle="pill" data-bs-target="#menu-pane" type="button" role="tab">
+                <i class="bi bi-book-half me-1"></i> Menu & Stock
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-semibold small" id="customers-tab" data-bs-toggle="pill" data-bs-target="#customers-pane" type="button" role="tab">
+                <i class="bi bi-person-lines-fill me-1"></i> Customers ({{ customers|length }})
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-semibold small" id="reviews-tab" data-bs-toggle="pill" data-bs-target="#reviews-pane" type="button" role="tab">
+                <i class="bi bi-star-fill text-warning me-1"></i> Reviews ({{ reviews_count }})
+            </button>
+        </li>
+    </ul>
+</div>
+
+<div class="tab-content mb-5" id="managerTabContent">
+    <!-- Tab 1: Orders & Table Control -->
+    <div class="tab-pane fade show active" id="orders-pane" role="tabpanel">
+        <!-- Standalone Executive Floor Operations Toolbar -->
+        <div class="card-surface rounded-4 border p-3 p-sm-3.5 shadow-sm mb-3.5 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2.5">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <h5 class="fw-bold mb-0 fs-6 fs-md-5" style="color: var(--text-primary);">
+                    <i class="bi bi-receipt-cutoff me-2 text-primary"></i>Floor Orders &amp; Sessions
+                </h5>
+                <span class="badge bg-surface-raised border text-secondary rounded-pill px-2.5 py-1" style="font-size: 0.72rem;">
+                    {% if order_filter == 'all' %}{{ sessions_list|length }} Sessions &bull; {{ all_orders_count }} Orders{% else %}{{ active_orders_count }} Active Floor Orders{% endif %}
+                </span>
+            </div>
+            <!-- Segmented Filter Control: Active vs History -->
+            <div class="btn-group btn-group-sm rounded-pill p-1 bg-surface-raised border" role="group">
+                <a href="?order_filter=active" class="btn btn-sm rounded-pill {% if order_filter != 'all' %}btn-brand text-white fw-bold shadow-sm{% else %}btn-outline-surface border-0{% endif %} py-1.5 px-3" style="font-size: 0.78rem;">
+                    <i class="bi bi-clock-history me-1"></i> Active Floor (<span id="filter-active-orders-count">{{ active_orders_count }}</span>)
+                </a>
+                <a href="?order_filter=all" class="btn btn-sm rounded-pill {% if order_filter == 'all' %}btn-brand text-white fw-bold shadow-sm{% else %}btn-outline-surface border-0{% endif %} py-1.5 px-3" style="font-size: 0.78rem;">
+                    <i class="bi bi-archive me-1"></i> Order History (<span id="filter-all-orders-count">{{ all_orders_count }}</span>)
+                </a>
+            </div>
+        </div>
+
+        {% if order_filter == 'all' %}
+            <!-- Standalone Elevated Session Cards List -->
+            <div class="d-flex flex-column gap-3 mb-4">
+                {% for sess in sessions_list %}
+                <div class="card-surface rounded-4 border shadow-sm session-card-interactive overflow-hidden mb-3" id="session-card-{{ sess.id }}" onclick="if (!event.target.closest('a, button, form')) window.location.href='{% url 'orders:manager_session_detail' sess.id %}';" style="cursor: pointer;">
+                    <div class="p-3 p-sm-3.5">
+                        <!-- Session Top Row: Badges & Total -->
+                        <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                            <div class="d-flex align-items-center gap-1.5 flex-wrap">
+                                <span class="badge bg-dark rounded-pill px-2.5 py-1 fw-bold">Session #SESS-{{ sess.id }}</span>
+                                {% if sess.table %}
+                                    <span class="badge bg-primary rounded-pill px-2.5 py-1"><i class="bi bi-shop me-1"></i>Table {{ sess.table_number }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary rounded-pill px-2.5 py-1">Takeaway</span>
+                                {% endif %}
+
+                                {% if sess.is_active %}
+                                    <span class="badge bg-warning text-dark rounded-pill px-2.5 py-1"><i class="bi bi-clock-fill me-1"></i>Active Dining</span>
+                                {% else %}
+                                    <span class="badge bg-success rounded-pill px-2.5 py-1"><i class="bi bi-check2-all me-1"></i>Settled</span>
+                                {% endif %}
+                            </div>
+                            <div class="text-end">
+                                <span class="text-muted small d-none d-sm-inline me-1">Total Bill:</span>
+                                <span class="fw-black brand-font fs-5 text-success">₹{{ sess.total_spent|floatformat:2 }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Session Customer & Time Row -->
+                        <div class="d-flex justify-content-between align-items-baseline flex-wrap gap-1">
+                            <div class="min-w-0">
+                                <strong class="d-block text-truncate fs-6" style="color: var(--text-primary);">{{ sess.customer.name }}</strong>
+                                <span class="text-muted small text-truncate d-block">{{ sess.customer.phone|default:sess.customer.email }}</span>
+                            </div>
+                            <div class="text-end small text-muted">
+                                <i class="bi bi-clock me-1"></i>{{ sess.started_at|date:"h:i A" }} &bull; <strong class="text-info">{{ sess.duration_display }}</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Session Bottom Action Bar -->
+                    <div class="p-2.5 px-3 px-sm-3.5 bg-surface-raised border-top rounded-bottom-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-1.5 flex-wrap">
+                            <span class="badge bg-surface border text-secondary rounded-pill px-2.5 py-1" style="font-size: 0.74rem;">
+                                <i class="bi bi-receipt me-1"></i>{{ sess.orders.count }} Ticket{{ sess.orders.count|pluralize }}
+                            </span>
+                            {% if sess.paid_payments.exists %}
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-2.5 py-1" style="font-size: 0.74rem;">
+                                    <i class="bi bi-check2-circle me-1"></i>Paid via {{ sess.paid_payments.first.short_method_display }}
+                                </span>
+                            {% else %}
+                                <span class="badge bg-warning bg-opacity-10 text-warning border border-warning rounded-pill px-2.5 py-1" style="font-size: 0.74rem;">
+                                    <i class="bi bi-hourglass-split me-1"></i>Pending Payment
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-inline-flex align-items-center gap-1.5 ms-auto">
+                            <a href="{% url 'orders:manager_session_detail' sess.id %}" class="btn btn-sm btn-brand text-white rounded-pill px-3 py-1 fw-semibold" style="font-size: 0.78rem;">
+                                <i class="bi bi-arrow-right-circle me-1"></i>Order Details
+                            </a>
+                            <a href="{% url 'orders:session_invoice' sess.id %}" target="_blank" class="btn btn-sm btn-outline-surface rounded-pill px-2.5 py-1" style="font-size: 0.78rem;" title="Print Invoice">
+                                <i class="bi bi-printer"></i>
+                            </a>
+                            {% if not sess.is_active and sess.table and not sess.table.is_locked and sess.id in latest_session_ids %}
+                            <form method="POST" action="{% url 'orders:waiter_relock_table' sess.table.id %}" class="d-inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="session_id" value="{{ sess.id }}">
+                                <button type="submit" class="btn btn-sm btn-outline-surface rounded-pill px-2.5 py-1 text-warning" style="font-size: 0.78rem;" onclick="return confirm('Re-lock Table {{ sess.table.table_number }} to {{ sess.customer.name }}?')" title="Re-Lock Table">
+                                    <i class="bi bi-lock-fill"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Hidden Search Audit Tokens (for test assertions & search filters) -->
+                    <span class="d-none" data-session-audit="Session #SESS-{{ sess.id }} {{ sess.customer.name }} {{ sess.customer.email }} {% for p in sess.payments_list %}{{ p.transaction_id }} {% endfor %}">
+                        Session #SESS-{{ sess.id }} {{ sess.customer.name }} {{ sess.customer.email }} {% for p in sess.payments_list %}{{ p.transaction_id }} {% endfor %}
+                    </span>
+                </div>
+                {% empty %}
+                <div class="card-surface rounded-4 border p-5 text-center text-muted shadow-sm">
+                    <i class="bi bi-archive fs-1 d-block mb-2 opacity-50"></i>
+                    <p class="mb-0">No dining sessions found in history.</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% if standalone_orders %}
+            <!-- Standalone Orders Without Session -->
+            <div class="card-surface rounded-4 border mt-4 overflow-hidden shadow-sm mb-4">
+                <div class="p-3 bg-surface-raised border-bottom">
+                    <strong class="small text-uppercase text-muted"><i class="bi bi-box me-1"></i>Direct & Standalone Orders ({{ standalone_orders|length }})</strong>
+                </div>
+                <div class="table-responsive d-none d-md-block">
+                    <table class="table align-middle mb-0">
+                        <thead class="small text-secondary bg-surface-raised">
+                            <tr>
+                                <th class="ps-4">Order ID & Time</th>
+                                <th>Customer</th>
+                                <th>Items Summary</th>
+                                <th>Status</th>
+                                <th>Payment</th>
+                                <th>Total</th>
+                                <th class="text-end pe-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ord in standalone_orders %}
+                            <tr>
+                                <td class="ps-4"><strong>#{{ ord.id }}</strong> <span class="text-muted small">{{ ord.order_date|date:"H:i, d M" }}</span></td>
+                                <td>{{ ord.customer.name }}</td>
+                                <td>
+                                    <div class="small">
+                                        {% for itm in ord.items.all %}
+                                            <span class="badge bg-surface-raised text-body border me-1 mb-1">{{ itm.quantity }}x {{ itm.menu_item.name }}</span>
+                                        {% endfor %}
+                                    </div>
+                                </td>
+                                <td><span class="badge bg-dark">{{ ord.status }}</span></td>
+                                <td>
+                                    <span class="badge {% if ord.payment_status == 'Paid' %}bg-success{% else %}bg-warning text-dark{% endif %}">{{ ord.payment_status }}</span>
+                                    {% if ord.payment %}
+                                        <div class="text-muted" style="font-size: 0.72rem;"><code>{{ ord.payment.transaction_id|default:"-" }}</code></div>
+                                    {% endif %}
+                                </td>
+                                <td class="fw-bold">₹{{ ord.total_amount|floatformat:2 }}</td>
+                                <td class="text-end pe-4">
+                                    <a href="{% url 'orders:manager_order_detail' ord.id %}" class="btn btn-brand text-white btn-sm rounded-pill px-3 py-1"><i class="bi bi-arrow-right-circle me-1"></i> Details</a>
+                                    <a href="{% url 'orders:order_live' ord.id %}" target="_blank" class="btn btn-outline-surface btn-sm rounded-pill"><i class="bi bi-eye"></i> View</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="d-md-none p-2 p-sm-3 d-flex flex-column gap-2">
+                    {% for ord in standalone_orders %}
+                    <div class="mobile-data-card" onclick="if (!event.target.closest('a, button, form')) window.location.href='{% url 'orders:manager_order_detail' ord.id %}';" style="cursor: pointer;">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <strong>#{{ ord.id }}</strong>
+                            <span class="badge bg-dark">{{ ord.status }}</span>
+                        </div>
+                        <div class="text-muted small mb-1" style="font-size: 0.74rem;">{{ ord.customer.name }} &bull; {{ ord.order_date|date:"H:i, d M" }}</div>
+                        <div class="small mb-2">
+                            {% for itm in ord.items.all %}
+                                <span class="badge bg-surface-raised text-body border me-1 mb-1" style="font-size: 0.72rem;">{{ itm.quantity }}x {{ itm.menu_item.name }}</span>
+                            {% endfor %}
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center pt-1 border-top">
+                            <span class="fw-bold fs-6" style="color: var(--text-primary);">₹{{ ord.total_amount|floatformat:2 }}</span>
+                            <div class="d-flex align-items-center gap-1.5">
+                                <span class="badge {% if ord.payment_status == 'Paid' %}bg-success{% else %}bg-warning text-dark{% endif %}">{{ ord.payment_status }}</span>
+                                <a href="{% url 'orders:manager_order_detail' ord.id %}" class="btn btn-xs btn-brand text-white rounded-pill px-2.5 py-0.5">Details</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        {% else %}
+            <!-- Active Floor Orders Container (Live Polling & Quick Action Controls) -->
+            <div class="card-surface rounded-4 border shadow-sm overflow-hidden mb-4">
+                <div class="table-responsive d-none d-md-block">
+                    <table class="table align-middle mb-0">
+                        <thead class="small text-secondary bg-surface-raised">
+                            <tr>
+                                <th class="ps-4">Order ID & Time</th>
+                                <th>Table</th>
+                                <th>Customer</th>
+                                <th>Items Summary</th>
+                                <th>Live Status & Control</th>
+                                <th>Payment</th>
+                                <th>Total</th>
+                                <th class="text-end pe-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ord in orders_list %}
+                            <tr id="order-row-{{ ord.id }}" data-order-id="{{ ord.id }}">
+                                <td class="ps-4">
+                                    <span class="fw-bold">#{{ ord.id }}</span>
+                                    <div class="text-muted" style="font-size: 0.72rem;">{{ ord.order_date|date:"H:i, d M" }}</div>
+                                </td>
+                                <td>
+                                    {% if ord.table %}
+                                        <span class="badge bg-dark">Table {{ ord.table_number }}</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Takeaway</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="fw-semibold">{{ ord.customer.name }}</div>
+                                    <div class="text-muted small" style="font-size: 0.72rem;">{{ ord.customer.phone|default:ord.customer.email }}</div>
+                                </td>
+                                <td>
+                                    <div class="small" style="max-width: 200px;">
+                                        {% for itm in ord.items.all %}
+                                            <span class="badge bg-surface-raised text-body border me-1 mb-1" style="font-weight: 500;">
+                                                {{ itm.quantity }}x {{ itm.menu_item.name }}
+                                            </span>
+                                        {% empty %}
+                                            <span class="text-muted">-</span>
+                                        {% endfor %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <!-- Live Visual Status Badge -->
+                                    <div class="mb-1" id="order-status-badge-{{ ord.id }}">
+                                        {% if ord.status == 'Pending' %}
+                                             <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>Queued</span>
+                                        {% elif ord.status == 'Preparing' %}
+                                            <span class="badge bg-primary"><i class="bi bi-fire me-1"></i>Cooking</span>
+                                        {% elif ord.status == 'Ready' %}
+                                            <span class="badge bg-info text-dark"><i class="bi bi-bell-fill me-1"></i>Ready for Pickup</span>
+                                        {% elif ord.status == 'Served' %}
+                                            <span class="badge bg-success"><i class="bi bi-check-circle-fill me-1"></i>Served</span>
+                                        {% elif ord.status == 'Completed' %}
+                                            <span class="badge bg-dark"><i class="bi bi-check2-all me-1"></i>Completed</span>
+                                        {% elif ord.status == 'Cancelled' %}
+                                            <span class="badge bg-danger"><i class="bi bi-x-circle-fill me-1"></i>Cancelled</span>
+                                        {% endif %}
+                                    </div>
+                                    <!-- Quick Status Change Form -->
+                                    <form method="POST" action="{% url 'orders:manager_update_order_status' ord.id %}" class="ajax-order-status-form d-inline-flex align-items-center gap-1" data-order-id="{{ ord.id }}">
+                                        {% csrf_token %}
+                                        <select name="status" class="form-select form-select-sm" style="width: auto; font-size: 0.8rem;">
+                                            {% for code, label in status_choices %}
+                                                <option value="{{ code }}" {% if ord.status == code %}selected{% endif %}>{{ label }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <button type="submit" class="btn btn-sm btn-outline-primary" title="Update Status">
+                                            <i class="bi bi-check-lg"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                                <td>
+                                    <div class="d-flex flex-column align-items-start gap-1">
+                                        <span class="badge {% if ord.payment_status == 'Paid' %}bg-success{% else %}bg-warning text-dark{% endif %}">
+                                            {{ ord.payment_status }}
+                                        </span>
+                                        {% if ord.payment_status != 'Paid' %}
+                                        <form method="POST" action="{% url 'orders:manager_update_order_payment' ord.id %}">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="payment_status" value="Paid">
+                                            <button type="submit" class="btn btn-xs btn-outline-success rounded-pill py-0 px-2" style="font-size: 0.72rem;" onclick="return confirm('Settle payment for Order #{{ ord.id }} as Paid?')">
+                                                Mark Paid
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td class="fw-bold">₹{{ ord.total_amount|floatformat:2 }}</td>
+                                <td class="text-end pe-4">
+                                    <div class="d-inline-flex gap-1">
+                                        <a href="{% url 'orders:order_live' ord.id %}" class="btn btn-outline-surface btn-sm rounded-pill" title="Live Tracking View">
+                                            <i class="bi bi-eye"></i> View
+                                        </a>
+                                        {% if ord.status != 'Cancelled' and ord.status != 'Completed' %}
+                                        <form method="POST" action="{% url 'orders:manager_cancel_order' ord.id %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill" onclick="return confirm('Emergency cancel Order #{{ ord.id }}?')">
+                                                Cancel
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                        {% if ord.table and ord.table.is_locked %}
+                                        <form method="POST" action="{% url 'orders:staff_unlock_table' ord.table.id %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-outline-warning btn-sm rounded-pill" onclick="return confirm('Unlock Table {{ ord.table.table_number }}?')">
+                                                <i class="bi bi-unlock"></i>
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="8" class="text-center py-4 text-muted small">
+                                    No active floor orders in progress.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Mobile Card View for Active Floor Orders (Visible on screens < 768px) -->
+                <div class="d-md-none p-2 p-sm-3 d-flex flex-column gap-2.5">
+                    {% for ord in orders_list %}
+                    <div class="mobile-data-card ticket-{{ ord.status }}" id="order-card-{{ ord.id }}" data-order-id="{{ ord.id }}">
+                        <!-- Header: Ticket #, Table, Status Badge -->
+                        <div class="d-flex justify-content-between align-items-center mb-1.5">
+                            <div class="d-flex align-items-center gap-1.5">
+                                <span class="fw-bold" style="color: var(--text-primary); font-size: 0.95rem;">#{{ ord.id }}</span>
+                                <span class="badge bg-surface-raised border text-body rounded-pill px-2 py-0.5" style="font-size: 0.72rem;">
+                                    <i class="bi bi-geo-alt-fill text-danger me-1"></i>{% if ord.table %}Table {{ ord.table_number }}{% else %}Takeaway{% endif %}
+                                </span>
+                            </div>
+                            <div id="order-status-badge-m-{{ ord.id }}">
+                                {% if ord.status == 'Pending' %}
+                                    <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>Queued</span>
+                                {% elif ord.status == 'Preparing' %}
+                                    <span class="badge bg-primary"><i class="bi bi-fire me-1"></i>Cooking</span>
+                                {% elif ord.status == 'Ready' %}
+                                    <span class="badge bg-info text-dark"><i class="bi bi-bell-fill me-1"></i>Ready</span>
+                                {% elif ord.status == 'Served' %}
+                                    <span class="badge bg-success"><i class="bi bi-check-circle-fill me-1"></i>Served</span>
+                                {% elif ord.status == 'Completed' %}
+                                    <span class="badge bg-dark"><i class="bi bi-check2-all me-1"></i>Completed</span>
+                                {% elif ord.status == 'Cancelled' %}
+                                    <span class="badge bg-danger"><i class="bi bi-x-circle-fill me-1"></i>Cancelled</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Customer & Placed Time -->
+                        <div class="d-flex justify-content-between align-items-center small text-muted mb-2" style="font-size: 0.74rem;">
+                            <span><i class="bi bi-person text-primary me-1"></i><strong style="color: var(--text-primary);">{{ ord.customer.name }}</strong> ({{ ord.customer.phone|default:ord.customer.email }})</span>
+                            <span>{{ ord.order_date|date:"H:i, d M" }}</span>
+                        </div>
+
+                        <!-- Dishes list -->
+                        <div class="p-2 bg-surface-raised rounded-3 mb-2 small" style="border: 1px solid var(--border-color);">
+                            {% for itm in ord.items.all %}
+                                <div class="d-flex justify-content-between align-items-center py-0.5">
+                                    <span style="color: var(--text-primary); font-size: 0.78rem;"><strong>{{ itm.quantity }}x</strong> {{ itm.menu_item.name }}</span>
+                                    <span class="text-muted" style="font-size: 0.74rem;">₹{{ itm.price }}</span>
+                                </div>
+                            {% empty %}
+                                <span class="text-muted" style="font-size: 0.74rem;">No items recorded</span>
+                            {% endfor %}
+                            {% if ord.special_instructions %}
+                                <div class="mt-1 pt-1 border-top text-warning small" style="font-size: 0.70rem;">
+                                    <i class="bi bi-info-circle me-1"></i>Note: {{ ord.special_instructions }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Price & Payment Row -->
+                        <div class="d-flex justify-content-between align-items-center mb-2.5">
+                            <div>
+                                <span class="text-muted small" style="font-size: 0.74rem;">Total: </span>
+                                <span class="fw-black brand-font fs-6" style="color: var(--color-primary);">₹{{ ord.total_amount|floatformat:2 }}</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-1.5">
+                                <span class="badge {% if ord.payment_status == 'Paid' %}bg-success{% else %}bg-warning text-dark{% endif %}" style="font-size: 0.70rem;">
+                                    {{ ord.payment_status }}
+                                </span>
+                                {% if ord.payment_status != 'Paid' %}
+                                <form method="POST" action="{% url 'orders:manager_update_order_payment' ord.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="payment_status" value="Paid">
+                                    <button type="submit" class="btn btn-xs btn-outline-success rounded-pill py-0.5 px-2" style="font-size: 0.70rem;" onclick="return confirm('Settle payment for Order #{{ ord.id }} as Paid?')">
+                                        Mark Paid
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Actions row: Status updater + Quick Icon Buttons -->
+                        <div class="d-flex align-items-center justify-content-between gap-1.5 pt-2 border-top">
+                            <form method="POST" action="{% url 'orders:manager_update_order_status' ord.id %}" class="ajax-order-status-form d-flex align-items-center gap-1 flex-grow-1" data-order-id="{{ ord.id }}" style="min-width: 140px;">
+                                {% csrf_token %}
+                                <select name="status" class="form-select form-select-sm py-1 px-2" style="font-size: 0.78rem;">
+                                    {% for code, label in status_choices %}
+                                        <option value="{{ code }}" {% if ord.status == code %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                                <button type="submit" class="btn btn-sm btn-outline-primary py-1 px-2" title="Save Status">
+                                    <i class="bi bi-check-lg"></i>
+                                </button>
+                            </form>
+
+                            <div class="d-inline-flex gap-1 align-items-center flex-shrink-0">
+                                <a href="{% url 'orders:order_live' ord.id %}" class="btn btn-outline-surface btn-sm rounded-pill py-1 px-2" style="font-size: 0.76rem;" title="Live Tracking View">
+                                    <i class="bi bi-eye"></i> Track
+                                </a>
+                                {% if ord.table and ord.table.is_locked %}
+                                <form method="POST" action="{% url 'orders:staff_unlock_table' ord.table.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-warning btn-sm rounded-pill py-1 px-2" style="font-size: 0.76rem;" title="Unlock Table" onclick="return confirm('Unlock Table {{ ord.table.table_number }}?')">
+                                        <i class="bi bi-unlock"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                                {% if ord.status != 'Cancelled' and ord.status != 'Completed' %}
+                                <form method="POST" action="{% url 'orders:manager_cancel_order' ord.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill py-1 px-2" style="font-size: 0.76rem;" title="Emergency Cancel" onclick="return confirm('Emergency cancel Order #{{ ord.id }}?')">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-4 text-muted small">
+                        No active floor orders in progress.
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Tab 2: Staff Management -->
+    <div class="tab-pane fade" id="staff-pane" role="tabpanel">
+        <!-- Staff Operations Header Toolbar -->
+        <div class="card-surface rounded-4 border p-3 p-sm-3.5 shadow-sm mb-3.5 d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2.5">
+            <div>
+                <h5 class="fw-bold mb-1 fs-6 fs-md-5" style="color: var(--text-primary);">
+                    <i class="bi bi-shield-lock-fill text-primary me-2"></i>Restaurant Staff Accounts
+                </h5>
+                <p class="small text-muted mb-0">Manage employee credentials, assigned roles, permissions, and account lifecycle.</p>
+            </div>
+            <button class="btn btn-brand btn-sm rounded-pill px-3 align-self-start align-self-sm-auto fw-semibold" data-bs-toggle="modal" data-bs-target="#createStaffModal">
+                <i class="bi bi-person-plus-fill me-1"></i> Add Staff
+            </button>
+        </div>
+
+        <!-- Standalone Elevated Staff Cards List -->
+        <div class="d-flex flex-column gap-3 mb-4">
+            {% for staff in staff_members %}
+            <div class="card-surface rounded-4 border shadow-sm overflow-hidden staff-card" id="staff-card-{{ staff.id }}">
+                <!-- Card Upper Body: Profile details & credentials -->
+                <div class="p-3 p-sm-3.5">
+                    <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle {% if staff.role == 'MANAGER' %}bg-dark text-white{% elif staff.role == 'KITCHEN' %}bg-primary text-white{% else %}bg-success text-white{% endif %} d-flex align-items-center justify-content-center fw-bold shadow-sm flex-shrink-0" style="width: 44px; height: 44px; font-size: 1.15rem;">
+                                {% if staff.role == 'MANAGER' %}
+                                    <i class="bi bi-shield-shaded"></i>
+                                {% elif staff.role == 'KITCHEN' %}
+                                    <i class="bi bi-fire"></i>
+                                {% else %}
+                                    <i class="bi bi-person-badge"></i>
+                                {% endif %}
+                            </div>
+                            <div>
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <strong class="fs-6" style="color: var(--text-primary);">{{ staff.user.get_full_name|default:staff.user.username }}</strong>
+                                    <span class="badge {% if staff.role == 'MANAGER' %}bg-dark text-white{% elif staff.role == 'KITCHEN' %}bg-primary text-white{% else %}bg-success text-white{% endif %} rounded-pill px-2.5 py-1" style="font-size: 0.72rem;">
+                                        {{ staff.get_role_display }}
+                                    </span>
+                                </div>
+                                <div class="d-flex align-items-center gap-3 small text-muted mt-1 flex-wrap" style="font-size: 0.78rem;">
+                                    <span><i class="bi bi-at text-secondary"></i><code>{{ staff.user.username }}</code></span>
+                                    <span><i class="bi bi-telephone text-secondary me-1"></i>{{ staff.phone|default:"No phone recorded" }}</span>
+                                    {% if staff.user.email %}
+                                    <span><i class="bi bi-envelope text-secondary me-1"></i>{{ staff.user.email }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dedicated Footer Action Bar (Visually bounded with bg-surface-raised and border-top) -->
+                <div class="p-2.5 px-3 px-sm-3.5 bg-surface-raised border-top rounded-bottom-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2.5">
+                    <!-- Left: Role Assignment Form -->
+                    <form method="POST" action="{% url 'orders:manager_update_staff_role' staff.id %}" class="d-flex align-items-center gap-2">
+                        {% csrf_token %}
+                        <span class="small text-muted text-uppercase fw-bold" style="font-size: 0.68rem; letter-spacing: 0.5px;">Role:</span>
+                        <select name="role" class="form-select form-select-sm rounded-pill" style="width: auto; min-width: 140px; font-size: 0.78rem;">
+                            {% for code, label in role_choices %}
+                                <option value="{{ code }}" {% if staff.role == code %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="btn btn-outline-surface btn-sm rounded-pill px-3" style="font-size: 0.78rem;">Save</button>
+                    </form>
+
+                    <!-- Right: Dedicated Action Buttons -->
+                    <div class="d-inline-flex align-items-center gap-2 align-self-end align-self-md-auto">
+                        <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-2.5 py-1" style="font-size: 0.78rem;"
+                            data-bs-toggle="modal" data-bs-target="#editStaffModal-{{ staff.id }}"
+                            title="Edit Staff Info">
+                            <i class="bi bi-pencil me-1"></i> Edit
+                        </button>
+                        <button type="button" class="btn btn-outline-warning btn-sm rounded-pill px-2.5 py-1" style="font-size: 0.78rem;"
+                            data-bs-toggle="modal" data-bs-target="#resetPasswordModal-{{ staff.id }}"
+                            title="Reset Staff Password">
+                            <i class="bi bi-key me-1"></i> Password
+                        </button>
+                        {% if staff.user != request.user %}
+                        <form method="POST" action="{% url 'orders:manager_delete_staff' staff.id %}" class="d-inline"
+                            onsubmit="return confirm('Delete staff account for {{ staff.user.username }}? This cannot be undone.')">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-2.5 py-1" style="font-size: 0.78rem;" title="Delete Staff Account">
+                                <i class="bi bi-trash me-1"></i> Delete
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="card-surface rounded-4 border p-5 text-center text-muted shadow-sm">
+                <i class="bi bi-people fs-1 d-block mb-2 opacity-50"></i>
+                <p class="mb-0">No staff accounts found.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Tab 3: Tables & QR Code Center -->
+    <div class="tab-pane fade" id="qr-pane" role="tabpanel">
+        <div class="card-surface p-3 p-md-4 mb-4">
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-4">
+                <div>
+                    <h5 class="fw-bold mb-0">Dining Tables & QR Code Generator</h5>
+                    <p class="small text-muted mb-0">Generate table-specific static QR codes. Customers scanning these land on the digital menu with the table auto-set.</p>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                    <button onclick="window.print()" class="btn btn-outline-surface btn-sm rounded-pill px-3">
+                        <i class="bi bi-printer me-1"></i> Print All QR Stickers
+                    </button>
+                    <button class="btn btn-brand btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#createTableModal">
+                        <i class="bi bi-plus-lg me-1"></i> Add Table
+                    </button>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                {% for item in tables_with_qr %}
+                <div class="col-12 col-sm-6 col-lg-4">
+                    <div class="card-surface p-3 rounded-4 border shadow-sm h-100 d-flex flex-column justify-content-between">
+                        <div>
+                            <!-- Header: Table Name, Status, and Top-Right Action Icons -->
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <div class="d-flex align-items-center gap-2">
+                                    <h5 class="brand-font fw-bold mb-0 fs-5" style="color: var(--text-primary);">Table {{ item.table.table_number }}</h5>
+                                    {% if item.table.is_locked %}
+                                        <span class="badge bg-danger bg-opacity-15 text-danger border border-danger border-opacity-30 rounded-pill px-2 py-0.5" style="font-size: 0.70rem;">
+                                            <i class="bi bi-lock-fill me-1"></i>Occupied
+                                        </span>
+                                    {% elif not item.table.is_active %}
+                                        <span class="badge bg-secondary bg-opacity-15 text-secondary border rounded-pill px-2 py-0.5" style="font-size: 0.70rem;">
+                                            Inactive
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-success bg-opacity-15 text-success border border-success border-opacity-30 rounded-pill px-2 py-0.5" style="font-size: 0.70rem;">
+                                            <i class="bi bi-check-circle-fill me-1"></i>Available
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                <div class="d-inline-flex gap-1 align-items-center">
+                                    <button type="button" class="btn btn-sm btn-outline-surface rounded-circle p-1 px-2"
+                                        data-bs-toggle="modal" data-bs-target="#editTableModal-{{ item.table.id }}"
+                                        title="Edit Table">
+                                        <i class="bi bi-pencil" style="font-size: 0.75rem;"></i>
+                                    </button>
+                                    <form method="POST" action="{% url 'orders:manager_toggle_table' item.table.id %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-surface rounded-circle p-1 px-2"
+                                            title="{% if item.table.is_active %}Deactivate Table{% else %}Activate Table{% endif %}">
+                                            <i class="bi bi-power {% if item.table.is_active %}text-success{% else %}text-muted{% endif %}" style="font-size: 0.75rem;"></i>
+                                        </button>
+                                    </form>
+                                    {% if not item.table.is_locked %}
+                                    <form method="POST" action="{% url 'orders:manager_delete_table' item.table.id %}" class="d-inline"
+                                        onsubmit="return confirm('Delete Table {{ item.table.table_number }}?')">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle p-1 px-2" title="Delete Table">
+                                            <i class="bi bi-trash" style="font-size: 0.75rem;"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between align-items-center text-muted small mb-3" style="font-size: 0.75rem;">
+                                <span><i class="bi bi-people me-1"></i>{{ item.table.capacity }} Seater Dining Table</span>
+                                {% if item.table.is_locked and item.table.current_customer %}
+                                    <span class="text-truncate text-danger ms-1" style="max-width: 140px;">Diner: {{ item.table.current_customer.name }}</span>
+                                {% endif %}
+                            </div>
+
+                            <!-- Centered QR Code with Frame -->
+                            <div class="text-center py-2 mb-3">
+                                <div class="p-2.5 bg-white rounded-3 d-inline-block shadow-sm border" style="max-width: 170px;">
+                                    <img src="{{ item.qr_data_uri }}" alt="QR Table {{ item.table.table_number }}" class="img-fluid" width="140" height="140">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Structured Action Buttons Grid -->
+                        <div class="pt-2 border-top d-flex flex-column gap-1.5">
+                            <div class="d-flex gap-1.5 w-100">
+                                <a href="{% url 'menu:menu_list' %}?table={{ item.table.table_number }}" target="_blank"
+                                    class="btn btn-outline-surface btn-sm rounded-pill flex-grow-1 py-1 px-2 fw-semibold" style="font-size: 0.76rem;">
+                                    <i class="bi bi-box-arrow-up-right me-1"></i> Digital Menu
+                                </a>
+                                {% if not item.table.is_locked %}
+                                <button type="button" class="btn btn-warning btn-sm rounded-pill flex-grow-1 py-1 px-2 text-dark fw-bold"
+                                    data-bs-toggle="modal" data-bs-target="#managerLockOfflineModal-{{ item.table.id }}" style="font-size: 0.76rem;">
+                                    <i class="bi bi-person-fill-lock me-1"></i> Lock Offline
+                                </button>
+                                {% endif %}
+                            </div>
+
+                            {% if item.table.is_locked %}
+                            <form method="POST" action="{% url 'orders:staff_unlock_table' item.table.id %}" class="w-100">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill w-100 py-1 fw-semibold"
+                                    onclick="return confirm('Unlock Table {{ item.table.table_number }}?')" style="font-size: 0.76rem;">
+                                    <i class="bi bi-unlock me-1"></i> Release Table Lock
+                                </button>
+                            </form>
+                            {% elif item.last_session %}
+                            <form method="POST" action="{% url 'orders:waiter_relock_table' item.table.id %}" class="w-100">
+                                {% csrf_token %}
+                                <input type="hidden" name="session_id" value="{{ item.last_session.id }}">
+                                <button type="submit" class="btn btn-outline-primary btn-sm rounded-pill w-100 py-1 fw-semibold"
+                                    onclick="return confirm('Re-lock Table {{ item.table.table_number }} to {{ item.last_session.customer.name }} (Session #{{ item.last_session.id }})?')" style="font-size: 0.76rem;">
+                                    <i class="bi bi-arrow-repeat me-1"></i> Re-Lock Session #{{ item.last_session.id }}
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 4: Menu & Stock Manager -->
+    <div class="tab-pane fade" id="menu-pane" role="tabpanel">
+        <!-- 1. Category Management Card -->
+        <div class="card-surface p-3 p-md-4 mb-4">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+                <div>
+                    <h5 class="fw-bold mb-0"><i class="bi bi-tags-fill me-1 text-warning"></i> Menu Categories</h5>
+                    <p class="small text-muted mb-0">Organize your culinary offerings into sections.</p>
+                </div>
+                <button class="btn btn-warning btn-sm rounded-pill px-3 fw-bold text-dark" data-bs-toggle="modal" data-bs-target="#createCategoryModal">
+                    <i class="bi bi-plus-circle me-1"></i> Add Category
+                </button>
+            </div>
+
+            <!-- Categories Grid / Badges -->
+            <div class="row g-2">
+                {% for cat in categories %}
+                <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                    <div class="p-3 bg-surface-raised rounded-3 border d-flex justify-content-between align-items-center">
+                        <div class="overflow-hidden me-2">
+                            <div class="fw-bold text-truncate">{{ cat.name }}</div>
+                            <div class="text-muted small" style="font-size: 0.75rem;">{{ cat.items.count }} Dishes</div>
+                        </div>
+                        <div class="d-flex gap-1 flex-shrink-0">
+                            <button type="button" class="btn btn-outline-primary btn-sm p-1 px-2 rounded-circle"
+                                data-bs-toggle="modal" data-bs-target="#editCategoryModal-{{ cat.id }}"
+                                title="Edit Category">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <form method="POST" action="{% url 'orders:manager_delete_category' cat.id %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-danger btn-sm p-1 px-2 rounded-circle" title="Delete Category" onclick="return confirm('Are you sure you want to delete category \'{{ cat.name }}\'? Items under it will also be deleted.')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-muted small py-2">No categories defined yet.</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- 2. Dishes Catalog Card -->
+        <div class="card-surface p-3 p-md-4">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-3">
+                <div>
+                    <h5 class="fw-bold mb-0"><i class="bi bi-book-half me-1 text-primary"></i> Menu Catalog, Pricing & Stock</h5>
+                    <p class="small text-muted mb-0">Live menu items, pricing updates, availability toggles, and deletion.</p>
+                </div>
+                <button class="btn btn-brand btn-sm rounded-pill px-3 align-self-start align-self-md-auto" data-bs-toggle="modal" data-bs-target="#createItemModal">
+                    <i class="bi bi-plus-lg me-1"></i> Add New Dish
+                </button>
+            </div>
+
+            <div class="table-responsive d-none d-md-block">
+                <table class="table align-middle">
+                    <thead class="small text-secondary bg-surface-raised">
+                        <tr>
+                            <th style="width: 60px;">Photo</th>
+                            <th>Dish Name</th>
+                            <th>Category</th>
+                            <th>Type</th>
+                            <th>Price (₹)</th>
+                            <th>Status</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in menu_items %}
+                        <tr>
+                            <td>
+                                <img src="{{ item.get_image_url }}" alt="{{ item.name }}" class="rounded-3 object-fit-cover shadow-sm" width="46" height="46" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100&fit=crop'">
+                            </td>
+                            <td>
+                                <div class="fw-bold">{{ item.name }}</div>
+                                {% if item.description %}
+                                <div class="text-muted small text-truncate" style="max-width: 240px; font-size: 0.75rem;">{{ item.description }}</div>
+                                {% endif %}
+                            </td>
+                            <td><span class="badge bg-surface-raised text-body border">{{ item.category.name }}</span></td>
+                            <td>
+                                {% if item.is_veg %}
+                                    <span class="veg-tag">VEG</span>
+                                {% else %}
+                                    <span class="nonveg-tag">NON-VEG</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <!-- Quick Price Update Form -->
+                                <form method="POST" action="{% url 'orders:manager_update_price' item.id %}" class="ajax-price-form d-inline-flex align-items-center gap-1" data-item-id="{{ item.id }}">
+                                    {% csrf_token %}
+                                    <input type="number" step="0.01" name="price" value="{{ item.price }}" class="form-control form-control-sm" style="width: 85px;">
+                                    <button type="submit" class="btn btn-sm btn-outline-surface p-1" title="Save Price"><i class="bi bi-check-lg"></i></button>
+                                </form>
+                            </td>
+                            <td id="stock-badge-cell-{{ item.id }}">
+                                {% if item.is_available %}
+                                    <span class="badge bg-success">In Stock</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Out of Stock</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <div class="d-inline-flex gap-2 align-items-center justify-content-end">
+                                    <form method="POST" action="{% url 'orders:manager_toggle_stock' item.id %}" class="ajax-stock-form" data-item-id="{{ item.id }}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm {% if item.is_available %}btn-outline-danger{% else %}btn-outline-success{% endif %} rounded-pill px-3">
+                                            {% if item.is_available %}Mark Out of Stock{% else %}Mark Available{% endif %}
+                                        </button>
+                                    </form>
+                                    <form method="POST" action="{% url 'orders:manager_delete_item' item.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle p-1 px-2" title="Delete Dish" onclick="return confirm('Permanently delete \'{{ item.name }}\' from the menu?')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted small">No menu items found. Click "+ Add New Dish" above to create dishes.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Mobile Dishes Catalog (Visible on screens < 768px) -->
+            <div class="d-md-none d-flex flex-column gap-3">
+                {% for item in menu_items %}
+                <div class="mobile-data-card" id="dish-card-{{ item.id }}">
+                    <div class="d-flex align-items-center gap-3 mb-2">
+                        <img src="{{ item.get_image_url }}" alt="{{ item.name }}" class="rounded-3 object-fit-cover shadow-sm flex-shrink-0" width="56" height="56" onerror="this.src='https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=100&fit=crop'">
+                        <div class="flex-grow-1 min-w-0">
+                            <div class="d-flex align-items-center gap-1.5 mb-1 flex-wrap">
+                                {% if item.is_veg %}
+                                    <span class="veg-tag" style="font-size: 0.65rem; padding: 1px 5px;">VEG</span>
+                                {% else %}
+                                    <span class="nonveg-tag" style="font-size: 0.65rem; padding: 1px 5px;">NON-VEG</span>
+                                {% endif %}
+                                <span class="badge bg-surface-raised text-body border" style="font-size: 0.70rem;">{{ item.category.name }}</span>
+                            </div>
+                            <h6 class="fw-bold mb-0 text-break" style="font-size: 0.94rem; line-height: 1.3; color: var(--text-primary);">{{ item.name }}</h6>
+                        </div>
+                        <div id="stock-badge-m-{{ item.id }}" class="flex-shrink-0 align-self-start">
+                            {% if item.is_available %}
+                                <span class="badge bg-success bg-opacity-15 text-success border border-success border-opacity-30 rounded-pill px-2 py-0.5" style="font-size: 0.70rem;">In Stock</span>
+                            {% else %}
+                                <span class="badge bg-danger bg-opacity-15 text-danger border border-danger border-opacity-30 rounded-pill px-2 py-0.5" style="font-size: 0.70rem;">Out of Stock</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Price & Actions Row -->
+                    <div class="d-flex align-items-center justify-content-between gap-2 pt-2 border-top">
+                        <form method="POST" action="{% url 'orders:manager_update_price' item.id %}" class="ajax-price-form d-flex align-items-center flex-grow-1" data-item-id="{{ item.id }}" style="max-width: 135px;">
+                            {% csrf_token %}
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text py-0.5 px-1.5" style="font-size: 0.75rem;">₹</span>
+                                <input type="number" step="0.01" name="price" value="{{ item.price }}" class="form-control form-control-sm py-0.5 px-1.5 text-center fw-bold" style="font-size: 0.85rem; min-width: 55px;">
+                                <button type="submit" class="btn btn-sm btn-outline-surface px-2" title="Save Price"><i class="bi bi-check-lg"></i></button>
+                            </div>
+                        </form>
+
+                        <div class="d-inline-flex gap-1.5 align-items-center flex-shrink-0">
+                            <form method="POST" action="{% url 'orders:manager_toggle_stock' item.id %}" class="ajax-stock-form m-0" data-item-id="{{ item.id }}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm {% if item.is_available %}btn-outline-danger{% else %}btn-outline-success{% endif %} rounded-pill px-2.5 py-1 fw-semibold" style="font-size: 0.74rem;">
+                                    {% if item.is_available %}Mark Out{% else %}Mark In{% endif %}
+                                </button>
+                            </form>
+                            <form method="POST" action="{% url 'orders:manager_delete_item' item.id %}" class="m-0">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-circle p-1 px-2" title="Delete Dish" onclick="return confirm('Permanently delete \'{{ item.name }}\' from the menu?')">
+                                    <i class="bi bi-trash" style="font-size: 0.75rem;"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-4 text-muted small">No menu items found.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 5: Customer Directory -->
+    <div class="tab-pane fade" id="customers-pane" role="tabpanel">
+        <!-- Customer Operations Header Toolbar -->
+        <div class="card-surface rounded-4 border p-3 p-sm-3.5 shadow-sm mb-3.5 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div>
+                <h5 class="fw-bold mb-1 fs-6 fs-md-5" style="color: var(--text-primary);">
+                    <i class="bi bi-people-fill text-primary me-2"></i>Customer Directory &amp; User Accounts
+                </h5>
+                <p class="text-muted small mb-0">Registered diners, session frequency, lifetime spend, and account management.</p>
+            </div>
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <div class="input-group input-group-sm" style="max-width: 280px;">
+                    <span class="input-group-text bg-surface-raised border-end-0"><i class="bi bi-search"></i></span>
+                    <input type="text" id="customerSearchInput" class="form-control border-start-0" placeholder="Search by name, email, phone..." oninput="filterCustomerTable()">
+                </div>
+                <button class="btn btn-brand btn-sm rounded-pill px-3 fw-bold" data-bs-toggle="modal" data-bs-target="#createCustomerModal">
+                    <i class="bi bi-person-plus-fill me-1"></i> Add User
+                </button>
+            </div>
+        </div>
+
+        <!-- Customer Metrics Row -->
+        <div class="row g-3 mb-3.5">
+            <div class="col-6 col-md-3">
+                <div class="card-surface p-3 rounded-4 border shadow-sm text-center">
+                    <span class="text-muted small d-block mb-1" style="font-size: 0.72rem; font-weight: 600; letter-spacing: 0.5px;">TOTAL REGISTERED</span>
+                    <strong class="fs-5 text-primary">{{ customers|length }} Diners</strong>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card-surface p-3 rounded-4 border shadow-sm text-center">
+                    <span class="text-muted small d-block mb-1" style="font-size: 0.72rem; font-weight: 600; letter-spacing: 0.5px;">TOTAL SESSIONS</span>
+                    <strong class="fs-5 text-info">{{ all_sessions_count|default:0 }} Sessions</strong>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card-surface p-3 rounded-4 border shadow-sm text-center">
+                    <span class="text-muted small d-block mb-1" style="font-size: 0.72rem; font-weight: 600; letter-spacing: 0.5px;">ALL ORDERS PLACED</span>
+                    <strong class="fs-5 text-warning">{{ all_orders_count }} Orders</strong>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card-surface p-3 rounded-4 border shadow-sm text-center">
+                    <span class="text-muted small d-block mb-1" style="font-size: 0.72rem; font-weight: 600; letter-spacing: 0.5px;">TOTAL REVENUE</span>
+                    <strong class="fs-5 text-success">₹{{ total_revenue|floatformat:2 }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- Standalone Elevated Customer Cards List -->
+        <div class="d-flex flex-column gap-3 mb-4" id="customerDirectoryCards">
+            {% for c in customers %}
+            <div class="card-surface rounded-4 border shadow-sm overflow-hidden customer-card-m" id="customer-card-{{ c.id }}">
+                <!-- Card Upper Body: Profile details & metrics -->
+                <div class="p-3 p-sm-3.5">
+                    <div class="d-flex justify-content-between align-items-start gap-2 flex-wrap mb-2.5">
+                        <div class="d-flex align-items-center gap-3">
+                            {% if c.avatar_url %}
+                                <img src="{{ c.avatar_url }}" alt="{{ c.name }}" class="rounded-circle border shadow-sm flex-shrink-0" width="44" height="44" style="object-fit: cover;">
+                            {% else %}
+                                <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center fw-bold shadow-sm flex-shrink-0" style="width: 44px; height: 44px; font-size: 1.1rem;">
+                                    {{ c.name|slice:":1"|upper }}
+                                </div>
+                            {% endif %}
+                            <div>
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <strong class="fs-6 customer-name" style="color: var(--text-primary);">{{ c.name }}</strong>
+                                    {% if c.google_id %}
+                                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger rounded-pill px-2 py-0.5" style="font-size: 0.68rem;">
+                                            <i class="bi bi-google me-1"></i> Google
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary border rounded-pill px-2 py-0.5" style="font-size: 0.68rem;">
+                                            Standard
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                <div class="d-flex align-items-center gap-3 small text-muted mt-1 flex-wrap" style="font-size: 0.78rem;">
+                                    <span><i class="bi bi-at text-secondary"></i><code>{{ c.user.username }}</code></span>
+                                    <span class="customer-email"><i class="bi bi-envelope text-secondary me-1"></i>{{ c.email|default:"No email recorded" }}</span>
+                                    <span class="customer-phone"><i class="bi bi-telephone text-secondary me-1"></i>{{ c.phone|default:"No phone recorded" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <span class="text-muted small d-block" style="font-size: 0.70rem;">Lifetime Spend</span>
+                            <span class="fw-black brand-font fs-5 text-danger">₹{{ c.lifetime_spend|floatformat:2 }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Customer Stats Pills -->
+                    <div class="d-flex align-items-center gap-2 flex-wrap pt-2 border-top">
+                        <span class="badge bg-surface-raised border text-secondary rounded-pill px-2.5 py-1" style="font-size: 0.72rem;">
+                            <i class="bi bi-calendar-check me-1"></i>Member since {{ c.user.date_joined|date:"d M Y" }}
+                        </span>
+                        <span class="badge bg-surface-raised border text-secondary rounded-pill px-2.5 py-1" style="font-size: 0.72rem;">
+                            <i class="bi bi-geo-alt me-1"></i>{{ c.total_sessions }} Visit{{ c.total_sessions|pluralize }}
+                        </span>
+                        <span class="badge bg-surface-raised border text-secondary rounded-pill px-2.5 py-1" style="font-size: 0.72rem;">
+                            <i class="bi bi-receipt me-1"></i>{{ c.total_orders }} Order{{ c.total_orders|pluralize }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Dedicated Footer Action Bar (Enclosed with bg-surface-raised & border-top) -->
+                <div class="p-2.5 px-3 px-sm-3.5 bg-surface-raised border-top rounded-bottom-4 d-flex justify-content-between align-items-center gap-2">
+                    <span class="text-muted small" style="font-size: 0.72rem;">
+                        <i class="bi bi-person-check me-1"></i>Diner Account
+                    </span>
+                    <div class="d-inline-flex align-items-center gap-2">
+                        <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1" style="font-size: 0.78rem;"
+                            data-bs-toggle="modal" data-bs-target="#editCustomerModal-{{ c.id }}"
+                            title="Edit Customer Profile">
+                            <i class="bi bi-pencil me-1"></i> Edit Profile
+                        </button>
+                        {% if c.user != request.user and not c.user.is_superuser %}
+                        <form method="POST" action="{% url 'orders:manager_delete_customer' c.id %}" class="d-inline"
+                            onsubmit="return confirm('Permanently remove customer account for {{ c.name }}?')">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3 py-1" style="font-size: 0.78rem;" title="Delete User">
+                                <i class="bi bi-trash me-1"></i> Delete
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="card-surface rounded-4 border p-5 text-center text-muted shadow-sm">
+                <i class="bi bi-people fs-1 d-block mb-2 opacity-50"></i>
+                <p class="mb-0">No customers registered yet.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Tab 6: Customer Reviews & Ratings Analytics -->
+    <div class="tab-pane fade" id="reviews-pane" role="tabpanel">
+        <!-- Review KPI Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+                <div class="card-surface p-3 rounded-4 shadow-sm border text-center">
+                    <div class="text-warning fs-3 mb-1"><i class="bi bi-star-fill"></i></div>
+                    <h3 class="fw-bold mb-0 text-warning">{{ avg_rating|default:"N/A" }}</h3>
+                    <span class="text-muted small">Average Rating</span>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card-surface p-3 rounded-4 shadow-sm border text-center">
+                    <div class="text-primary fs-3 mb-1"><i class="bi bi-chat-heart-fill"></i></div>
+                    <h3 class="fw-bold mb-0">{{ reviews_count }}</h3>
+                    <span class="text-muted small">Total Reviews</span>
+                </div>
+            </div>
+            <div class="col-12 col-md-6">
+                <div class="card-surface p-3 rounded-4 shadow-sm border">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="small fw-bold text-muted">Rating Breakdown</span>
+                        <span class="small text-muted">{{ reviews_count }} total ratings</span>
+                    </div>
+                    <div class="d-flex flex-column gap-1">
+                        {% for star, count in reviews_breakdown.items %}
+                        <div class="d-flex align-items-center gap-2 small">
+                            <span style="min-width: 38px;">{{ star }}★</span>
+                            <div class="progress flex-grow-1" style="height: 6px;">
+                                <div class="progress-bar bg-warning" role="progressbar" style="width: {% if reviews_count %}{% widthratio count reviews_count 100 %}{% else %}0{% endif %}%;"></div>
+                            </div>
+                            <span class="text-muted" style="min-width: 25px; text-align: right;">{{ count }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reviews Moderation Table -->
+        <div class="card-surface overflow-hidden">
+            <div class="p-3 border-bottom d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                <div>
+                    <h5 class="fw-bold mb-1"><i class="bi bi-star-half text-warning me-2"></i>Customer Reviews & Ratings</h5>
+                    <p class="text-muted small mb-0">Monitor diner feedback across dishes and moderate comments.</p>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <input type="text" id="reviewSearchInput" class="form-control form-control-sm" placeholder="Filter reviews..." onkeyup="filterReviewsTable()" oninput="filterReviewsTable()">
+                </div>
+            </div>
+
+            <!-- Desktop Reviews Table -->
+            <div class="table-responsive d-none d-md-block">
+                <table class="table table-hover align-middle mb-0" id="reviewsTable">
+                    <thead>
+                        <tr class="table-light">
+                            <th class="ps-4">Dish</th>
+                            <th>Customer</th>
+                            <th>Rating</th>
+                            <th>Comment</th>
+                            <th>Posted On</th>
+                            <th class="text-end pe-4">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in reviews_list %}
+                        <tr class="review-row">
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center gap-2">
+                                    <img src="{{ r.menu_item.get_image_url }}" alt="{{ r.menu_item.name }}" class="rounded-2 object-fit-cover border" width="36" height="36">
+                                    <div>
+                                        <a href="{% url 'menu:item_detail' r.menu_item.id %}" target="_blank" class="fw-bold text-decoration-none text-reset hover-primary small d-block">
+                                            {{ r.menu_item.name }}
+                                        </a>
+                                        <span class="badge bg-light text-muted border" style="font-size: 0.65rem;">{{ r.menu_item.category.name }}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    {% if r.customer.avatar_url %}
+                                        <img src="{{ r.customer.avatar_url }}" alt="{{ r.customer.name }}" class="rounded-circle border" width="28" height="28">
+                                    {% else %}
+                                        <div class="rounded-circle bg-secondary bg-opacity-10 text-secondary d-flex align-items-center justify-content-center fw-bold" style="width: 28px; height: 28px; font-size: 0.75rem;">
+                                            {{ r.customer.name|slice:":1"|upper }}
+                                        </div>
+                                    {% endif %}
+                                    <div>
+                                        <div class="fw-semibold small review-cust-name">{{ r.customer.name }}</div>
+                                        <div class="text-muted" style="font-size: 0.7rem;">{{ r.customer.email }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-warning text-dark fw-bold px-2 py-1">
+                                    {{ r.rating }}★
+                                </span>
+                            </td>
+                            <td style="max-width: 320px;">
+                                <span class="small review-comment-text text-secondary text-break">{{ r.comment }}</span>
+                            </td>
+                            <td class="small text-muted text-nowrap">
+                                {{ r.review_date|date:"d M Y, h:i A" }}
+                            </td>
+                            <td class="text-end pe-4">
+                                <form method="POST" action="{% url 'orders:manager_delete_review' r.id %}" onsubmit="return confirm('Moderate review: Delete this comment permanently?');" class="m-0">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-2.5 py-1" title="Delete Review">
+                                        <i class="bi bi-trash3"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <i class="bi bi-star fs-2 d-block mb-2 opacity-50"></i>
+                                No customer reviews posted yet.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Mobile Reviews List (Visible on screens < 768px) -->
+            <div class="d-md-none p-2 p-sm-3 d-flex flex-column gap-3" id="reviewsCardsMobile">
+                {% for r in reviews_list %}
+                <div class="mobile-data-card review-card-m">
+                    <!-- Dish info & Rating -->
+                    <div class="d-flex align-items-center justify-content-between gap-2 mb-2 pb-2 border-bottom">
+                        <div class="d-flex align-items-center gap-2 overflow-hidden">
+                            <img src="{{ r.menu_item.get_image_url }}" alt="{{ r.menu_item.name }}" class="rounded-2 object-fit-cover border flex-shrink-0" width="38" height="38">
+                            <div class="overflow-hidden">
+                                <a href="{% url 'menu:item_detail' r.menu_item.id %}" target="_blank" class="fw-bold text-decoration-none text-reset hover-primary small text-truncate d-block">
+                                    {{ r.menu_item.name }}
+                                </a>
+                                <span class="badge bg-surface-raised text-body border" style="font-size: 0.65rem;">{{ r.menu_item.category.name }}</span>
+                            </div>
+                        </div>
+                        <span class="badge bg-warning text-dark fw-bold px-2 py-1 rounded-pill flex-shrink-0" style="font-size: 0.78rem;">
+                            {{ r.rating }} <i class="bi bi-star-fill text-dark" style="font-size: 0.68rem;"></i>
+                        </span>
+                    </div>
+
+                    <!-- Customer & Timestamp -->
+                    <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                        <div class="d-flex align-items-center gap-2 overflow-hidden">
+                            {% if r.customer.avatar_url %}
+                                <img src="{{ r.customer.avatar_url }}" alt="{{ r.customer.name }}" class="rounded-circle border flex-shrink-0" width="28" height="28">
+                            {% else %}
+                                <div class="rounded-circle bg-secondary bg-opacity-10 text-secondary d-flex align-items-center justify-content-center fw-bold flex-shrink-0" style="width: 28px; height: 28px; font-size: 0.75rem;">
+                                    {{ r.customer.name|slice:":1"|upper }}
+                                </div>
+                            {% endif %}
+                            <div class="overflow-hidden">
+                                <div class="fw-semibold small text-truncate review-cust-name" style="font-size: 0.8rem;">{{ r.customer.name }}</div>
+                                <div class="text-muted text-truncate" style="font-size: 0.68rem;">{{ r.customer.email }}</div>
+                            </div>
+                        </div>
+                        <span class="small text-muted flex-shrink-0" style="font-size: 0.7rem;">
+                            {{ r.review_date|date:"d M, h:i A" }}
+                        </span>
+                    </div>
+
+                    <!-- Comment text -->
+                    {% if r.comment %}
+                    <div class="p-2 bg-surface-raised rounded-3 mb-2 small text-secondary review-comment-text" style="font-size: 0.8rem; font-style: italic;">
+                        &ldquo;{{ r.comment }}&rdquo;
+                    </div>
+                    {% endif %}
+
+                    <!-- Footer: Moderate / Delete Action -->
+                    <div class="d-flex justify-content-end align-items-center pt-2 border-top">
+                        <form method="POST" action="{% url 'orders:manager_delete_review' r.id %}" onsubmit="return confirm('Moderate review: Delete this comment permanently?');" class="m-0">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-2.5 py-1" style="font-size: 0.75rem;" title="Delete Review">
+                                <i class="bi bi-trash3 me-1"></i> Delete Review
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-4 text-muted small">
+                    <i class="bi bi-star fs-2 d-block mb-2 opacity-50"></i>
+                    No customer reviews posted yet.
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals: Edit Staff -->
+{% for staff in staff_members %}
+<div class="modal fade" id="editStaffModal-{{ staff.id }}" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-surface border-0 shadow-lg">
+            <form method="POST" action="{% url 'orders:manager_edit_staff' staff.id %}">
+                {% csrf_token %}
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title brand-font fw-bold"><i class="bi bi-pencil-square me-1 text-primary"></i> Edit Staff: {{ staff.user.username }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold text-muted">First Name</label>
+                            <input type="text" name="first_name" class="form-control" value="{{ staff.user.first_name }}" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold text-muted">Last Name</label>
+                            <input type="text" name="last_name" class="form-control" value="{{ staff.user.last_name }}">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Phone</label>
+                        <input type="text" name="phone" class="form-control" value="{{ staff.phone|default:'' }}" placeholder="+91 9800000000">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Role</label>
+                        <select name="role" class="form-select">
+                            {% for code, label in role_choices %}
+                                <option value="{{ code }}" {% if staff.role == code %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-surface" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Reset Staff Password -->
+<div class="modal fade" id="resetPasswordModal-{{ staff.id }}" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-surface border-0 shadow-lg">
+            <form method="POST" action="{% url 'orders:manager_reset_staff_password' staff.id %}">
+                {% csrf_token %}
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title brand-font fw-bold"><i class="bi bi-key-fill me-1 text-warning"></i> Reset Staff Password</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small mb-3">Set a new login password for <strong>{{ staff.user.get_full_name|default:staff.user.username }}</strong> (<code>@{{ staff.user.username }}</code>).</p>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">New Password</label>
+                        <input type="password" name="new_password" class="form-control" placeholder="Enter new password (min 4 chars)" required minlength="4">
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-surface" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning text-dark fw-bold">Update Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- Modals: Edit Table -->
+{% for item in tables_with_qr %}
+<div class="modal fade" id="editTableModal-{{ item.table.id }}" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-surface border-0 shadow-lg">
+            <form method="POST" action="{% url 'orders:manager_edit_table' item.table.id %}">
+                {% csrf_token %}
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title brand-font fw-bold"><i class="bi bi-pencil-square me-1 text-primary"></i> Edit Table {{ item.table.table_number }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Table Identifier</label>
+                        <input type="text" name="table_number" class="form-control" value="{{ item.table.table_number }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Seating Capacity</label>
+                        <input type="number" name="capacity" class="form-control" value="{{ item.table.capacity }}" min="1" max="20" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-surface" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- Modals: Edit Category -->
+{% for cat in categories %}
+<div class="modal fade" id="editCategoryModal-{{ cat.id }}" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-surface border-0 shadow-lg">
+            <form method="POST" action="{% url 'orders:manager_edit_category' cat.id %}">
+                {% csrf_token %}
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title brand-font fw-bold"><i class="bi bi-tag-fill me-1 text-warning"></i> Edit Category</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Category Name</label>
+                        <input type="text" name="name" class="form-control" value="{{ cat.name }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Description (Optional)</label>
+                        <textarea name="description" class="form-control" rows="2">{{ cat.description|default:'' }}</textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-surface" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning text-dark fw-bold">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- Modals: Edit Customer -->
+{% for c in customers %}
+<div class="modal fade" id="editCustomerModal-{{ c.id }}" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-surface border-0 shadow-lg">
+            <form method="POST" action="{% url 'orders:manager_edit_customer' c.id %}">
+                {% csrf_token %}
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title brand-font fw-bold"><i class="bi bi-pencil-square me-1 text-primary"></i> Edit Customer: {{ c.name }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold text-muted">First Name</label>
+                            <input type="text" name="first_name" class="form-control" value="{{ c.user.first_name }}" placeholder="First name">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold text-muted">Last Name</label>
+                            <input type="text" name="last_name" class="form-control" value="{{ c.user.last_name }}" placeholder="Last name">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Email Address</label>
+                        <input type="email" name="email" class="form-control" value="{{ c.email|default:'' }}" placeholder="name@example.com">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Phone Number</label>
+                        <input type="tel" name="phone" class="form-control" value="{{ c.phone|default:'' }}" placeholder="+91 9800000000">
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-surface" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- Modal: Add New Customer/User -->
+<div class="modal fade" id="createCustomerModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-surface border-0 shadow-lg">
+            <form method="POST" action="{% url 'orders:manager_create_customer' %}">
+                {% csrf_token %}
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title brand-font fw-bold"><i class="bi bi-person-plus-fill me-1 text-primary"></i> Add Customer / User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Username</label>
+                        <input type="text" name="username" class="form-control" placeholder="e.g. rahul_sharma" required>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold text-muted">First Name</label>
+                            <input type="text" name="first_name" class="form-control" placeholder="Rahul">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold text-muted">Last Name</label>
+                            <input type="text" name="last_name" class="form-control" placeholder="Sharma">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Email</label>
+                        <input type="email" name="email" class="form-control" placeholder="rahul@example.com">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Phone</label>
+                        <input type="tel" name="phone" class="form-control" placeholder="+91 9822001122">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Password (Optional)</label>
+                        <input type="password" name="password" class="form-control" placeholder="Leave empty for auto-generated password">
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-surface" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-brand">Create User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Add New Staff Member -->
+<div class="modal fade" id="createStaffModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-surface border-0 shadow-lg">
+            <form method="POST" action="{% url 'orders:manager_create_staff' %}">
+                {% csrf_token %}
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title brand-font fw-bold"><i class="bi bi-person-plus me-1"></i> Add Staff Account</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Username</label>
+                        <input type="text" name="username" class="form-control" placeholder="e.g. chef_anil" required>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold text-muted">First Name</label>
+                            <input type="text" name="first_name" class="form-control" placeholder="Anil" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold text-muted">Last Name</label>
+                            <input type="text" name="last_name" class="form-control" placeholder="Kulkarni">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Password</label>
+                        <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Assign Role</label>
+                        <select name="role" class="form-select">
+                            {% for code, label in role_choices %}
+                                <option value="{{ code }}">{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Contact Phone</label>
+                        <input type="text" name="phone" class="form-control" placeholder="+91 9822000000">
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-surface" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-brand">Create Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Add New Table -->
+<div class="modal fade" id="createTableModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-surface border-0 shadow-lg">
+            <form method="POST" action="{% url 'orders:manager_create_table' %}">
+                {% csrf_token %}
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title brand-font fw-bold"><i class="bi bi-qr-code me-1"></i> Add Dining Table</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Table Identifier</label>
+                        <input type="text" name="table_number" class="form-control" placeholder="e.g. T-07, VIP-2" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Seating Capacity</label>
+                        <input type="number" name="capacity" class="form-control" value="4" min="1" max="20" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-surface" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-brand">Add Table</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Add New Category -->
+<div class="modal fade" id="createCategoryModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-surface border-0 shadow-lg">
+            <form method="POST" action="{% url 'orders:manager_create_category' %}">
+                {% csrf_token %}
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title brand-font fw-bold"><i class="bi bi-tag-fill me-1 text-warning"></i> Add Menu Category</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Category Name</label>
+                        <input type="text" name="name" class="form-control" placeholder="e.g. Starters & Appetizers, Main Course, Desserts" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Description (Optional)</label>
+                        <textarea name="description" class="form-control" rows="2" placeholder="Brief description for diners..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-surface" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-brand">Create Category</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Add New Menu Item -->
+<div class="modal fade" id="createItemModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content card-surface border-0 shadow-lg">
+            <form method="POST" action="{% url 'orders:manager_create_item' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title brand-font fw-bold"><i class="bi bi-plus-circle me-1 text-primary"></i> Add New Dish</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label small fw-semibold text-muted">Select Category</label>
+                            <select name="category_id" class="form-select" required>
+                                <option value="">-- Choose Category --</option>
+                                {% for cat in categories %}
+                                    <option value="{{ cat.id }}">{{ cat.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label small fw-semibold text-muted">Dish Name</label>
+                            <input type="text" name="name" class="form-control" placeholder="e.g. Paneer Butter Masala" required>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label small fw-semibold text-muted">Price (₹)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-surface-raised">₹</span>
+                                <input type="number" step="0.01" min="1" name="price" class="form-control" placeholder="280.00" required>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label small fw-semibold text-muted">Dietary Classification</label>
+                            <div class="d-flex gap-3 pt-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="is_veg" id="dishVeg" value="1" checked>
+                                    <label class="form-check-label small fw-semibold text-success" for="dishVeg">
+                                        <span class="veg-tag me-1">VEG</span> Vegetarian
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="is_veg" id="dishNonVeg" value="0">
+                                    <label class="form-check-label small fw-semibold text-danger" for="dishNonVeg">
+                                        <span class="nonveg-tag me-1">NON-VEG</span> Non-Vegetarian
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold text-muted">Description & Ingredients</label>
+                            <textarea name="description" class="form-control" rows="2" placeholder="Rich tomato gravy, cream, cottage cheese cubes..."></textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold text-muted">Dish Image (Optional - Curated fallback provided automatically)</label>
+                            <input type="file" name="image" class="form-control" accept="image/*">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-surface" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-brand">Save Dish to Catalog</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modals: Lock Tables for Offline Guests -->
+{% for item in tables_with_qr %}
+{% if not item.table.is_locked %}
+<div class="modal fade" id="managerLockOfflineModal-{{ item.table.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-surface border-0 shadow-lg">
+            <form method="POST" action="{% url 'orders:waiter_lock_offline_table' item.table.id %}">
+                {% csrf_token %}
+                <div class="modal-header border-bottom">
+                    <h5 class="modal-title brand-font fw-bold">
+                        <i class="bi bi-person-fill-lock text-warning me-1"></i> Lock Table {{ item.table.table_number }} (Offline Diner)
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-start">
+                    <div class="alert alert-info small mb-3">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Reserve Table <strong>{{ item.table.table_number }}</strong> for walk-in diners who prefer dining offline without scanning QR or using phones. This prevents online guests from ordering on or locking this table.
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Guest Identifier / Name (Optional)</label>
+                        <input type="text" name="guest_name" class="form-control" placeholder="e.g. Walk-In Guest, Mr. Sharma, Table {{ item.table.table_number }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Phone Number (Optional)</label>
+                        <input type="tel" name="phone" class="form-control" placeholder="e.g. 9822001122">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small fw-semibold text-muted">Floor Notes (Optional)</label>
+                        <input type="text" name="notes" class="form-control" placeholder="e.g. Cash settlement, family seating">
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-surface rounded-pill px-3" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning rounded-pill px-4 fw-bold">
+                        <i class="bi bi-lock-fill me-1"></i> Lock Table Now
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endfor %}
+</div> <!-- /.manager-console-container -->
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Toggle all session accordion cards
+    function toggleAllSessions(expand) {
+        document.querySelectorAll('.session-card .collapse').forEach(el => {
+            const collapseInstance = bootstrap.Collapse.getOrCreateInstance(el, { toggle: false });
+            if (expand) {
+                collapseInstance.show();
+            } else {
+                collapseInstance.hide();
+            }
+        });
+    }
+
+    // Client-side instant filter for Customer Directory table & mobile cards
+    function filterCustomerTable() {
+        const query = (document.getElementById('customerSearchInput')?.value || '').toLowerCase().trim();
+        const rows = document.querySelectorAll('#customerDirectoryTable tbody tr.customer-row, #customerDirectoryCards .customer-card-m');
+        rows.forEach(row => {
+            const text = row.innerText.toLowerCase();
+            row.style.display = text.includes(query) ? '' : 'none';
+        });
+    }
+
+    // Tab persistence via Hash & LocalStorage
+    function getActiveTab() {
+        return window.location.hash || localStorage.getItem('manager_active_tab') || '#orders-pane';
+    }
+
+    function activateTab(tabId) {
+        if (!tabId) return;
+        const trigger = document.querySelector(`button[data-bs-target="${tabId}"]`);
+        if (trigger) {
+            const tab = bootstrap.Tab.getOrCreateInstance(trigger);
+            tab.show();
+            localStorage.setItem('manager_active_tab', tabId);
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        // Restore tab immediately upon load
+        const initialTab = getActiveTab();
+        if (initialTab && initialTab !== '#orders-pane') {
+            activateTab(initialTab);
+        }
+
+        // On manual tab click, store in localStorage and update hash
+        document.querySelectorAll('#managerTabs button[data-bs-toggle="pill"]').forEach(btn => {
+            btn.addEventListener('shown.bs.tab', (e) => {
+                const target = e.target.getAttribute('data-bs-target');
+                if (target) {
+                    localStorage.setItem('manager_active_tab', target);
+                    history.replaceState(null, null, target);
+                }
+            });
+        });
+
+        // 1. In-place AJAX for Toggle Stock Availability
+        document.querySelectorAll('.ajax-stock-form').forEach(form => {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = form.querySelector('button[type="submit"]');
+                const originalText = btn.textContent;
+                btn.disabled = true;
+                btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span>`;
+
+                try {
+                    const res = await fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value,
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        const badgeCell = document.getElementById(`stock-badge-cell-${data.item_id}`);
+                        const badgeM = document.getElementById(`stock-badge-m-${data.item_id}`);
+                        if (data.is_available) {
+                            if (badgeCell) badgeCell.innerHTML = `<span class="badge bg-success">In Stock</span>`;
+                            if (badgeM) badgeM.innerHTML = `<span class="badge bg-success" style="font-size: 0.7rem;">In Stock</span>`;
+                        } else {
+                            if (badgeCell) badgeCell.innerHTML = `<span class="badge bg-danger">Out of Stock</span>`;
+                            if (badgeM) badgeM.innerHTML = `<span class="badge bg-danger" style="font-size: 0.7rem;">Out of Stock</span>`;
+                        }
+
+                        // Synchronize all stock toggle buttons for this item (desktop & mobile)
+                        document.querySelectorAll(`.ajax-stock-form[data-item-id="${data.item_id}"] button[type="submit"]`).forEach(b => {
+                            const isMobileBtn = b.classList.contains('px-2.5');
+                            if (data.is_available) {
+                                b.className = isMobileBtn ? 'btn btn-sm btn-outline-danger rounded-pill px-2.5 py-1' : 'btn btn-sm btn-outline-danger rounded-pill px-3';
+                                b.textContent = isMobileBtn ? 'Mark Out' : 'Mark Out of Stock';
+                            } else {
+                                b.className = isMobileBtn ? 'btn btn-sm btn-outline-success rounded-pill px-2.5 py-1' : 'btn btn-sm btn-outline-success rounded-pill px-3';
+                                b.textContent = isMobileBtn ? 'Mark Available' : 'Mark Available';
+                            }
+                        });
+
+                        if (window.showAppToast) {
+                            showAppToast(data.message);
+                        }
+                    } else {
+                        alert(data.error || "Failed to update stock.");
+                        btn.textContent = originalText;
+                    }
+                } catch (err) {
+                    console.error("Stock toggle error:", err);
+                    form.submit();
+                } finally {
+                    btn.disabled = false;
+                }
+            });
+        });
+
+        // 2. In-place AJAX for Dynamic Price Update
+        document.querySelectorAll('.ajax-price-form').forEach(form => {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = form.querySelector('button[type="submit"]');
+                const originalHtml = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span>`;
+
+                const formData = new FormData(form);
+
+                try {
+                    const res = await fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value,
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        },
+                        body: formData
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        btn.className = 'btn btn-sm btn-success p-1 text-white';
+                        btn.innerHTML = `<i class="bi bi-check-lg"></i>`;
+                        setTimeout(() => {
+                            btn.className = 'btn btn-sm btn-outline-surface p-1';
+                            btn.innerHTML = originalHtml;
+                        }, 1400);
+
+                        // Synchronize desktop & mobile price inputs
+                        document.querySelectorAll(`.ajax-price-form[data-item-id="${data.item_id}"] input[name="price"]`).forEach(inp => {
+                            inp.value = data.price;
+                        });
+
+                        if (window.showAppToast) {
+                            showAppToast(data.message);
+                        }
+                    } else {
+                        alert(data.error || "Price update failed.");
+                        btn.innerHTML = originalHtml;
+                    }
+                } catch (err) {
+                    console.error("Price update error:", err);
+                    form.submit();
+                } finally {
+                    btn.disabled = false;
+                }
+            });
+        });
+
+        // 3. In-place AJAX for Order Status Update
+        document.querySelectorAll('.ajax-order-status-form').forEach(form => {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = form.querySelector('button[type="submit"]');
+                const originalHtml = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = `<span class="spinner-border spinner-border-sm"></span>`;
+
+                const formData = new FormData(form);
+
+                try {
+                    const res = await fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value,
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        },
+                        body: formData
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        btn.className = 'btn btn-sm btn-success text-white';
+                        btn.innerHTML = `<i class="bi bi-check-lg"></i>`;
+                        setTimeout(() => {
+                            btn.className = 'btn btn-sm btn-outline-primary';
+                            btn.innerHTML = originalHtml;
+                        }, 1200);
+
+                        // Update Live Status Badges (desktop & mobile)
+                        const badgeEl = document.getElementById(`order-status-badge-${data.order_id}`);
+                        const badgeM = document.getElementById(`order-status-badge-m-${data.order_id}`);
+                        let badgeHtml = '';
+                        let badgeHtmlMobile = '';
+                        if (data.status === 'Pending') {
+                            badgeHtml = '<span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>Queued</span>';
+                            badgeHtmlMobile = '<span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>Queued</span>';
+                        } else if (data.status === 'Preparing') {
+                            badgeHtml = '<span class="badge bg-primary"><i class="bi bi-fire me-1"></i>Cooking</span>';
+                            badgeHtmlMobile = '<span class="badge bg-primary"><i class="bi bi-fire me-1"></i>Cooking</span>';
+                        } else if (data.status === 'Ready') {
+                            badgeHtml = '<span class="badge bg-info text-dark"><i class="bi bi-bell-fill me-1"></i>Ready for Pickup</span>';
+                            badgeHtmlMobile = '<span class="badge bg-info text-dark"><i class="bi bi-bell-fill me-1"></i>Ready</span>';
+                        } else if (data.status === 'Served') {
+                            badgeHtml = '<span class="badge bg-success"><i class="bi bi-check-circle-fill me-1"></i>Served</span>';
+                            badgeHtmlMobile = '<span class="badge bg-success"><i class="bi bi-check-circle-fill me-1"></i>Served</span>';
+                        } else if (data.status === 'Completed') {
+                            badgeHtml = '<span class="badge bg-dark"><i class="bi bi-check2-all me-1"></i>Completed</span>';
+                            badgeHtmlMobile = '<span class="badge bg-dark"><i class="bi bi-check2-all me-1"></i>Completed</span>';
+                        } else if (data.status === 'Cancelled') {
+                            badgeHtml = '<span class="badge bg-danger"><i class="bi bi-x-circle-fill me-1"></i>Cancelled</span>';
+                            badgeHtmlMobile = '<span class="badge bg-danger"><i class="bi bi-x-circle-fill me-1"></i>Cancelled</span>';
+                        }
+                        if (badgeEl) badgeEl.innerHTML = badgeHtml;
+                        if (badgeM) badgeM.innerHTML = badgeHtmlMobile;
+
+                        // Synchronize select inputs across forms
+                        document.querySelectorAll(`.ajax-order-status-form[data-order-id="${data.order_id}"] select[name="status"]`).forEach(sel => {
+                            sel.value = data.status;
+                        });
+
+                        // If viewing active floor orders and order is now completed/cancelled, remove both row and card
+                        const currentFilter = '{{ order_filter }}';
+                        if (currentFilter !== 'all' && (data.status === 'Completed' || data.status === 'Cancelled')) {
+                            const row = document.getElementById(`order-row-${data.order_id}`);
+                            if (row) {
+                                row.style.transition = 'all 0.4s ease';
+                                row.style.opacity = '0';
+                                setTimeout(() => row.remove(), 400);
+                            }
+                            const card = document.getElementById(`order-card-${data.order_id}`);
+                            if (card) {
+                                card.style.transition = 'all 0.4s ease';
+                                card.style.opacity = '0';
+                                setTimeout(() => card.remove(), 400);
+                            }
+                            const kpiEl = document.getElementById('kpi-active-orders');
+                            if (kpiEl && parseInt(kpiEl.textContent) > 0) {
+                                kpiEl.textContent = parseInt(kpiEl.textContent) - 1;
+                            }
+                            const pillEl = document.getElementById('filter-active-orders-count');
+                            if (pillEl && parseInt(pillEl.textContent) > 0) {
+                                pillEl.textContent = parseInt(pillEl.textContent) - 1;
+                            }
+                            const tabCountEl = document.getElementById('filter-active-tab-count');
+                            if (tabCountEl && parseInt(tabCountEl.textContent) > 0) {
+                                tabCountEl.textContent = parseInt(tabCountEl.textContent) - 1;
+                            }
+                        }
+
+                        if (window.showAppToast) {
+                            showAppToast(`Order #${data.order_id} status set to ${data.status_display}`);
+                        }
+                    } else {
+                        alert(data.error || "Status update failed.");
+                        btn.innerHTML = originalHtml;
+                    }
+                } catch (err) {
+                    console.error("Order status update error:", err);
+                    form.submit();
+                } finally {
+                    btn.disabled = false;
+                }
+            });
+        });
+
+        // 4. Live Background Poller for Floor & Session Orders (Updates when kitchen/waiter progresses tickets)
+        let currentManagerStatusHash = "{{ status_hash|default:'' }}";
+
+        function pollManagerOrders() {
+            if (getActiveTab() !== '#orders-pane') return;
+
+            fetch(`/staff/manager/?poll=1&order_filter={{ order_filter }}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status_hash && data.status_hash !== currentManagerStatusHash) {
+                    currentManagerStatusHash = data.status_hash;
+
+                    // Update Top KPI and Filter Badges
+                    const kpi = document.getElementById('kpi-active-orders');
+                    if (kpi) kpi.textContent = data.active_orders_count;
+                    const filterPill = document.getElementById('filter-active-orders-count');
+                    if (filterPill) filterPill.textContent = data.active_orders_count;
+                    const tabCount = document.getElementById('filter-active-tab-count');
+                    if (tabCount) tabCount.textContent = data.active_orders_count;
+                    const allFilterPill = document.getElementById('filter-all-orders-count');
+                    if (allFilterPill) allFilterPill.textContent = data.all_orders_count;
+
+                    // Reload page smoothly to refresh the complete orders floor table
+                    window.location.reload();
+                }
+            })
+            .catch(err => console.debug("Manager poll error:", err));
+        }
+
+        setInterval(pollManagerOrders, 4000);
+    });
+
+    function filterReviewsTable() {
+        const query = (document.getElementById('reviewSearchInput')?.value || '').toLowerCase().trim();
+        const targets = document.querySelectorAll('#reviewsTable .review-row, #reviewsCardsMobile .review-card-m');
+        targets.forEach(el => {
+            const text = el.textContent.toLowerCase();
+            el.style.display = text.includes(query) ? '' : 'none';
+        });
+    }
+</script>
+{% endblock %}

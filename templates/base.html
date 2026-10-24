@@ -1,0 +1,1722 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{% block title %}{{ restaurant.name|default:"Spice Garden" }} - Digital Dining{% endblock %}</title>
+
+    <!-- App Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍛</text></svg>">
+
+    <!-- Google Fonts: Outfit (Luxury Brand) & Plus Jakarta Sans (Modern Clean UI) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+    <!-- Theme Initialization Script (Prevents flash of wrong theme) -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('foodmenu_theme') || 
+                (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+
+    <style>
+        /* CSS Variables for Dynamic Light & Dark Theme */
+        :root[data-theme="light"] {
+            --bg-body: #f8fafc;
+            --bg-surface: #ffffff;
+            --bg-surface-raised: #f1f5f9;
+            --bg-nav: rgba(255, 255, 255, 0.94);
+            --border-color: #e2e8f0;
+            --border-color-subtle: #f1f5f9;
+            --border-color-focus: #ea580c;
+            --text-primary: #0f172a;
+            --text-secondary: #334155;
+            --text-muted: #64748b;
+            --color-primary: #ea580c; /* Warm, appetizing terracotta */
+            --color-primary-hover: #c2410c;
+            --color-primary-light: rgba(234, 88, 12, 0.12);
+            --input-bg: #ffffff;
+            --input-border: #cbd5e1;
+            --input-focus-border: #ea580c;
+            --card-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
+            --card-shadow-hover: 0 12px 28px -4px rgba(15, 23, 42, 0.12);
+            --veg-color: #16a34a;
+            --nonveg-color: #dc2626;
+        }
+
+        :root[data-theme="dark"] {
+            --bg-body: #0a0d14;
+            --bg-surface: #121722;
+            --bg-surface-raised: #182030;
+            --bg-nav: rgba(14, 19, 29, 0.94);
+            --border-color: rgba(255, 255, 255, 0.08); /* Clean, subtle modern border */
+            --border-color-subtle: rgba(255, 255, 255, 0.04);
+            --border-color-focus: #e05326;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --color-primary: #e05326; /* Warm appetizing terracotta, balanced & elegant */
+            --color-primary-hover: #c2410c;
+            --color-primary-light: rgba(224, 83, 38, 0.15);
+            --input-bg: #121722;
+            --input-border: rgba(255, 255, 255, 0.12);
+            --input-focus-border: #e05326;
+            --card-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.65);
+            --card-shadow-hover: 0 12px 32px -4px rgba(0, 0, 0, 0.85);
+            --veg-color: #22c55e;
+            --nonveg-color: #ef4444;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: background-color 0.25s ease, color 0.25s ease;
+            padding-bottom: 70px; /* Space for mobile bottom bar */
+        }
+
+        :root[data-theme="dark"] body {
+            background: radial-gradient(circle at 50% 0%, rgba(224, 83, 38, 0.04) 0%, transparent 40%), var(--bg-body);
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+        }
+
+        @media (min-width: 992px) {
+            body {
+                padding-bottom: 0;
+            }
+        }
+
+        h1, h2, h3, h4, .brand-font {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        /* Responsive Brand Title Link */
+        .brand-logo-link {
+            max-width: 175px;
+            min-width: 0;
+        }
+        @media (max-width: 480px) {
+            .brand-logo-link {
+                max-width: 185px;
+            }
+            .staff-brand-link {
+                max-width: 240px !important;
+            }
+            .navbar-brand-title {
+                font-size: 0.95rem !important;
+                letter-spacing: -0.2px;
+                white-space: nowrap;
+            }
+            .table-chip {
+                padding: 3px 7px !important;
+                font-size: 0.72rem !important;
+            }
+            .theme-toggle-btn {
+                padding: 4px 6px !important;
+            }
+        }
+        @media (min-width: 576px) {
+            .brand-logo-link {
+                max-width: none !important;
+            }
+        }
+
+        /* Navbar & Glassmorphism */
+        .glass-nav {
+            background-color: var(--bg-nav);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .navbar-brand-title {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            color: var(--color-primary) !important;
+            letter-spacing: -0.5px;
+            font-size: 1.35rem;
+        }
+
+        /* Buttons & Pills */
+        .btn-brand {
+            background-color: var(--color-primary);
+            color: #ffffff !important;
+            border: none;
+            font-weight: 600;
+            border-radius: 12px;
+            padding: 0.6rem 1.25rem;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .btn-brand:hover, .btn-brand:focus {
+            background-color: var(--color-primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(194, 65, 12, 0.35);
+        }
+
+        .btn-outline-surface {
+            background: var(--bg-surface);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            font-weight: 500;
+        }
+        .btn-outline-surface:hover {
+            background: var(--bg-surface-raised);
+            color: var(--text-primary);
+            border-color: var(--color-primary);
+        }
+
+        /* Surface Cards */
+        .card-surface {
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            box-sizing: border-box;
+            max-width: 100%;
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card-surface:hover {
+            box-shadow: var(--card-shadow-hover);
+        }
+
+        /* Modular App Card Anatomy */
+        .app-card {
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+            box-sizing: border-box;
+            max-width: 100%;
+            margin-bottom: 1rem;
+        }
+        .app-card-header {
+            padding: 0.9rem 1.15rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        .app-card-body {
+            padding: 1rem 1.15rem;
+        }
+        .app-card-footer {
+            padding: 0.75rem 1.15rem;
+            background-color: var(--bg-surface-raised);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        /* Modular KPI Cards System */
+        .app-kpi-card {
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 0.9rem 1rem !important;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: var(--card-shadow);
+            box-sizing: border-box;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        @media (min-width: 768px) {
+            .app-kpi-card {
+                padding: 1.25rem 1.35rem !important;
+                border-radius: 18px;
+            }
+        }
+        .app-kpi-title {
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 0;
+            line-height: 1.2;
+        }
+        .app-kpi-val {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            font-size: 1.30rem;
+            line-height: 1.2;
+            margin-top: 0.25rem;
+            margin-bottom: 0.25rem;
+        }
+        @media (min-width: 768px) {
+            .app-kpi-val {
+                font-size: 1.75rem;
+            }
+        }
+        .app-kpi-sub {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            display: block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .app-kpi-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            flex-shrink: 0;
+        }
+
+        /* Modular Dish Item Media Row (Guaranteed Responsive, No Sideways Overflow) */
+        .app-dish-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.85rem 0;
+            border-bottom: 1px solid var(--border-color);
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        .app-dish-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        .app-dish-thumb {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            object-fit: cover;
+            margin-right: 14px !important;
+            flex: 0 0 48px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+        .app-dish-info {
+            flex: 1 1 auto;
+            min-width: 0;
+            overflow: hidden;
+            padding-right: 12px;
+        }
+        .app-dish-name {
+            font-weight: 700;
+            font-size: 0.90rem;
+            color: var(--text-primary);
+            line-height: 1.35;
+            margin-bottom: 2px;
+            word-break: break-word;
+            overflow-wrap: break-word;
+        }
+        .app-dish-meta {
+            font-size: 0.76rem;
+            color: var(--text-muted);
+            line-height: 1.3;
+            word-break: break-word;
+        }
+        .app-dish-price {
+            flex: 0 0 auto;
+            text-align: right;
+            white-space: nowrap;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            font-size: 1rem;
+            color: var(--text-primary);
+            margin-left: auto;
+            padding-left: 8px;
+        }
+
+        /* Modular Payment Transaction Row & Icon Spacing */
+        .app-payment-item {
+            padding: 0.85rem 0;
+            border-bottom: 1px solid var(--border-color);
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+        .app-payment-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        .app-payment-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px !important;
+            flex: 0 0 36px;
+            font-size: 1.15rem;
+        }
+
+        /* Universal Icon Spacing Guarantee (Prevents icons touching text app-wide) */
+        .btn > i.bi:first-child:not(:only-child),
+        .badge > i.bi:first-child:not(:only-child),
+        a > i.bi:first-child:not(:only-child),
+        h1 > i.bi:first-child:not(:only-child),
+        h2 > i.bi:first-child:not(:only-child),
+        h3 > i.bi:first-child:not(:only-child),
+        h4 > i.bi:first-child:not(:only-child),
+        h5 > i.bi:first-child:not(:only-child),
+        h6 > i.bi:first-child:not(:only-child),
+        strong > i.bi:first-child:not(:only-child) {
+            margin-right: 0.45rem !important;
+        }
+        .btn > i.bi:last-child:not(:only-child),
+        a > i.bi:last-child:not(:only-child) {
+            margin-left: 0.35rem !important;
+        }
+
+        /* Fractional Spacing Polyfill for Bootstrap (0.5, 1.5, 2.5, 3.5) */
+        .gap-0-5, [class*="gap-0.5"] { gap: 0.25rem !important; }
+        .gap-1-5, [class*="gap-1.5"] { gap: 0.5rem !important; }
+        .gap-2-5, [class*="gap-2.5"] { gap: 0.75rem !important; }
+        .gap-3-5, [class*="gap-3.5"] { gap: 1.25rem !important; }
+
+        .p-0-5, [class*="p-0.5"] { padding: 0.25rem !important; }
+        .p-1-5, [class*="p-1.5"] { padding: 0.5rem !important; }
+        .p-2-5, [class*="p-2.5"] { padding: 0.75rem !important; }
+        .p-3-5, [class*="p-3.5"] { padding: 1.25rem !important; }
+
+        .px-1-5, [class*="px-1.5"] { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+        .px-2-5, [class*="px-2.5"] { padding-left: 0.75rem !important; padding-right: 0.75rem !important; }
+        .px-3-5, [class*="px-3.5"] { padding-left: 1.25rem !important; padding-right: 1.25rem !important; }
+
+        .py-0-5, [class*="py-0.5"] { padding-top: 0.25rem !important; padding-bottom: 0.25rem !important; }
+        .py-1-5, [class*="py-1.5"] { padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
+        .py-2-5, [class*="py-2.5"] { padding-top: 0.75rem !important; padding-bottom: 0.75rem !important; }
+        .py-3-5, [class*="py-3.5"] { padding-top: 1.25rem !important; padding-bottom: 1.25rem !important; }
+
+        .mb-0-5, [class*="mb-0.5"] { margin-bottom: 0.25rem !important; }
+        .mb-1-5, [class*="mb-1.5"] { margin-bottom: 0.5rem !important; }
+        .mb-2-5, [class*="mb-2.5"] { margin-bottom: 0.75rem !important; }
+        .mb-3-5, [class*="mb-3.5"] { margin-bottom: 1.25rem !important; }
+
+        .mt-0-5, [class*="mt-0.5"] { margin-top: 0.25rem !important; }
+        .mt-1-5, [class*="mt-1.5"] { margin-top: 0.5rem !important; }
+        .mt-2-5, [class*="mt-2.5"] { margin-top: 0.75rem !important; }
+
+        .me-0-5, [class*="me-0.5"] { margin-right: 0.25rem !important; }
+        .me-1-5, [class*="me-1.5"] { margin-right: 0.5rem !important; }
+        .me-2-5, [class*="me-2.5"] { margin-right: 0.75rem !important; }
+
+        .g-1-5, [class*="g-1.5"] { --bs-gutter-x: 0.5rem; --bs-gutter-y: 0.5rem; }
+        .g-2-5, [class*="g-2.5"] { --bs-gutter-x: 0.75rem; --bs-gutter-y: 0.75rem; }
+
+        /* Veg / Non-Veg Indicator Badges */
+        .veg-tag {
+            color: var(--veg-color);
+            border: 1.5px solid var(--veg-color);
+            padding: 2px 7px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(22, 163, 74, 0.08);
+        }
+        .nonveg-tag {
+            color: var(--nonveg-color);
+            border: 1.5px solid var(--nonveg-color);
+            padding: 2px 7px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(220, 38, 38, 0.08);
+        }
+
+        /* Table Chip */
+        .table-chip {
+            background: var(--bg-surface-raised);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 999px;
+            padding: 5px 14px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .table-chip:hover {
+            border-color: var(--color-primary);
+            background: var(--color-primary-light);
+        }
+
+        /* Persistent Live Order Bar (Pinned to bottom on desktop & mobile) */
+        .live-order-bar {
+            position: fixed;
+            bottom: 68px; /* Above mobile bottom bar */
+            left: 0;
+            right: 0;
+            z-index: 1020;
+            padding: 0 1rem;
+            animation: slideUp 0.3s ease;
+        }
+        @media (min-width: 992px) {
+            .live-order-bar {
+                bottom: 20px;
+                max-width: 550px;
+                left: auto;
+                right: 20px;
+            }
+        }
+        .live-order-card {
+            background: #1c1917;
+            color: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(249, 115, 22, 0.4);
+            padding: 10px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Mobile Bottom App Navigation Bar */
+        .mobile-bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 62px;
+            background: var(--bg-nav);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 1030;
+        }
+        .mobile-nav-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.72rem;
+            font-weight: 500;
+            gap: 2px;
+            position: relative;
+            transition: color 0.15s;
+        }
+        .mobile-nav-link i {
+            font-size: 1.25rem;
+        }
+        .mobile-nav-link.active, .mobile-nav-link:hover {
+            color: var(--color-primary);
+        }
+
+        /* Theme Toggle Button */
+        .theme-toggle-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-size: 1.15rem;
+            padding: 6px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: color 0.2s, background 0.2s;
+        }
+        .theme-toggle-btn:hover {
+            background: var(--bg-surface-raised);
+        }
+
+        /* Toast Container */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1080;
+        }
+
+        /* High-Contrast Robust Dark Mode Global Overrides */
+        :root[data-theme="dark"] body {
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+        }
+
+        :root[data-theme="dark"] .text-body,
+        :root[data-theme="dark"] .text-black {
+            color: var(--text-primary) !important;
+        }
+
+        :root[data-theme="dark"] .text-dark:not(.bg-warning):not(.bg-warning *):not(.btn-warning):not(.btn-warning *):not(.bg-info):not(.bg-info *) {
+            color: var(--text-primary) !important;
+        }
+
+        :root[data-theme="dark"] .text-muted {
+            color: var(--text-muted) !important;
+        }
+
+        :root[data-theme="dark"] .text-secondary,
+        :root[data-theme="dark"] .text-body-secondary {
+            color: var(--text-secondary) !important;
+        }
+
+        :root[data-theme="dark"] .text-danger {
+            color: #f87171 !important;
+        }
+        :root[data-theme="dark"] .text-success {
+            color: #4ade80 !important;
+        }
+        :root[data-theme="dark"] .text-warning {
+            color: #fbbf24 !important;
+        }
+        :root[data-theme="dark"] .text-info {
+            color: #38bdf8 !important;
+        }
+
+        /* Modern Refined Badges & Pills in Dark Mode */
+        :root[data-theme="dark"] .badge.bg-warning {
+            background-color: rgba(245, 158, 11, 0.16) !important;
+            color: #fbbf24 !important;
+            border: 1px solid rgba(245, 158, 11, 0.28) !important;
+        }
+        :root[data-theme="dark"] .badge.bg-success {
+            background-color: rgba(34, 197, 94, 0.16) !important;
+            color: #4ade80 !important;
+            border: 1px solid rgba(34, 197, 94, 0.28) !important;
+        }
+        :root[data-theme="dark"] .badge.bg-danger {
+            background-color: rgba(239, 68, 68, 0.16) !important;
+            color: #f87171 !important;
+            border: 1px solid rgba(239, 68, 68, 0.28) !important;
+        }
+        :root[data-theme="dark"] .badge.bg-info {
+            background-color: rgba(56, 189, 248, 0.16) !important;
+            color: #38bdf8 !important;
+            border: 1px solid rgba(56, 189, 248, 0.28) !important;
+        }
+        :root[data-theme="dark"] .badge.bg-primary {
+            background-color: rgba(224, 83, 38, 0.16) !important;
+            color: #fb923c !important;
+            border: 1px solid rgba(224, 83, 38, 0.28) !important;
+        }
+        :root[data-theme="dark"] .badge.bg-secondary {
+            background-color: rgba(148, 163, 184, 0.16) !important;
+            color: #cbd5e1 !important;
+            border: 1px solid rgba(148, 163, 184, 0.28) !important;
+        }
+        :root[data-theme="dark"] .badge.bg-dark {
+            background-color: #1a1d24 !important;
+            color: #e2e8f0 !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        }
+
+        :root[data-theme="dark"] code {
+            color: #e2e8f0 !important;
+            background-color: rgba(255, 255, 255, 0.08) !important;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.82em;
+        }
+
+        :root[data-theme="dark"] .btn-warning {
+            color: #0f172a !important;
+        }
+        :root[data-theme="dark"] .btn-info {
+            color: #0f172a !important;
+        }
+
+        :root[data-theme="dark"] .bg-light,
+        :root[data-theme="dark"] .bg-white:not(.dish-count-pill) {
+            background-color: var(--bg-surface-raised) !important;
+            color: var(--text-primary);
+        }
+
+        :root[data-theme="dark"] a:not(.btn):not(.nav-link):not(.badge):not(.dropdown-item):not(.navbar-brand) {
+            color: var(--text-primary);
+        }
+        :root[data-theme="dark"] a:not(.btn):not(.nav-link):not(.badge):not(.dropdown-item):not(.navbar-brand):hover {
+            color: var(--color-primary);
+        }
+
+        /* Nav Pills Modern Restaurant Palette */
+        .nav-pills .nav-link {
+            color: var(--text-secondary);
+            background: transparent;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+        .nav-pills .nav-link:hover {
+            color: var(--color-primary);
+            background: var(--color-primary-light);
+        }
+        .nav-pills .nav-link.active {
+            color: #ffffff !important;
+            background: var(--color-primary) !important;
+            border-color: var(--color-primary) !important;
+            box-shadow: 0 4px 12px rgba(234, 88, 12, 0.3);
+        }
+        :root[data-theme="dark"] .nav-pills .nav-link {
+            color: var(--text-secondary);
+        }
+        :root[data-theme="dark"] .nav-pills .nav-link:hover {
+            color: var(--color-primary);
+            background: var(--color-primary-light);
+        }
+        :root[data-theme="dark"] .nav-pills .nav-link.active {
+            color: #ffffff !important;
+            background: var(--color-primary) !important;
+            border-color: var(--color-primary) !important;
+            box-shadow: 0 4px 14px rgba(249, 115, 22, 0.4);
+        }
+
+        :root[data-theme="dark"] .card,
+        :root[data-theme="dark"] .card-surface {
+            background-color: var(--bg-surface) !important;
+            border: 1px solid var(--border-color) !important;
+            color: var(--text-primary) !important;
+            box-shadow: var(--card-shadow) !important;
+        }
+
+        :root[data-theme="dark"] .bg-surface-raised {
+            background-color: var(--bg-surface-raised) !important;
+            border-color: var(--border-color) !important;
+        }
+
+        :root[data-theme="dark"] .border,
+        :root[data-theme="dark"] .border-top,
+        :root[data-theme="dark"] .border-bottom,
+        :root[data-theme="dark"] .border-start,
+        :root[data-theme="dark"] .border-end {
+            border-color: var(--border-color) !important;
+        }
+
+        :root[data-theme="dark"] hr {
+            border-color: var(--border-color) !important;
+            opacity: 0.5;
+        }
+
+        :root[data-theme="dark"] .input-group-text {
+            background-color: var(--bg-surface-raised) !important;
+            border-color: var(--input-border) !important;
+            color: var(--text-muted) !important;
+        }
+
+        :root[data-theme="dark"] .form-control,
+        :root[data-theme="dark"] .form-select {
+            background-color: var(--input-bg) !important;
+            border-color: var(--input-border) !important;
+            color: var(--text-primary) !important;
+        }
+
+        :root[data-theme="dark"] .form-control:focus,
+        :root[data-theme="dark"] .form-select:focus {
+            background-color: var(--input-bg) !important;
+            border-color: var(--color-primary) !important;
+            color: var(--text-primary) !important;
+            box-shadow: 0 0 0 0.25rem var(--color-primary-light) !important;
+        }
+
+        :root[data-theme="dark"] .form-control::placeholder {
+            color: var(--text-muted) !important;
+        }
+
+        :root[data-theme="dark"] .modal-content {
+            background-color: var(--bg-surface) !important;
+            border: 1px solid var(--border-color) !important;
+            color: var(--text-primary) !important;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7) !important;
+        }
+
+        :root[data-theme="dark"] .modal-header,
+        :root[data-theme="dark"] .modal-footer {
+            border-color: var(--border-color) !important;
+        }
+
+        :root[data-theme="dark"] .dropdown-menu {
+            background-color: var(--bg-surface) !important;
+            border: 1px solid var(--border-color) !important;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6) !important;
+        }
+
+        :root[data-theme="dark"] .dropdown-item {
+            color: var(--text-primary) !important;
+        }
+
+        :root[data-theme="dark"] .dropdown-item:hover,
+        :root[data-theme="dark"] .dropdown-item:focus {
+            background-color: var(--bg-surface-raised) !important;
+            color: var(--color-primary) !important;
+        }
+
+        :root[data-theme="dark"] .table {
+            color: var(--text-primary) !important;
+            border-color: var(--border-color) !important;
+        }
+
+        :root[data-theme="dark"] .table th,
+        :root[data-theme="dark"] .table td {
+            color: var(--text-primary) !important;
+            border-color: var(--border-color) !important;
+            background-color: transparent !important;
+        }
+
+        :root[data-theme="dark"] .table-light,
+        :root[data-theme="dark"] .table-light th,
+        :root[data-theme="dark"] .table-light td {
+            background-color: var(--bg-surface-raised) !important;
+            color: var(--text-primary) !important;
+            border-color: var(--border-color) !important;
+        }
+
+        :root[data-theme="dark"] .table-hover tbody tr:hover td,
+        :root[data-theme="dark"] .table-hover tbody tr:hover th {
+            background-color: rgba(255, 255, 255, 0.04) !important;
+        }
+
+        :root[data-theme="dark"] .accordion-item {
+            background-color: var(--bg-surface) !important;
+            border: 1px solid var(--border-color) !important;
+        }
+
+        :root[data-theme="dark"] .accordion-button {
+            background-color: var(--bg-surface) !important;
+            color: var(--text-primary) !important;
+        }
+
+        :root[data-theme="dark"] .accordion-button:not(.collapsed) {
+            background-color: var(--bg-surface-raised) !important;
+            color: var(--color-primary) !important;
+        }
+
+        :root[data-theme="dark"] .btn-close {
+            filter: invert(1) grayscale(100%) brightness(200%);
+        }
+
+        :root[data-theme="dark"] h1,
+        :root[data-theme="dark"] h2,
+        :root[data-theme="dark"] h3,
+        :root[data-theme="dark"] h4,
+        :root[data-theme="dark"] h5,
+        :root[data-theme="dark"] h6 {
+            color: var(--text-primary) !important;
+        }
+
+        :root[data-theme="dark"] .table-chip {
+            background: var(--bg-surface-raised);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color) !important;
+        }
+
+        :root[data-theme="dark"] .badge.bg-light {
+            background-color: var(--bg-surface-raised) !important;
+            color: var(--text-primary) !important;
+            border: 1px solid var(--border-color) !important;
+        }
+
+        :root[data-theme="dark"] .badge.bg-surface-raised {
+            background-color: var(--bg-surface-raised) !important;
+            border: 1px solid var(--border-color) !important;
+            color: var(--text-primary) !important;
+        }
+
+        :root[data-theme="dark"] .btn-outline-surface {
+            background-color: var(--bg-surface) !important;
+            border: 1px solid var(--border-color) !important;
+            color: var(--text-primary) !important;
+        }
+
+        :root[data-theme="dark"] .btn-outline-surface:hover {
+            background-color: var(--bg-surface-raised) !important;
+            border-color: var(--color-primary) !important;
+            color: var(--color-primary) !important;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!-- Desktop & Mobile Top Header -->
+    {% if staff_profile or user.is_superuser %}
+    <!-- DEDICATED STAFF OPERATIONS HEADER -->
+    <header class="glass-nav sticky-top border-bottom" style="border-color: rgba(245, 158, 11, 0.4) !important;">
+        <div class="container d-flex align-items-center justify-content-between py-2 flex-nowrap" style="gap: 8px;">
+            <!-- Staff Brand with Role Badge -->
+            <a href="{% if staff_profile.role == 'Kitchen' %}{% url 'orders:kitchen_dashboard' %}{% elif staff_profile.role == 'Waiter' %}{% url 'orders:waiter_dashboard' %}{% else %}{% url 'orders:manager_dashboard' %}{% endif %}" class="d-flex align-items-center gap-2 text-decoration-none flex-shrink-0 brand-logo-link staff-brand-link">
+                <span class="d-inline-flex align-items-center justify-content-center bg-warning text-dark rounded-circle shadow-sm flex-shrink-0" style="width: 34px; height: 34px;">
+                    <i class="bi bi-shield-lock-fill fs-6"></i>
+                </span>
+                <div style="min-width: 0; overflow: hidden;">
+                    <span class="navbar-brand-title d-block text-truncate" style="font-size: 1.1rem; line-height: 1.2;">{{ restaurant.name|default:"Spice Garden" }}</span>
+                    <span class="badge bg-warning text-dark px-1.5 py-0 fw-bold" style="font-size: 0.65rem;">
+                        {% if staff_profile.role == 'Kitchen' %}👨‍🍳 Chef KDS{% elif staff_profile.role == 'Waiter' %}🧑‍💼 Floor Waiter{% else %}🛡️ Manager{% endif %}
+                    </span>
+                </div>
+            </a>
+
+            <!-- Quick Staff Navigation Tabs (Desktop & Tablet) -->
+            <div class="d-none d-md-flex align-items-center gap-2">
+                <a href="{% url 'orders:kitchen_dashboard' %}" class="btn btn-sm {% if request.resolver_match.url_name == 'kitchen_dashboard' %}btn-warning text-dark fw-bold shadow-sm{% else %}btn-outline-surface{% endif %} rounded-pill px-3">
+                    <i class="bi bi-egg-fried me-1"></i> Kitchen KDS
+                </a>
+                <a href="{% url 'orders:waiter_dashboard' %}" class="btn btn-sm {% if request.resolver_match.url_name == 'waiter_dashboard' %}btn-info text-dark fw-bold shadow-sm{% else %}btn-outline-surface{% endif %} rounded-pill px-3">
+                    <i class="bi bi-person-badge me-1"></i> Waiter Floor
+                </a>
+                {% if staff_profile.is_manager or user.is_superuser %}
+                <a href="{% url 'orders:manager_dashboard' %}" class="btn btn-sm {% if request.resolver_match.url_name == 'manager_dashboard' %}btn-danger text-white fw-bold shadow-sm{% else %}btn-outline-surface{% endif %} rounded-pill px-3">
+                    <i class="bi bi-speedometer2 me-1"></i> Manager Console
+                </a>
+                <a href="/admin/" class="btn btn-sm btn-outline-surface rounded-pill px-3" title="Master Database Admin">
+                    <i class="bi bi-database-gear me-1 text-warning"></i> Django Admin
+                </a>
+                {% endif %}
+                <a href="{% url 'menu:menu_list' %}" class="btn btn-sm btn-outline-surface rounded-pill px-3" title="View Customer Digital Menu">
+                    <i class="bi bi-eye me-1"></i> Customer View
+                </a>
+            </div>
+
+            <!-- Right: Theme Toggle & Staff Logout -->
+            <div class="d-flex align-items-center gap-1 gap-md-2 flex-shrink-0">
+                <!-- Theme Switcher (Hidden) -->
+                <button type="button" class="theme-toggle-btn p-1 px-2 d-none" onclick="changeTheme()" title="Toggle Light/Dark Theme">
+                    <i class="bi bi-sun-fill d-none dark-icon fs-6 text-warning"></i>
+                    <i class="bi bi-moon-stars-fill light-icon fs-6"></i>
+                </button>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-surface dropdown-toggle d-flex align-items-center gap-1 p-1 px-2" type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-person-badge"></i>
+                        <span class="d-none d-lg-inline">{{ user.first_name|default:user.username }}</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 card-surface mt-2">
+                        <li><a class="dropdown-item" href="{% url 'orders:kitchen_dashboard' %}"><i class="bi bi-egg-fried me-2 text-warning"></i> Kitchen KDS</a></li>
+                        <li><a class="dropdown-item" href="{% url 'orders:waiter_dashboard' %}"><i class="bi bi-person-badge me-2 text-info"></i> Waiter Floor</a></li>
+                        {% if staff_profile.is_manager or user.is_superuser %}
+                        <li><a class="dropdown-item" href="{% url 'orders:manager_dashboard' %}"><i class="bi bi-speedometer2 me-2 text-danger"></i> Manager Console</a></li>
+                        <li><a class="dropdown-item" href="/admin/"><i class="bi bi-database-gear me-2 text-warning"></i> Master Django Admin</a></li>
+                        {% endif %}
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#staffPasswordModal"><i class="bi bi-key-fill me-2 text-warning"></i> Change Password</a></li>
+                        <li><a class="dropdown-item" href="{% url 'menu:menu_list' %}"><i class="bi bi-book me-2"></i> View Customer Menu</a></li>
+                        <li><a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}"><i class="bi bi-box-arrow-right me-2"></i> Staff Sign Out</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </header>
+    {% else %}
+    <!-- DEDICATED CUSTOMER HEADER (Responsive, Single-Line, Compact) -->
+    <header class="glass-nav sticky-top">
+        <div class="container d-flex align-items-center justify-content-between py-2 flex-nowrap" style="gap: 8px;">
+            <!-- Brand Logo & Name (Truncated on mobile to prevent 4-line wrapping) -->
+            <a href="{% url 'menu:home' %}" class="d-flex align-items-center gap-2 text-decoration-none flex-shrink-0 brand-logo-link">
+                <span class="d-inline-flex align-items-center justify-content-center bg-danger text-white rounded-circle shadow-sm flex-shrink-0" style="width: 34px; height: 34px;">
+                    <i class="bi bi-fire fs-6"></i>
+                </span>
+                <div style="min-width: 0; overflow: hidden;">
+                    <span class="navbar-brand-title d-block text-truncate" style="font-size: 1.15rem; line-height: 1.2;">{{ restaurant.name|default:"Spice Garden" }}</span>
+                    <span class="small text-muted d-none d-md-block" style="font-size: 0.68rem; margin-top: -2px;">Digital Dining</span>
+                </div>
+            </a>
+
+            <!-- Center Table Chip Selector (Compact Pill) -->
+            <div class="d-flex align-items-center justify-content-center flex-shrink-1" style="min-width: 0;">
+                <button type="button" class="table-chip px-2 py-1" data-bs-toggle="modal" data-bs-target="#tableModal" title="Select or Change Table" style="font-size: 0.8rem; white-space: nowrap;">
+                    <i class="bi bi-geo-alt-fill text-danger"></i>
+                    {% if current_table_number %}
+                        <span class="fw-bold">{{ current_table_number }}</span>
+                        {% if current_table.is_locked %}
+                            <span class="badge bg-danger rounded-pill px-1" style="font-size: 0.6rem;">Locked</span>
+                        {% else %}
+                            <span class="badge bg-success rounded-pill px-1" style="font-size: 0.6rem;">Free</span>
+                        {% endif %}
+                    {% else %}
+                        <span>Takeaway</span>
+                    {% endif %}
+                </button>
+            </div>
+
+            <!-- Right Actions: Theme, Cart, Call Staff, User -->
+            <div class="d-flex align-items-center gap-1 gap-md-2 flex-shrink-0">
+                <!-- Theme Switcher (Hidden) -->
+                <button type="button" class="theme-toggle-btn p-1 px-2 d-none" onclick="changeTheme()" title="Toggle Light/Dark Theme">
+                    <i class="bi bi-sun-fill d-none dark-icon fs-6 text-warning"></i>
+                    <i class="bi bi-moon-stars-fill light-icon fs-6"></i>
+                </button>
+
+                <!-- Call Waiter Button (Desktop) -->
+                <button type="button" class="btn btn-sm btn-outline-surface d-none d-md-inline-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#waiterModal">
+                    <i class="bi bi-bell-fill text-warning"></i> Staff
+                </button>
+
+                <!-- Digital Menu Link (Desktop) -->
+                <a href="{% url 'menu:menu_list' %}" class="btn btn-sm btn-outline-surface d-none d-md-inline-flex align-items-center gap-1">
+                    <i class="bi bi-book"></i> Menu
+                </a>
+
+                <!-- Cart Button (Desktop) -->
+                <a href="{% url 'orders:cart' %}" class="btn btn-brand btn-sm d-none d-md-inline-flex align-items-center gap-2 position-relative">
+                    <i class="bi bi-bag-check-fill"></i>
+                    <span>Cart</span>
+                    <span class="badge bg-white text-dark rounded-pill cart-badge-count">
+                        {{ cart_count|default:"0" }}
+                    </span>
+                </a>
+
+                <!-- User Dropdown / Sign-In -->
+                {% if user.is_authenticated %}
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-surface dropdown-toggle d-flex align-items-center gap-1 p-1 px-2" type="button" data-bs-toggle="dropdown">
+                            {% if user.customer_profile.avatar_url %}
+                                <img src="{{ user.customer_profile.avatar_url }}" width="22" height="22" class="rounded-circle" alt="avatar">
+                            {% else %}
+                                <i class="bi bi-person-circle"></i>
+                            {% endif %}
+                            <span class="d-none d-lg-inline">{{ user.first_name|default:user.username }}</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 card-surface mt-2">
+                            {% if active_session %}
+                            <li><a class="dropdown-item" href="{% url 'orders:session_live' %}"><i class="bi bi-broadcast me-2 text-warning"></i> Active Live Session</a></li>
+                            {% endif %}
+                            <li><a class="dropdown-item" href="{% url 'menu:my_reviews' %}"><i class="bi bi-star-half me-2 text-warning"></i> My Reviews</a></li>
+                            <li><a class="dropdown-item" href="{% url 'orders:my_orders' %}"><i class="bi bi-receipt-cutoff me-2"></i> Past Dining Records</a></li>
+                            <li><a class="dropdown-item" href="{% url 'accounts:profile' %}"><i class="bi bi-person-gear me-2"></i> Profile & Address</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}"><i class="bi bi-box-arrow-right me-2"></i> Sign Out</a></li>
+                        </ul>
+                    </div>
+                {% else %}
+                    <a href="{% url 'accounts:google_login' %}" class="btn btn-sm btn-outline-surface d-flex align-items-center gap-1 p-1 px-2" title="Sign In">
+                        <i class="bi bi-box-arrow-in-right text-danger"></i>
+                        <span class="d-none d-sm-inline" style="font-size: 0.8rem;">Login</span>
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+    {% endif %}
+
+    <!-- Concurrency Warning Banner if table is locked by someone else -->
+    {% if table_is_locked_by_other and current_table_number %}
+    <div class="alert alert-danger mb-0 rounded-0 text-center py-2 fw-semibold border-0 d-flex align-items-center justify-content-center gap-2">
+        <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+        <span>Table {{ current_table_number }} is currently occupied by another active diner. Please notify your waiter to release this table.</span>
+    </div>
+    {% endif %}
+
+    <!-- Toast Notification Container for Messages -->
+    <div class="toast-container" id="toastContainer">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="toast align-items-center text-white bg-{{ message.tags|default:'dark' }} border-0 show shadow-lg mb-2" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body d-flex align-items-center gap-2">
+                            <i class="bi bi-info-circle-fill"></i>
+                            <span>{{ message }}</span>
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <!-- Main View Content Block -->
+    <main class="flex-grow-1">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Persistent Floating Live Order Bar (Visible strictly to dining customer with active order) -->
+    {% if not staff_profile and not user.is_superuser %}
+    <div class="live-order-bar" id="liveOrderBar" style="display: {% if active_order %}block{% else %}none{% endif %};">
+        <div class="live-order-card">
+            <div class="d-flex align-items-center gap-2">
+                <span class="spinner-grow spinner-grow-sm text-warning" role="status"></span>
+                <div>
+                    <div class="fw-bold small" id="liveOrderTitle">
+                        <span class="text-warning" id="liveOrderStatus">
+                            {% if active_order.status == 'Served' %}🍽️ Food Served — Enjoy your meal!{% else %}Order #{{ active_order.id }} &bull; {{ active_order.get_status_display }}{% endif %}
+                        </span>
+                    </div>
+                    <div class="text-white-50" style="font-size: 0.75rem;">
+                        Table <span id="liveOrderTable">{{ active_order.table_number|default:'Takeaway' }}</span> &bull; 
+                        ₹<span id="liveOrderTotal">{{ active_order.total_amount }}</span>
+                    </div>
+                </div>
+            </div>
+            <a href="{% if active_order %}{% url 'orders:session_live' %}{% else %}#{% endif %}" id="liveOrderLink" class="btn btn-warning btn-sm rounded-pill px-3 fw-bold text-dark text-nowrap">
+                Track <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Mobile Bottom Navigation Bar (Dynamic Staff vs Customer) -->
+    {% if staff_profile or user.is_superuser %}
+    <nav class="mobile-bottom-nav d-lg-none">
+        <a href="{% url 'orders:kitchen_dashboard' %}" class="mobile-nav-link {% if request.resolver_match.url_name == 'kitchen_dashboard' %}active{% endif %}">
+            <i class="bi bi-egg-fried"></i>
+            <span>Kitchen</span>
+        </a>
+        <a href="{% url 'orders:waiter_dashboard' %}" class="mobile-nav-link {% if request.resolver_match.url_name == 'waiter_dashboard' %}active{% endif %}">
+            <i class="bi bi-person-badge"></i>
+            <span>Floor</span>
+        </a>
+        {% if staff_profile.is_manager or user.is_superuser %}
+        <a href="{% url 'orders:manager_dashboard' %}" class="mobile-nav-link {% if request.resolver_match.url_name == 'manager_dashboard' %}active{% endif %}">
+            <i class="bi bi-speedometer2"></i>
+            <span>Manager</span>
+        </a>
+        {% endif %}
+        <a href="{% url 'menu:menu_list' %}" class="mobile-nav-link">
+            <i class="bi bi-book"></i>
+            <span>Menu</span>
+        </a>
+        <a href="javascript:void(0)" class="mobile-nav-link" data-bs-toggle="modal" data-bs-target="#staffPasswordModal">
+            <i class="bi bi-key-fill text-warning"></i>
+            <span>Password</span>
+        </a>
+        <a href="{% url 'accounts:logout' %}" class="mobile-nav-link text-danger">
+            <i class="bi bi-box-arrow-right"></i>
+            <span>Logout</span>
+        </a>
+    </nav>
+    {% else %}
+    <nav class="mobile-bottom-nav d-lg-none">
+        <a href="{% url 'menu:home' %}" class="mobile-nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+            <i class="bi bi-house-door-fill"></i>
+            <span>Home</span>
+        </a>
+        <a href="{% url 'menu:menu_list' %}" class="mobile-nav-link {% if request.resolver_match.url_name == 'menu_list' %}active{% endif %}">
+            <i class="bi bi-book-half"></i>
+            <span>Menu</span>
+        </a>
+        <a href="{% url 'orders:cart' %}" class="mobile-nav-link position-relative {% if request.resolver_match.url_name == 'cart' %}active{% endif %}">
+            <i class="bi bi-bag-check-fill"></i>
+            <span>Cart</span>
+            <span class="position-absolute top-0 start-50 translate-middle-x badge rounded-pill bg-danger cart-badge-count" style="font-size: 0.65rem; margin-top: -2px; margin-left: 12px;">
+                {{ cart_count|default:"0" }}
+            </span>
+        </a>
+        <a href="{% url 'orders:my_orders' %}" class="mobile-nav-link {% if request.resolver_match.url_name == 'my_orders' %}active{% endif %}">
+            <i class="bi bi-clock-history"></i>
+            <span>Orders</span>
+        </a>
+        <a href="javascript:void(0)" class="mobile-nav-link" data-bs-toggle="modal" data-bs-target="#waiterModal">
+            <i class="bi bi-bell-fill text-warning"></i>
+            <span>Staff</span>
+        </a>
+    </nav>
+    {% endif %}
+
+    <!-- Modal 1: Table Selector Modal (Direct visits & Change table with live lock detection) -->
+    <div class="modal fade" id="tableModal" tabindex="-1" aria-labelledby="tableModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content card-surface border-0 shadow-lg">
+                <form id="tableSelectForm" action="{% url 'menu:set_table' %}" method="POST">
+                    {% csrf_token %}
+                    <div class="modal-header border-0 pb-0">
+                        <h5 class="modal-title brand-font fw-bold" id="tableModalLabel">
+                            <i class="bi bi-qr-code-scan text-danger me-2"></i> Choose Dining Table
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="text-muted small mb-2.5">
+                            Scanning a physical table QR code sets this automatically. If you walked in directly, select your table below:
+                        </p>
+
+                        <!-- Dynamic Concurrency Alert Message -->
+                        <div id="tableModalAlert" class="alert alert-danger py-2 px-3 small rounded-3 d-none mb-3 d-flex align-items-center gap-2" role="alert">
+                            <i class="bi bi-shield-exclamation text-danger fs-6 flex-shrink-0"></i>
+                            <span id="tableModalAlertText" class="flex-grow-1" style="font-size: 0.8rem; line-height: 1.35;"></span>
+                        </div>
+
+                        <!-- Real-time Table Grid Header -->
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <label class="form-label fw-semibold small text-muted mb-0">
+                                <i class="bi bi-activity text-success me-1"></i>Live Table Status
+                            </label>
+                            <span id="tableStatusSpinner" class="spinner-border spinner-border-sm text-primary d-none" role="status" title="Syncing live occupancy..."></span>
+                        </div>
+
+                        <!-- Quick Table Tap Grid -->
+                        <div class="row g-2 mb-3" id="modalTablesGrid">
+                            {% for tbl in all_active_tables %}
+                            <div class="col-4">
+                                <button type="button" class="btn btn-outline-surface w-100 py-2 table-select-btn {% if current_table_number == tbl.table_number %}border-warning bg-warning bg-opacity-10 text-dark fw-bold shadow-sm{% endif %}" onclick="selectModalTable('{{ tbl.table_number }}', {{ tbl.is_locked|yesno:'true,false' }})" data-table="{{ tbl.table_number }}">
+                                    <span class="d-block fw-bold">{{ tbl.table_number }}</span>
+                                    <span class="d-block small text-muted" style="font-size: 0.7rem;">{{ tbl.capacity }} Seats</span>
+                                    {% if tbl.is_locked %}
+                                        <span class="badge bg-danger rounded-pill" style="font-size: 0.6rem;"><i class="bi bi-lock-fill me-0.5"></i> Busy</span>
+                                    {% else %}
+                                        <span class="badge bg-success rounded-pill" style="font-size: 0.6rem;">Free</span>
+                                    {% endif %}
+                                </button>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Manual Custom Input -->
+                        <div class="mb-2">
+                            <label class="form-label fw-semibold small text-muted">Or Enter Custom Table</label>
+                            <input type="text" id="modalTableInput" name="table_number" class="form-control" placeholder="e.g. T-01, VIP-1" value="{{ current_table_number|default:'' }}">
+                            <div class="form-text small">Leave blank to switch to Takeaway (Self-Pickup).</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn btn-outline-surface btn-sm" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" id="modalSetTableBtn" class="btn btn-brand btn-sm px-4">Set Table</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 2: Call Waiter Modal -->
+    <div class="modal fade" id="waiterModal" tabindex="-1" aria-labelledby="waiterModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content card-surface border-0 shadow-lg">
+                <form id="callWaiterForm" onsubmit="submitCallWaiter(event)">
+                    {% csrf_token %}
+                    <div class="modal-header border-0 pb-0">
+                        <h5 class="modal-title brand-font fw-bold" id="waiterModalLabel">
+                            <i class="bi bi-bell-fill text-warning me-2"></i> Request Staff Assistance
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="text-muted small mb-2">
+                            Assisting Table: <strong>{{ current_table_number|default:"Current Diner" }}</strong>
+                        </p>
+
+                        {% if current_table_number and not table_is_locked_for_me %}
+                        <div class="alert alert-warning py-2 small mb-3 border-0 rounded-3">
+                            <i class="bi bi-shield-lock-fill me-1"></i> Staff assistance is reserved for the diner who holds the active lock on this table.
+                        </div>
+                        {% endif %}
+
+                        <!-- One-Tap Quick Presets -->
+                        <div class="d-flex flex-wrap gap-2 mb-3">
+                            <button type="button" class="btn btn-sm btn-outline-surface" onclick="setWaiterMessage('Need drinking water')">💧 Water</button>
+                            <button type="button" class="btn btn-sm btn-outline-surface" onclick="setWaiterMessage('Need cutlery / napkins')">🍴 Cutlery</button>
+                            <button type="button" class="btn btn-sm btn-outline-surface" onclick="setWaiterMessage('Requesting bill / payment')">💳 Bill</button>
+                            <button type="button" class="btn btn-sm btn-outline-surface" onclick="setWaiterMessage('Need waiter for ordering help')">🙋 Assistance</button>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold text-muted">Message / Special Request</label>
+                            <input type="text" id="waiterMessageInput" name="message" class="form-control" placeholder="What can we help you with?" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn btn-outline-surface btn-sm" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-brand btn-sm px-4" id="callWaiterSubmitBtn">Notify Waiter</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal 3: Staff Password Change Modal (Self-Service Secure Change) -->
+    {% if staff_profile or user.is_superuser %}
+    <div class="modal fade" id="staffPasswordModal" tabindex="-1" aria-labelledby="staffPasswordModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content card-surface border-0 shadow-lg">
+                <form id="staffPasswordForm" onsubmit="submitStaffChangePassword(event)">
+                    {% csrf_token %}
+                    <div class="modal-header border-0 pb-0">
+                        <h5 class="modal-title brand-font fw-bold" id="staffPasswordModalLabel">
+                            <i class="bi bi-key-fill text-warning me-2"></i> Change Staff Password
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="text-muted small mb-3">
+                            Logged in as <strong>{{ user.get_full_name|default:user.username }}</strong> ({{ staff_profile.get_role_display|default:"Administrator" }}).
+                            Enter your current password to set a new password.
+                        </p>
+
+                        <div id="staffPasswordAlert" class="alert alert-danger py-2 px-3 small rounded-3 d-none mb-3" role="alert"></div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small text-muted">Current Password <span class="text-danger">*</span></label>
+                            <input type="password" id="staffCurrentPassword" name="current_password" class="form-control" placeholder="Enter your existing password" required autocomplete="current-password">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small text-muted">New Password <span class="text-danger">*</span></label>
+                            <input type="password" id="staffNewPassword" name="new_password" class="form-control" placeholder="At least 4 characters" minlength="4" required autocomplete="new-password">
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="form-label fw-semibold small text-muted">Confirm New Password <span class="text-danger">*</span></label>
+                            <input type="password" id="staffConfirmPassword" name="confirm_password" class="form-control" placeholder="Repeat new password" minlength="4" required autocomplete="new-password">
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn btn-outline-surface btn-sm" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" id="staffPasswordSubmitBtn" class="btn btn-brand btn-sm px-4">Update Password</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Global App JS (Theme, Cart count, Live Order Polling) -->
+    <script>
+        // =========================================================================
+        // UNIFIED THEME ENGINE
+        // All colors across the entire application are managed by this single function.
+        // It is the sole function used to switch and apply themes.
+        // =========================================================================
+        const APP_THEME_PALETTE = {
+            light: {
+                '--bg-body': '#f8fafc',
+                '--bg-surface': '#ffffff',
+                '--bg-surface-raised': '#f1f5f9',
+                '--bg-nav': 'rgba(255, 255, 255, 0.94)',
+                '--border-color': '#e2e8f0',
+                '--border-color-subtle': '#f1f5f9',
+                '--border-color-focus': '#ea580c',
+                '--text-primary': '#0f172a',
+                '--text-secondary': '#334155',
+                '--text-muted': '#64748b',
+                '--color-primary': '#ea580c',
+                '--color-primary-hover': '#c2410c',
+                '--color-primary-light': 'rgba(234, 88, 12, 0.12)',
+                '--input-bg': '#ffffff',
+                '--input-border': '#cbd5e1',
+                '--input-focus-border': '#ea580c',
+                '--card-shadow': '0 4px 20px -2px rgba(15, 23, 42, 0.06)',
+                '--card-shadow-hover': '0 12px 28px -4px rgba(15, 23, 42, 0.12)',
+                '--veg-color': '#16a34a',
+                '--nonveg-color': '#dc2626'
+            },
+            dark: {
+                '--bg-body': '#090a0f',
+                '--bg-surface': '#12141a',
+                '--bg-surface-raised': '#181b22',
+                '--bg-nav': 'rgba(14, 16, 22, 0.92)',
+                '--border-color': 'rgba(255, 255, 255, 0.08)',
+                '--border-color-subtle': 'rgba(255, 255, 255, 0.04)',
+                '--border-color-focus': '#e05326',
+                '--text-primary': '#f3f4f6',
+                '--text-secondary': '#9ca3af',
+                '--text-muted': '#6b7280',
+                '--color-primary': '#e05326',
+                '--color-primary-hover': '#c2410c',
+                '--color-primary-light': 'rgba(224, 83, 38, 0.15)',
+                '--input-bg': '#12141a',
+                '--input-border': 'rgba(255, 255, 255, 0.12)',
+                '--input-focus-border': '#e05326',
+                '--card-shadow': '0 4px 24px -2px rgba(0, 0, 0, 0.65)',
+                '--card-shadow-hover': '0 12px 32px -4px rgba(0, 0, 0, 0.85)',
+                '--veg-color': '#22c55e',
+                '--nonveg-color': '#ef4444'
+            }
+        };
+
+        function changeTheme(theme) {
+            if (!theme || typeof theme !== 'string') {
+                const current = document.documentElement.getAttribute('data-theme') || 'light';
+                theme = current === 'dark' ? 'light' : 'dark';
+            }
+
+            // 1. Set root attribute
+            document.documentElement.setAttribute('data-theme', theme);
+
+            // 2. Set all CSS color variables directly on root element
+            const palette = APP_THEME_PALETTE[theme] || APP_THEME_PALETTE.light;
+            for (const [prop, val] of Object.entries(palette)) {
+                document.documentElement.style.setProperty(prop, val);
+            }
+
+            // 3. Persist to localStorage
+            localStorage.setItem('foodmenu_theme', theme);
+
+            // 4. Update mobile address bar meta theme
+            let metaTag = document.querySelector('meta[name="theme-color"]');
+            if (!metaTag) {
+                metaTag = document.createElement('meta');
+                metaTag.name = 'theme-color';
+                document.head.appendChild(metaTag);
+            }
+            metaTag.content = theme === 'dark' ? '#090a0f' : '#ffffff';
+
+            // 5. Update all theme toggle buttons across the DOM
+            document.querySelectorAll('.theme-toggle-btn').forEach(btn => {
+                const sunIcon = btn.querySelector('.dark-icon');
+                const moonIcon = btn.querySelector('.light-icon');
+                if (sunIcon && moonIcon) {
+                    if (theme === 'dark') {
+                        sunIcon.classList.remove('d-none');
+                        moonIcon.classList.add('d-none');
+                    } else {
+                        sunIcon.classList.add('d-none');
+                        moonIcon.classList.remove('d-none');
+                    }
+                }
+            });
+
+            // 6. Broadcast event
+            window.dispatchEvent(new CustomEvent('themechange', { detail: { theme } }));
+            return theme;
+        }
+
+        // Expose globally
+        window.changeTheme = changeTheme;
+
+        // Initialize theme palette on load
+        (function() {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || localStorage.getItem('foodmenu_theme') || 'light';
+            changeTheme(currentTheme);
+        })();
+
+        // 2. Dynamic Live Table Polling & Selection System
+        let cachedTablesStatus = [];
+
+        function refreshModalTables() {
+            const grid = document.getElementById('modalTablesGrid');
+            const spinner = document.getElementById('tableStatusSpinner');
+            const alertBox = document.getElementById('tableModalAlert');
+            if (alertBox) alertBox.classList.add('d-none');
+            if (spinner) spinner.classList.remove('d-none');
+
+            fetch('/api/tables/status/')
+                .then(res => res.json())
+                .then(data => {
+                    if (spinner) spinner.classList.add('d-none');
+                    if (!data || !data.success || !grid) return;
+                    cachedTablesStatus = data.tables || [];
+                    const currentSelected = (document.getElementById('modalTableInput').value || data.current_table_number || '').trim().toUpperCase();
+
+                    grid.innerHTML = '';
+                    cachedTablesStatus.forEach(tbl => {
+                        const col = document.createElement('div');
+                        col.className = 'col-4';
+
+                        const isSelected = (currentSelected && currentSelected === tbl.table_number.toUpperCase());
+                        let badgeHtml = '';
+                        let btnStyle = 'btn-outline-surface';
+
+                        if (tbl.is_locked_by_other) {
+                            badgeHtml = '<span class="badge bg-danger bg-opacity-75 rounded-pill" style="font-size: 0.6rem;"><i class="bi bi-lock-fill me-0.5"></i> Locked</span>';
+                            btnStyle = 'btn-outline-secondary opacity-75';
+                        } else if (tbl.is_locked_by_me) {
+                            badgeHtml = '<span class="badge bg-warning text-dark rounded-pill" style="font-size: 0.6rem;"><i class="bi bi-person-check-fill me-0.5"></i> Mine</span>';
+                            btnStyle = 'btn-outline-surface border-warning';
+                        } else {
+                            badgeHtml = '<span class="badge bg-success rounded-pill" style="font-size: 0.6rem;">Free</span>';
+                        }
+
+                        if (isSelected) {
+                            btnStyle += ' border-warning bg-warning bg-opacity-10 text-dark fw-bold shadow-sm';
+                        }
+
+                        col.innerHTML = `
+                            <button type="button" class="btn ${btnStyle} w-100 py-2 table-select-btn" data-table="${tbl.table_number}">
+                                <span class="d-block fw-bold">${tbl.table_number}</span>
+                                <span class="d-block small text-muted" style="font-size: 0.7rem;">${tbl.capacity} Seats</span>
+                                ${badgeHtml}
+                            </button>
+                        `;
+
+                        const btn = col.querySelector('button');
+                        btn.addEventListener('click', function() {
+                            handleTableSelection(tbl);
+                        });
+
+                        grid.appendChild(col);
+                    });
+                })
+                .catch(err => {
+                    if (spinner) spinner.classList.add('d-none');
+                    console.debug('Failed to refresh table status:', err);
+                });
+        }
+
+        function handleTableSelection(tbl) {
+            const alertBox = document.getElementById('tableModalAlert');
+            const alertText = document.getElementById('tableModalAlertText');
+            const input = document.getElementById('modalTableInput');
+
+            if (!tbl.can_select) {
+                if (alertBox && alertText) {
+                    alertText.innerHTML = `Table <strong>${tbl.table_number}</strong> is currently occupied and locked by another diner. Please choose an available table or talk with a waiter to uplift the lock.`;
+                    alertBox.classList.remove('d-none');
+                }
+                return;
+            }
+
+            if (alertBox) alertBox.classList.add('d-none');
+            if (input) input.value = tbl.table_number;
+
+            document.querySelectorAll('#modalTablesGrid .table-select-btn').forEach(btn => {
+                btn.classList.remove('border-warning', 'bg-warning', 'bg-opacity-10', 'text-dark', 'fw-bold', 'shadow-sm');
+                if (btn.getAttribute('data-table') === tbl.table_number) {
+                    btn.classList.add('border-warning', 'bg-warning', 'bg-opacity-10', 'text-dark', 'fw-bold', 'shadow-sm');
+                }
+            });
+        }
+
+        function selectModalTable(tblNum, isLocked) {
+            if (isLocked) {
+                const alertBox = document.getElementById('tableModalAlert');
+                const alertText = document.getElementById('tableModalAlertText');
+                if (alertBox && alertText) {
+                    alertText.innerHTML = `Table <strong>${tblNum}</strong> is currently occupied and locked by another diner. Please choose an available table or talk with a waiter to uplift the lock.`;
+                    alertBox.classList.remove('d-none');
+                }
+                return;
+            }
+            document.getElementById('modalTableInput').value = tblNum;
+        }
+
+        // Initialize table modal listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            const tableModalEl = document.getElementById('tableModal');
+            if (tableModalEl) {
+                tableModalEl.addEventListener('show.bs.modal', refreshModalTables);
+            }
+
+            const tableForm = document.getElementById('tableSelectForm');
+            if (tableForm) {
+                tableForm.addEventListener('submit', function(e) {
+                    const val = (document.getElementById('modalTableInput').value || '').trim().toUpperCase();
+                    if (val && cachedTablesStatus.length > 0) {
+                        const found = cachedTablesStatus.find(t => t.table_number.toUpperCase() === val);
+                        if (found && !found.can_select) {
+                            e.preventDefault();
+                            const alertBox = document.getElementById('tableModalAlert');
+                            const alertText = document.getElementById('tableModalAlertText');
+                            if (alertBox && alertText) {
+                                alertText.innerHTML = `Table <strong>${found.table_number}</strong> is currently occupied and locked by another diner. Please choose an available table or talk with a waiter to uplift the lock.`;
+                                alertBox.classList.remove('d-none');
+                            }
+                            return false;
+                        }
+                    }
+                });
+            }
+        });
+
+        // 2b. Staff Self-Service Password Change Handler
+        function submitStaffChangePassword(e) {
+            e.preventDefault();
+            const btn = document.getElementById('staffPasswordSubmitBtn');
+            const alertBox = document.getElementById('staffPasswordAlert');
+            const currentPassword = document.getElementById('staffCurrentPassword').value;
+            const newPassword = document.getElementById('staffNewPassword').value;
+            const confirmPassword = document.getElementById('staffConfirmPassword').value;
+
+            if (alertBox) alertBox.classList.add('d-none');
+
+            if (!currentPassword) {
+                if (alertBox) { alertBox.textContent = 'Please enter your current password.'; alertBox.classList.remove('d-none'); }
+                return;
+            }
+            if (!newPassword || newPassword.length < 4) {
+                if (alertBox) { alertBox.textContent = 'New password must be at least 4 characters long.'; alertBox.classList.remove('d-none'); }
+                return;
+            }
+            if (newPassword !== confirmPassword) {
+                if (alertBox) { alertBox.textContent = 'New passwords do not match.'; alertBox.classList.remove('d-none'); }
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Updating...';
+
+            fetch('{% url "orders:staff_change_password" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: new URLSearchParams({
+                    'current_password': currentPassword,
+                    'new_password': newPassword,
+                    'confirm_password': confirmPassword
+                })
+            })
+            .then(async res => {
+                const data = await res.json();
+                return { ok: res.ok, data };
+            })
+            .then(({ ok, data }) => {
+                btn.disabled = false;
+                btn.innerHTML = 'Update Password';
+                if (ok && data.success) {
+                    const modalEl = document.getElementById('staffPasswordModal');
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    if (modal) modal.hide();
+                    document.getElementById('staffPasswordForm').reset();
+                    showAppToast(data.message || 'Password updated successfully!', 'success');
+                } else {
+                    if (alertBox) {
+                        alertBox.textContent = data.error || 'Failed to update password.';
+                        alertBox.classList.remove('d-none');
+                    }
+                }
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.innerHTML = 'Update Password';
+                if (alertBox) {
+                    alertBox.textContent = 'An error occurred while updating password. Please try again.';
+                    alertBox.classList.remove('d-none');
+                }
+            });
+        }
+
+        // 3. Call Waiter AJAX Request
+        function setWaiterMessage(msg) {
+            document.getElementById('waiterMessageInput').value = msg;
+        }
+
+        function submitCallWaiter(e) {
+            e.preventDefault();
+            const btn = document.getElementById('callWaiterSubmitBtn');
+            const msg = document.getElementById('waiterMessageInput').value;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Notifying...';
+
+            fetch('/api/call-waiter/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: new URLSearchParams({'message': msg})
+            })
+            .then(async res => {
+                const data = await res.json();
+                return { ok: res.ok, data };
+            })
+            .then(({ ok, data }) => {
+                btn.disabled = false;
+                btn.innerHTML = 'Notify Waiter';
+                const modalEl = document.getElementById('waiterModal');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+                if (ok && data.success) {
+                    showAppToast(data.message || 'Staff notified!', 'success');
+                } else {
+                    showAppToast(data.error || 'Could not notify staff.', 'warning');
+                }
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.innerHTML = 'Notify Waiter';
+                showAppToast('Could not notify staff. Please notify your waiter.', 'danger');
+            });
+        }
+
+        // 4. Lightweight In-App Toast Utility
+        function showAppToast(message, type = 'dark') {
+            const container = document.getElementById('toastContainer');
+            const toastEl = document.createElement('div');
+            toastEl.className = `toast align-items-center text-white bg-${type} border-0 show shadow-lg mb-2`;
+            toastEl.role = 'alert';
+            toastEl.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body d-flex align-items-center gap-2">
+                        <i class="bi bi-check-circle-fill text-warning"></i>
+                        <span>${message}</span>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            `;
+            container.appendChild(toastEl);
+            setTimeout(() => {
+                toastEl.remove();
+            }, 4000);
+        }
+
+        // 5. Persistent Live Order Bar Polling (Runs globally for dining customers)
+        {% if not staff_profile and not user.is_superuser %}
+        function pollLiveActiveOrder() {
+            fetch('/api/my-active-order/')
+                .then(res => {
+                    if (!res.ok) return null;
+                    return res.json();
+                })
+                .then(data => {
+                    if (!data) return;
+                    const bar = document.getElementById('liveOrderBar');
+                    if (!bar) return;
+                    if (data.has_active_order) {
+                        bar.style.display = 'block';
+                        document.getElementById('liveOrderStatus').textContent = data.status_display;
+                        document.getElementById('liveOrderTable').textContent = data.table_number;
+                        document.getElementById('liveOrderTotal').textContent = data.total_amount;
+                        document.getElementById('liveOrderLink').href = data.live_url;
+                    } else {
+                        bar.style.display = 'none';
+                    }
+                })
+                .catch(err => console.debug('Polling order:', err));
+        }
+
+        // Poll every 7 seconds
+        setInterval(pollLiveActiveOrder, 7000);
+        {% endif %}
+
+        // 6. Global AJAX Add-To-Cart function
+        function ajaxAddToCart(itemId, callback) {
+            fetch(`/api/cart/add/${itemId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Update all badge counters on page
+                    document.querySelectorAll('.cart-badge-count').forEach(el => el.textContent = data.cart_count);
+                    showAppToast(`Added ${data.item_name} to cart!`);
+                    if (callback) callback(data);
+                }
+            })
+            .catch(err => console.error('Add cart err:', err));
+        }
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

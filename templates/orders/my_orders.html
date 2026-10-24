@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block title %}My Dining History - {{ restaurant.name|default:"Spice Garden" }}{% endblock %}
+
+{% block content %}
+<div class="container py-3" style="max-width: 860px;">
+    <!-- Title & Navigation -->
+    <div class="d-flex flex-column flex-sm-row justify-content-sm-between align-items-sm-center gap-3 mb-4">
+        <div>
+            <h2 class="brand-font fw-bold mb-1 fs-3 fs-sm-2">My Past Orders & Dining Sessions</h2>
+            <p class="text-muted small mb-0">Consolidated history of your table visits, order rounds, and receipts.</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+            <a href="{% url 'orders:session_live' %}" class="btn btn-outline-surface btn-sm rounded-pill px-3 py-1.5 text-nowrap">
+                <i class="bi bi-broadcast me-1 text-warning"></i> Active Live Session
+            </a>
+            <a href="{% url 'menu:menu_list' %}" class="btn btn-brand btn-sm rounded-pill px-3 py-1.5 text-nowrap">
+                <i class="bi bi-book-half me-1"></i> Digital Menu
+            </a>
+        </div>
+    </div>
+
+    <!-- Consolidated Sessions List -->
+    {% if dining_sessions %}
+        <div class="d-flex flex-column gap-4 mb-5">
+            {% for sess in dining_sessions %}
+            <div class="card-surface p-3 p-md-4 shadow-sm border {% if sess.is_active %}border-warning{% endif %}">
+                
+                <!-- Session Header -->
+                <div class="d-flex flex-column flex-sm-row justify-content-sm-between align-items-start align-items-sm-center mb-3 pb-3 border-bottom gap-2">
+                    <div>
+                        <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                            <h5 class="brand-font fw-bold mb-0">
+                                <i class="bi bi-calendar-check text-danger me-1"></i> {{ sess.started_at|date:"d M Y" }}
+                            </h5>
+                            <span class="badge bg-surface-raised border px-2 py-1">
+                                Table {{ sess.table_number|default:'Takeaway' }}
+                            </span>
+                            {% if sess.is_active %}
+                                <span class="badge bg-warning text-dark"><i class="bi bi-record-circle me-1"></i>Active Visit</span>
+                            {% else %}
+                                <span class="badge bg-success">Completed & Settled</span>
+                            {% endif %}
+                        </div>
+                        <span class="small text-muted d-block">
+                            Visit Time: {{ sess.started_at|date:"h:i A" }}{% if sess.ended_at %} – {{ sess.ended_at|date:"h:i A" }}{% endif %}
+                            &bull; <strong>{{ sess.orders.count }}</strong> order round(s)
+                        </span>
+                    </div>
+
+                    <div class="text-start text-sm-end mt-1 mt-sm-0">
+                        <span class="small text-muted d-block" style="font-size: 0.72rem;">Consolidated Bill Total</span>
+                        <strong class="fs-4 text-danger">₹{{ sess.total_spent }}</strong>
+                    </div>
+                </div>
+
+                <!-- Session Actions -->
+                <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+                    <button class="btn btn-sm btn-outline-surface rounded-pill px-3 text-nowrap" type="button" data-bs-toggle="collapse" data-bs-target="#sessOrders{{ sess.id }}">
+                        <i class="bi bi-list-nested me-1"></i> View Order Rounds ({{ sess.orders.count }})
+                    </button>
+
+                    <div class="d-flex flex-wrap gap-2">
+                        {% if sess.is_active %}
+                            <a href="{% url 'orders:session_live_detail' sess.id %}" class="btn btn-warning btn-sm rounded-pill px-3 fw-bold text-dark text-nowrap">
+                                <i class="bi bi-broadcast me-1"></i> Live Tracker
+                            </a>
+                        {% endif %}
+                        <a href="{% url 'orders:session_invoice' sess.id %}" target="_blank" class="btn btn-outline-surface btn-sm rounded-pill px-3 text-nowrap">
+                            <i class="bi bi-printer me-1"></i> Receipt
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Collapsible Breakdown of Individual Order Rounds in this Session -->
+                <div class="collapse {% if sess.is_active or forloop.first %}show{% endif %}" id="sessOrders{{ sess.id }}">
+                    <div class="p-3 bg-surface-raised rounded-3 border">
+                        <span class="small fw-bold text-muted text-uppercase mb-2 d-block" style="font-size: 0.72rem;">
+                            Items Ordered During This Session:
+                        </span>
+
+                        <div class="d-flex flex-column gap-2">
+                            {% for ord in sess.orders.all %}
+                            <div class="p-2.5 px-3 card-surface rounded-3 border d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
+                                <div class="min-w-0">
+                                    <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                                        <strong class="small">Round Ticket #{{ ord.id }}</strong>
+                                        <span class="badge {% if ord.status == 'Completed' or ord.status == 'Served' %}bg-success{% elif ord.status == 'Cancelled' %}bg-danger{% else %}bg-primary{% endif %}" style="font-size: 0.68rem;">
+                                            {{ ord.get_status_display }}
+                                        </span>
+                                        <span class="text-muted small">&bull; {{ ord.order_date|date:"h:i A" }}</span>
+                                    </div>
+
+                                    <div class="small text-muted text-break">
+                                        {% for itm in ord.items.all %}
+                                            {% if not itm.is_cancelled %}
+                                                {{ itm.quantity }}x {{ itm.menu_item.name }}{% if not forloop.last %}, {% endif %}
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+
+                                <div class="text-sm-end flex-shrink-0">
+                                    <span class="fw-bold">₹{{ ord.total_amount }}</span>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <span class="text-muted small">No order records found for this session.</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <!-- Empty State -->
+        <div class="text-center py-5">
+            <div class="card-surface p-5 rounded-4 mx-auto" style="max-width: 480px;">
+                <div class="fs-1 text-muted mb-3"><i class="bi bi-receipt-cutoff"></i></div>
+                <h4 class="brand-font fw-bold mb-2">No Dining History Yet</h4>
+                <p class="text-muted small mb-4">When you dine at our restaurant and place orders, your consolidated session bills and tax receipts will appear here.</p>
+                <a href="{% url 'menu:menu_list' %}" class="btn btn-brand px-4 py-2 rounded-pill fw-semibold">
+                    Browse Digital Menu
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

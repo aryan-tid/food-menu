@@ -1,0 +1,38 @@
+# Virtual Environments
+venv/
+env/
+ENV/
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Database
+db.sqlite3
+*.sqlite3
+
+# Environment Variables
+.env
+.env.local
+
+# Static and Media Assets
+/staticfiles/
+/media/*
+!/media/.gitkeep
+
+# Logs
+*.log
+
+# OS & IDE Files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Sensitive Keys
+*serviceAccountKey*.json
+*.pem
+
+# Project PDF
+UG_project_synopsis_format_2025-26 (1).pdf

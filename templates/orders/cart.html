@@ -1,0 +1,305 @@
+{% extends 'base.html' %}
+
+{% block title %}Your Order Cart - {{ restaurant.name|default:"Spice Garden" }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .payment-option-card {
+        border: 2px solid var(--border-color);
+        border-radius: 14px;
+        padding: 1rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background: var(--bg-surface);
+        position: relative;
+    }
+    .payment-option-card:hover {
+        border-color: var(--color-primary);
+    }
+    .payment-option-card.selected {
+        border-color: var(--color-primary);
+        background: var(--color-primary-light);
+    }
+    .payment-option-card input[type="radio"] {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-3">
+    <!-- Header Title -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h2 class="brand-font fw-bold mb-1">Your Order Cart</h2>
+            <p class="text-muted small mb-0">Review your selected dishes before placing order.</p>
+        </div>
+        <a href="{% url 'menu:menu_list' %}" class="btn btn-outline-surface btn-sm rounded-pill px-3">
+            <i class="bi bi-plus-lg me-1"></i> Add More Food
+        </a>
+    </div>
+
+    <!-- Takeaway Banner Alert if No Table Selected -->
+    {% if not current_table_number %}
+    <div class="alert alert-warning border-warning d-flex align-items-center justify-content-between p-3 rounded-3 mb-4 shadow-sm" style="background: rgba(234, 179, 8, 0.12);">
+        <div class="d-flex align-items-center gap-3">
+            <i class="bi bi-exclamation-triangle-fill fs-3 text-warning"></i>
+            <div>
+                <strong class="d-block">Takeaway (Self-Pickup) Order</strong>
+                <span class="small text-muted">You haven't selected a dining table. This order will be prepared as Takeaway for pickup at the counter.</span>
+            </div>
+        </div>
+        <button type="button" class="btn btn-sm btn-outline-surface rounded-pill px-3 text-nowrap" data-bs-toggle="modal" data-bs-target="#tableModal">
+            <i class="bi bi-geo-alt-fill text-danger me-1"></i> Choose Table
+        </button>
+    </div>
+    {% endif %}
+
+    {% if cart_items %}
+    <div class="row g-4">
+        <!-- Cart Items List (Left Column) -->
+        <div class="col-lg-8">
+            <div class="card-surface p-3 p-md-4 mb-3">
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
+                    <span class="fw-bold small text-muted text-uppercase">Selected Dishes ({{ cart_items|length }})</span>
+                    <a href="{% url 'orders:cart_clear' %}" class="text-danger small text-decoration-none fw-semibold">
+                        <i class="bi bi-trash3 me-1"></i> Clear Cart
+                    </a>
+                </div>
+
+                <div class="d-flex flex-column gap-3">
+                    {% for c in cart_items %}
+                    <div class="d-flex justify-content-between align-items-center p-2 rounded-3 border-bottom pb-3">
+                        <div class="d-flex align-items-start gap-2">
+                            {% if c.item.is_veg %}
+                                <span class="veg-tag mt-1"><i class="bi bi-record-circle"></i></span>
+                            {% else %}
+                                <span class="nonveg-tag mt-1"><i class="bi bi-caret-up-square-fill"></i></span>
+                            {% endif %}
+                            <div>
+                                <h6 class="fw-bold mb-0">{{ c.item.name }}</h6>
+                                <span class="text-muted small">₹{{ c.item.price }} each</span>
+                            </div>
+                        </div>
+
+                        <!-- Quantity Stepper & Subtotal -->
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="d-flex align-items-center gap-1 bg-surface-raised rounded-3 p-1 border">
+                                <a href="{% url 'orders:cart_remove' c.item.id %}" class="btn btn-sm btn-link text-decoration-none p-0 px-2 fw-bold" style="color: var(--text-primary);">-</a>
+                                <span class="fw-bold px-2 small">{{ c.quantity }}</span>
+                                <a href="{% url 'orders:cart_add' c.item.id %}" class="btn btn-sm btn-link text-decoration-none p-0 px-2 fw-bold" style="color: var(--text-primary);">+</a>
+                            </div>
+
+                            <span class="fw-bold" style="min-width: 65px; text-align: right;">₹{{ c.subtotal }}</span>
+
+                            <a href="{% url 'orders:cart_delete' c.item.id %}" class="text-secondary hover-danger p-1" title="Remove item">
+                                <i class="bi bi-x-lg"></i>
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Dining Table Info Box -->
+            <div class="card-surface p-3 p-md-4 mb-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="bg-warning bg-opacity-10 text-warning rounded-circle d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                            <i class="bi bi-geo-alt-fill fs-5"></i>
+                        </div>
+                        <div>
+                            <span class="text-muted small d-block">Dining Location</span>
+                            {% if current_table_number %}
+                                <h6 class="fw-bold mb-0">Table {{ current_table_number }}</h6>
+                            {% else %}
+                                <h6 class="fw-bold mb-0 text-warning">Takeaway (Self-Pickup)</h6>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-surface rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#tableModal">
+                        Change Table
+                    </button>
+                </div>
+
+                {% if table_locked_by_other %}
+                <div class="alert alert-danger mt-3 mb-0 small rounded-3 border-0">
+                    <i class="bi bi-lock-fill me-1"></i>
+                    <strong>Table Occupied:</strong> Table {{ current_table_number }} is currently in use by another diner. Please change your table or contact a waiter before ordering.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Checkout Summary (Right Column) -->
+        <div class="col-lg-4">
+            <div class="card-surface p-4 sticky-top" style="top: 80px;">
+                <h5 class="brand-font fw-bold mb-3 border-bottom pb-2">Bill Summary</h5>
+
+                <div class="d-flex justify-content-between text-muted small mb-2">
+                    <span>Dishes Subtotal</span>
+                    <span class="fw-semibold">₹{{ subtotal }}</span>
+                </div>
+
+                <div class="d-flex justify-content-between text-muted small mb-2">
+                    <span>GST (5%)</span>
+                    <span class="fw-semibold">₹{{ tax_amount }}</span>
+                </div>
+
+                <hr class="my-3">
+
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <span class="h6 mb-0 fw-bold">Grand Total</span>
+                    <span class="h4 mb-0 fw-bold text-danger">₹{{ grand_total }}</span>
+                </div>
+
+                <!-- Checkout Form -->
+                <form method="POST" action="{% url 'orders:checkout' %}" id="checkoutForm">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-muted">Special Instructions</label>
+                        <textarea name="special_instructions" class="form-control form-control-sm" rows="2" placeholder="e.g. Extra spicy, no onions, bring water..."></textarea>
+                    </div>
+
+                    <!-- Payment Mode Selection Section -->
+                    <div class="mb-4">
+                        {% if current_table_number %}
+                            <!-- TABLE DINER: Pay strictly at end of dining session -->
+                            <input type="hidden" name="payment_method" value="PAY_LATER">
+                            <div class="p-3 bg-surface-raised rounded-3 border mb-3">
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <i class="bi bi-shield-check text-success fs-5"></i>
+                                    <strong class="small">Pay at End of Dining</strong>
+                                </div>
+                                <p class="text-muted mb-0" style="font-size: 0.76rem;">
+                                    Dishes will be sent immediately to the kitchen. You can order multiple rounds and settle your consolidated bill when done!
+                                </p>
+                            </div>
+                        {% else %}
+                            <!-- TAKEAWAY DINER: Choose Online or Counter -->
+                            <label class="form-label small fw-semibold text-muted mb-2">Takeaway Payment Option</label>
+                            <div class="d-flex flex-column gap-2">
+                                <label class="payment-option-card selected d-flex align-items-center gap-3" id="payLaterCard" onclick="selectPaymentMode('PAY_LATER')">
+                                    <input type="radio" name="payment_method" value="PAY_LATER" checked id="radioPayLater">
+                                    <div class="fs-4 text-success"><i class="bi bi-cash-stack"></i></div>
+                                    <div>
+                                        <strong class="d-block small">Pay Cash at Counter</strong>
+                                        <span class="text-muted" style="font-size: 0.72rem;">Settle when picking up your food parcel</span>
+                                    </div>
+                                </label>
+
+                                <label class="payment-option-card d-flex align-items-center gap-3" id="payOnlineCard" onclick="selectPaymentMode('ONLINE')">
+                                    <input type="radio" name="payment_method" value="ONLINE" id="radioPayOnline">
+                                    <div class="fs-4 text-primary"><i class="bi bi-qr-code-scan"></i></div>
+                                    <div>
+                                        <strong class="d-block small">Pay Online Now</strong>
+                                        <span class="text-muted" style="font-size: 0.72rem;">Instant checkout via UPI QR or Card</span>
+                                    </div>
+                                </label>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    {% if not user.is_authenticated %}
+                        <a href="{% url 'accounts:google_login' %}?next={% url 'orders:cart' %}" class="btn btn-outline-danger w-100 py-3 fw-bold d-flex align-items-center justify-content-center gap-2 rounded-3 shadow-sm">
+                            <i class="bi bi-google"></i> Sign in with Google to Order
+                        </a>
+                    {% else %}
+                        <button type="button" class="btn btn-brand w-100 py-3 fw-bold fs-6 shadow" {% if table_locked_by_other %}disabled{% endif %} id="placeOrderBtn" onclick="validateAndSubmitOrder()">
+                            <i class="bi bi-check2-circle me-1"></i> Confirm & Place Order
+                        </button>
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- Empty Cart State -->
+    <div class="text-center py-5">
+        <div class="card-surface p-5 rounded-4 mx-auto" style="max-width: 500px;">
+            <div class="fs-1 text-muted mb-3"><i class="bi bi-bag-x"></i></div>
+            <h4 class="brand-font fw-bold mb-2">Your cart is empty</h4>
+            <p class="text-muted small mb-4">You haven't added any items to your plate yet. Explore our freshly cooked specialties!</p>
+            <a href="{% url 'menu:menu_list' %}" class="btn btn-brand px-4 py-2 rounded-pill fw-semibold">
+                Browse Digital Menu
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal: Confirm Takeaway if no table selected -->
+<div class="modal fade" id="takeawayConfirmModal" tabindex="-1" aria-labelledby="takeawayConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content card-surface border-0 shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title brand-font fw-bold text-warning" id="takeawayConfirmModalLabel">
+                    <i class="bi bi-bag-check-fill me-2"></i> Confirm Takeaway Order
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-2">
+                    You have <strong>not selected a table</strong>. This order will be prepared as a <strong>Self-Pickup / Takeaway</strong> parcel.
+                </p>
+                <p class="text-muted small mb-0">
+                    If you are dining in the restaurant, please tap <em>Select Table</em> to choose your table number so staff can deliver dishes directly to you.
+                </p>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-outline-surface btn-sm" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#tableModal">
+                    <i class="bi bi-geo-alt-fill text-danger me-1"></i> Select Table
+                </button>
+                <button type="button" class="btn btn-brand btn-sm px-4" onclick="proceedTakeawaySubmit()">
+                    Continue as Takeaway
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const isTableSelected = {{ current_table_number|yesno:'true,false' }};
+
+    function selectPaymentMode(mode) {
+        const rLater = document.getElementById('radioPayLater');
+        const rOnline = document.getElementById('radioPayOnline');
+        if (rLater && rOnline) {
+            rLater.checked = (mode === 'PAY_LATER');
+            rOnline.checked = (mode === 'ONLINE');
+            document.getElementById('payLaterCard')?.classList.toggle('selected', mode === 'PAY_LATER');
+            document.getElementById('payOnlineCard')?.classList.toggle('selected', mode === 'ONLINE');
+        }
+    }
+
+    function validateAndSubmitOrder() {
+        if (!isTableSelected) {
+            const takeawayModal = new bootstrap.Modal(document.getElementById('takeawayConfirmModal'));
+            takeawayModal.show();
+        } else {
+            submitCheckoutForm();
+        }
+    }
+
+    function proceedTakeawaySubmit() {
+        const modalEl = document.getElementById('takeawayConfirmModal');
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
+        submitCheckoutForm();
+    }
+
+    function submitCheckoutForm() {
+        const btn = document.getElementById('placeOrderBtn');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Placing Order...';
+        }
+        document.getElementById('checkoutForm').submit();
+    }
+</script>
+{% endblock %}

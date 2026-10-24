@@ -1,0 +1,387 @@
+{% extends 'base.html' %}
+
+{% block title %}Kitchen KDS - {{ restaurant.name|default:"Spice Garden" }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* KDS Custom Styling inspired by modern restaurant systems */
+    .kds-card {
+        border-radius: 20px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .kds-card:hover {
+        transform: translateY(-2px);
+    }
+    .dish-checkbox:checked + span {
+        text-decoration: line-through;
+        color: var(--text-muted);
+    }
+    .chime-pulse {
+        animation: ringPulse 1.2s infinite;
+    }
+    @keyframes ringPulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-3 px-md-4 py-3">
+
+    <!-- Top KDS Banner & Quick Stats -->
+    <div class="card-surface p-3 p-md-4 rounded-4 shadow-sm border mb-4" style="background: linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-surface-raised) 100%);">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div>
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="live-pulse-dot" style="background: #22c55e;"></span>
+                    <span class="badge bg-success bg-opacity-10 text-success border border-success fw-bold px-2 py-1" style="font-size: 0.7rem;">
+                        LIVE KDS SYNC
+                    </span>
+                    <span class="text-muted small">&bull; Auto-monitoring incoming tickets</span>
+                </div>
+                <h3 class="brand-font fw-bold mb-0">
+                    <i class="bi bi-fire text-warning me-1"></i> Kitchen Display System (KDS)
+                </h3>
+            </div>
+
+            <!-- Audio Chime Controls & Stat Chips -->
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <!-- Chime Toggle & Test Buttons -->
+                <div class="btn-group shadow-sm">
+                    <button type="button" id="chimeToggleBtn" onclick="toggleChime()" class="btn btn-sm btn-outline-surface fw-bold d-flex align-items-center gap-1">
+                        <i class="bi bi-volume-up-fill text-warning" id="chimeIcon"></i>
+                        <span id="chimeText">Chime: ON</span>
+                    </button>
+                    <button type="button" onclick="testChimeSound()" class="btn btn-sm btn-outline-surface" title="Test Order Chime Ding">
+                        <i class="bi bi-bell-fill text-warning"></i> Test Sound
+                    </button>
+                </div>
+
+                <!-- Live Counters -->
+                <div class="d-flex gap-2">
+                    <span class="badge bg-warning text-dark p-2 px-3 rounded-pill fw-bold">
+                        {{ pending_orders.count }} Queued
+                    </span>
+                    <span class="badge bg-primary text-white p-2 px-3 rounded-pill fw-bold">
+                        {{ preparing_orders.count }} Cooking
+                    </span>
+                    <span class="badge bg-success text-white p-2 px-3 rounded-pill fw-bold">
+                        {{ ready_orders.count }} Ready
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3-Column KDS Cooking Board -->
+    <div class="row g-4 mb-5">
+        
+        <!-- Column 1: Incoming / Queued Tickets -->
+        <div class="col-12 col-lg-4">
+            <div class="card-surface p-3 h-100 rounded-4 border-2 border-warning shadow-sm">
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                    <h5 class="fw-bold mb-0 text-warning d-flex align-items-center gap-2">
+                        <i class="bi bi-hourglass-split"></i> 1. Queued Tickets
+                    </h5>
+                    <span class="badge bg-warning text-dark rounded-pill">{{ pending_orders.count }}</span>
+                </div>
+
+                <div class="d-flex flex-column gap-3">
+                    {% for ord in pending_orders %}
+                    <div class="card-surface border rounded-3 p-3 shadow-sm bg-surface-raised kds-card" id="kds-ticket-{{ ord.id }}">
+                        <!-- Ticket Header -->
+                        <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                            <div>
+                                <span class="badge bg-dark text-white rounded-pill px-2" style="font-size: 0.72rem;">#SG-{{ ord.id }}</span>
+                                <strong class="fs-6 ms-1">Table {{ ord.table_number|default:'Takeaway' }}</strong>
+                            </div>
+                            <span class="small text-muted font-monospace"><i class="bi bi-clock me-1"></i>{{ ord.order_date|date:"h:i A" }}</span>
+                        </div>
+
+                        <div class="small text-muted mb-2">
+                            Guest: <strong>{{ ord.customer.name }}</strong>
+                        </div>
+
+                        {% if ord.special_instructions %}
+                        <div class="alert alert-warning py-1.5 px-2.5 small rounded-3 mb-2" style="font-size: 0.78rem;">
+                            <i class="bi bi-chat-quote-fill me-1 text-warning"></i>
+                            <strong>Chef Note:</strong> "{{ ord.special_instructions }}"
+                        </div>
+                        {% endif %}
+
+                        <!-- Dish Checklist with tickable inputs -->
+                        <div class="p-2 rounded-3 bg-surface border mb-3">
+                            <span class="text-uppercase small fw-bold text-muted d-block mb-1" style="font-size: 0.7rem;">Dish Checklist:</span>
+                            <div class="d-flex flex-column gap-1">
+                                {% for item in ord.items.all %}
+                                {% if not item.is_cancelled %}
+                                <label class="d-flex align-items-center gap-2 small py-1 cursor-pointer">
+                                    <input type="checkbox" class="form-check-input dish-checkbox m-0">
+                                    <span><strong class="text-danger">{{ item.quantity }}x</strong> {{ item.menu_item.name }}</span>
+                                </label>
+                                {% endif %}
+                                {% empty %}
+                                <span class="text-muted small fst-italic py-1 d-block">No items in this ticket</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Accept & Start Cooking Action -->
+                        <form method="POST" action="{% url 'orders:kitchen_update_status' ord.id %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="status" value="Preparing">
+                            <button type="submit" class="btn btn-warning w-100 py-2 rounded-3 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2">
+                                <i class="bi bi-fire"></i> Accept & Start Cooking
+                            </button>
+                        </form>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-5 text-muted small">
+                        <i class="bi bi-inbox fs-2 d-block mb-2 text-muted opacity-50"></i>
+                        <span>No new incoming orders</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Column 2: In Kitchen / Cooking -->
+        <div class="col-12 col-lg-4">
+            <div class="card-surface p-3 h-100 rounded-4 border-2 border-primary shadow-sm">
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                    <h5 class="fw-bold mb-0 text-primary d-flex align-items-center gap-2">
+                        <i class="bi bi-fire"></i> 2. Cooking in Kitchen
+                    </h5>
+                    <span class="badge bg-primary text-white rounded-pill">{{ preparing_orders.count }}</span>
+                </div>
+
+                <div class="d-flex flex-column gap-3">
+                    {% for ord in preparing_orders %}
+                    <div class="card-surface border rounded-3 p-3 shadow-sm bg-surface-raised kds-card" id="kds-ticket-{{ ord.id }}">
+                        <!-- Ticket Header -->
+                        <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                            <div>
+                                <span class="badge bg-primary text-white rounded-pill px-2" style="font-size: 0.72rem;">#SG-{{ ord.id }}</span>
+                                <strong class="fs-6 ms-1">Table {{ ord.table_number|default:'Takeaway' }}</strong>
+                            </div>
+                            <span class="small text-muted font-monospace"><i class="bi bi-clock me-1"></i>{{ ord.order_date|date:"h:i A" }}</span>
+                        </div>
+
+                        <div class="small text-muted mb-2">
+                            Guest: <strong>{{ ord.customer.name }}</strong>
+                        </div>
+
+                        {% if ord.special_instructions %}
+                        <div class="alert alert-warning py-1 px-2 small rounded-3 mb-2" style="font-size: 0.78rem;">
+                            <i class="bi bi-chat-quote-fill me-1 text-warning"></i>
+                            <strong>Chef Note:</strong> "{{ ord.special_instructions }}"
+                        </div>
+                        {% endif %}
+
+                        <!-- Dishes with item cancel option -->
+                        <div class="p-2 rounded-3 bg-surface border mb-3">
+                            <span class="text-uppercase small fw-bold text-muted d-block mb-1" style="font-size: 0.7rem;">Cooking Checklist:</span>
+                            <div class="d-flex flex-column gap-1">
+                                {% for item in ord.items.all %}
+                                <div class="d-flex justify-content-between align-items-center small py-1 {% if item.is_cancelled %}text-muted text-decoration-line-through{% endif %}">
+                                    <label class="d-flex align-items-center gap-2 cursor-pointer m-0">
+                                        <input type="checkbox" class="form-check-input dish-checkbox m-0" {% if item.is_cancelled %}disabled{% endif %}>
+                                        <span><strong class="text-primary">{{ item.quantity }}x</strong> {{ item.menu_item.name }}</span>
+                                    </label>
+                                    {% if not item.is_cancelled %}
+                                    <form method="POST" action="{% url 'orders:kitchen_cancel_item' item.id %}" class="d-inline" onsubmit="return confirm('Item out of ingredients? Cancel {{ item.menu_item.name }}?')">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-link text-danger p-0" title="Out of stock">
+                                            <i class="bi bi-x-circle"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Mark Ready Action -->
+                        <form method="POST" action="{% url 'orders:kitchen_update_status' ord.id %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="status" value="Ready">
+                            <button type="submit" class="btn btn-primary w-100 py-2 rounded-3 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2">
+                                <i class="bi bi-bell-fill"></i> Mark Plated & Ready
+                            </button>
+                        </form>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-5 text-muted small">
+                        <i class="bi bi-check2-circle fs-2 d-block mb-2 text-muted opacity-50"></i>
+                        <span>No dishes currently on the stove</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Column 3: Plated & Ready for Waiter Pickup -->
+        <div class="col-12 col-lg-4">
+            <div class="card-surface p-3 h-100 rounded-4 border-2 border-success shadow-sm">
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                    <h5 class="fw-bold mb-0 text-success d-flex align-items-center gap-2">
+                        <i class="bi bi-check2-all"></i> 3. Ready for Service
+                    </h5>
+                    <span class="badge bg-success text-white rounded-pill">{{ ready_orders.count }}</span>
+                </div>
+
+                <div class="d-flex flex-column gap-3">
+                    {% for ord in ready_orders %}
+                    <div class="card-surface border rounded-3 p-3 shadow-sm bg-surface-raised kds-card" id="kds-ticket-{{ ord.id }}">
+                        <!-- Ticket Header -->
+                        <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+                            <div>
+                                <span class="badge bg-success text-white rounded-pill px-2" style="font-size: 0.72rem;">#SG-{{ ord.id }}</span>
+                                <strong class="fs-6 ms-1">Table {{ ord.table_number|default:'Takeaway' }}</strong>
+                            </div>
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success">
+                                <i class="bi bi-bell-fill me-1"></i> Waiter Alerted
+                            </span>
+                        </div>
+
+                        <div class="small text-muted mb-2">
+                            Guest: <strong>{{ ord.customer.name }}</strong>
+                        </div>
+
+                        <div class="p-2 rounded-3 bg-surface border mb-3 small">
+                            <span class="text-uppercase small fw-bold text-muted d-block mb-1" style="font-size: 0.7rem;">Plated Dishes:</span>
+                            {% for item in ord.items.all %}
+                            {% if not item.is_cancelled %}
+                            <div class="text-muted py-0.5">
+                                <strong class="text-success">{{ item.quantity }}x</strong> {{ item.menu_item.name }}
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+
+                        <form method="POST" action="{% url 'orders:kitchen_update_status' ord.id %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="status" value="Served">
+                            <button type="submit" class="btn btn-success w-100 py-2 rounded-3 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2">
+                                <i class="bi bi-check2-circle"></i> Handed to Floor Waiter
+                            </button>
+                        </form>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-5 text-muted small">
+                        <i class="bi bi-cup-hot fs-2 d-block mb-2 text-muted opacity-50"></i>
+                        <span>No dishes waiting on the pass</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Kitchen Display Audio Chime & Live AJAX Sync System -->
+<script>
+    // 1. Dual-Tone Restaurant Bell Chime (Web Audio API - 100% Offline & Free of External Files)
+    function playKitchenOrderChime() {
+        if (localStorage.getItem('kds_chime_mute') === 'true') return;
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            const ctx = new AudioContext();
+
+            // First Bell Tone (High crisp ding - 880Hz / A5)
+            const osc1 = ctx.createOscillator();
+            const gain1 = ctx.createGain();
+            osc1.type = 'sine';
+            osc1.frequency.setValueAtTime(880, ctx.currentTime);
+            gain1.gain.setValueAtTime(0.35, ctx.currentTime);
+            gain1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.55);
+            osc1.connect(gain1);
+            gain1.connect(ctx.destination);
+            osc1.start();
+            osc1.stop(ctx.currentTime + 0.55);
+
+            // Second Bell Tone (Harmonic chime ring - 1320Hz / E6)
+            setTimeout(() => {
+                const osc2 = ctx.createOscillator();
+                const gain2 = ctx.createGain();
+                osc2.type = 'triangle';
+                osc2.frequency.setValueAtTime(1320, ctx.currentTime);
+                gain2.gain.setValueAtTime(0.25, ctx.currentTime);
+                gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.75);
+                osc2.connect(gain2);
+                gain2.connect(ctx.destination);
+                osc2.start();
+                osc2.stop(ctx.currentTime + 0.75);
+            }, 110);
+        } catch(e) {
+            console.debug('Chime error:', e);
+        }
+    }
+
+    // 2. Chime Sound Toggle & Memory
+    function updateChimeUI() {
+        const isMuted = localStorage.getItem('kds_chime_mute') === 'true';
+        const icon = document.getElementById('chimeIcon');
+        const text = document.getElementById('chimeText');
+        if (isMuted) {
+            icon.className = 'bi bi-volume-mute-fill text-secondary';
+            text.textContent = 'Chime: OFF';
+        } else {
+            icon.className = 'bi bi-volume-up-fill text-warning';
+            text.textContent = 'Chime: ON';
+        }
+    }
+
+    function toggleChime() {
+        const isMuted = localStorage.getItem('kds_chime_mute') === 'true';
+        localStorage.setItem('kds_chime_mute', isMuted ? 'false' : 'true');
+        updateChimeUI();
+        if (isMuted) {
+            playKitchenOrderChime();
+        }
+    }
+
+    function testChimeSound() {
+        playKitchenOrderChime();
+    }
+
+    updateChimeUI();
+
+    // 3. Smart Polling: Checks for new orders every 4 seconds without disruptive full reloads
+    let previousPendingCount = {{ pending_orders.count }};
+    let previousPreparingCount = {{ preparing_orders.count }};
+    let previousReadyCount = {{ ready_orders.count }};
+
+    function pollKDS() {
+        fetch("{% url 'orders:kitchen_dashboard' %}?json=1", {
+            headers: {'X-Requested-With': 'XMLHttpRequest'}
+        })
+        .then(res => {
+            if (!res.ok) return null;
+            return res.json();
+        })
+        .then(data => {
+            if (!data) return;
+            // If new pending tickets arrived: CHIME & Alert!
+            if (data.pending_count > previousPendingCount) {
+                playKitchenOrderChime();
+                showAppToast(`🔔 New Order Ticket Arrived in Kitchen!`, 'warning');
+                setTimeout(() => window.location.reload(), 700);
+            } else if (data.preparing_count !== previousPreparingCount || data.ready_count !== previousReadyCount || data.pending_count !== previousPendingCount) {
+                // If status shifted, update screen
+                window.location.reload();
+            }
+        })
+        .catch(err => console.debug('KDS poll err:', err));
+    }
+
+    setInterval(pollKDS, 4000);
+</script>
+{% endblock %}

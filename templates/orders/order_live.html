@@ -1,0 +1,288 @@
+{% extends 'base.html' %}
+
+{% block title %}Order #{{ order.id }} - Live Tracking{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Vertical Timeline */
+    .timeline {
+        position: relative;
+        padding-left: 2rem;
+        margin-top: 1.5rem;
+    }
+    .timeline::before {
+        content: '';
+        position: absolute;
+        top: 10px;
+        bottom: 10px;
+        left: 14px;
+        width: 3px;
+        background: var(--border-color);
+    }
+    .timeline-step {
+        position: relative;
+        margin-bottom: 2rem;
+    }
+    .timeline-step:last-child {
+        margin-bottom: 0;
+    }
+    .timeline-node {
+        position: absolute;
+        left: -2rem;
+        top: 0;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: var(--bg-surface);
+        border: 2px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.85rem;
+        z-index: 2;
+        transition: all 0.3s ease;
+    }
+    .timeline-step.completed .timeline-node {
+        background: var(--veg-color);
+        border-color: var(--veg-color);
+        color: #ffffff;
+    }
+    .timeline-step.active .timeline-node {
+        background: var(--color-primary);
+        border-color: var(--color-primary);
+        color: #ffffff;
+        box-shadow: 0 0 0 6px var(--color-primary-light);
+    }
+    .timeline-step.cancelled .timeline-node {
+        background: var(--nonveg-color);
+        border-color: var(--nonveg-color);
+        color: #ffffff;
+    }
+    .live-pulse-dot {
+        width: 8px;
+        height: 8px;
+        background-color: #22c55e;
+        border-radius: 50%;
+        display: inline-block;
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+        animation: pulseGreen 1.6s infinite;
+    }
+    @keyframes pulseGreen {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+        70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-3" style="max-width: 780px;">
+    <!-- Live Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="live-pulse-dot"></span>
+                <span class="small fw-bold text-uppercase tracking-wider text-success">Live Kitchen Status</span>
+            </div>
+            <h2 class="brand-font fw-bold mb-0">Order #{{ order.id }}</h2>
+        </div>
+        <div class="text-end">
+            <span class="badge bg-surface-raised border px-3 py-2 rounded-pill fw-bold" style="color: var(--text-primary);">
+                <i class="bi bi-geo-alt-fill text-danger me-1"></i> Table {{ order.table_number|default:'Takeaway' }}
+            </span>
+        </div>
+    </div>
+
+    <!-- Stepper Status Card -->
+    <div class="card-surface p-4 mb-4">
+        {% if order.status == 'Cancelled' %}
+            <div class="text-center py-3">
+                <div class="fs-1 text-danger mb-2"><i class="bi bi-x-circle-fill"></i></div>
+                <h4 class="fw-bold text-danger">Order Cancelled</h4>
+                <p class="text-muted small mb-0">This order has been cancelled and the table lock has been lifted.</p>
+            </div>
+        {% else %}
+            <!-- Current Status Message Hero -->
+            <div class="p-3 rounded-4 mb-4 text-center {% if order.status == 'Pending' %}bg-warning bg-opacity-10 border border-warning{% elif order.status == 'Preparing' %}bg-primary bg-opacity-10 border border-primary{% elif order.status == 'Ready' %}bg-success bg-opacity-10 border border-success{% else %}bg-surface-raised border{% endif %}">
+                {% if order.status == 'Pending' %}
+                    <h5 class="fw-bold text-warning mb-1">⏳ Order Queued in Kitchen</h5>
+                    <p class="text-muted small mb-0">The chef is reviewing your order ticket.</p>
+                {% elif order.status == 'Preparing' %}
+                    <h5 class="fw-bold text-primary mb-1">🔥 Cooking in Progress</h5>
+                    <p class="text-muted small mb-0">Dishes are being freshly prepared right now!</p>
+                {% elif order.status == 'Ready' %}
+                    <h5 class="fw-bold text-success mb-1">🔔 Ready to Serve!</h5>
+                    <p class="text-muted small mb-0">Plated dishes are ready for floor pickup.</p>
+                {% elif order.status == 'Served' %}
+                    <h5 class="fw-bold mb-1" style="color: var(--text-primary);">🍽️ Served at Table</h5>
+                    <p class="text-muted small mb-0">Enjoy your meal! Let staff know if you need anything.</p>
+                {% elif order.status == 'Completed' %}
+                    <h5 class="fw-bold text-success mb-1">🏆 Order Completed & Settled</h5>
+                    <p class="text-muted small mb-0">Thank you for dining with us!</p>
+                {% endif %}
+            </div>
+
+            <!-- Vertical Timeline Stepper -->
+            <div class="timeline">
+                <!-- Step 1: Received -->
+                <div class="timeline-step {% if order.status in 'Preparing,Ready,Served,Completed' %}completed{% elif order.status == 'Pending' %}active{% endif %}">
+                    <div class="timeline-node">
+                        {% if order.status in 'Preparing,Ready,Served,Completed' %}
+                            <i class="bi bi-check-lg"></i>
+                        {% else %}
+                            <i class="bi bi-clock-history"></i>
+                        {% endif %}
+                    </div>
+                    <h6 class="fw-bold mb-0">Order Received</h6>
+                    <span class="text-muted small">{{ order.order_date|date:"h:i A" }} &bull; Sent to kitchen</span>
+                </div>
+
+                <!-- Step 2: Preparing -->
+                <div class="timeline-step {% if order.status in 'Ready,Served,Completed' %}completed{% elif order.status == 'Preparing' %}active{% endif %}">
+                    <div class="timeline-node">
+                        {% if order.status in 'Ready,Served,Completed' %}
+                            <i class="bi bi-check-lg"></i>
+                        {% else %}
+                            <i class="bi bi-fire"></i>
+                        {% endif %}
+                    </div>
+                    <h6 class="fw-bold mb-0">Cooking in Kitchen</h6>
+                    <span class="text-muted small">Chef preparing food &bull; Cancellation locked</span>
+                </div>
+
+                <!-- Step 3: Ready -->
+                <div class="timeline-step {% if order.status in 'Served,Completed' %}completed{% elif order.status == 'Ready' %}active{% endif %}">
+                    <div class="timeline-node">
+                        {% if order.status in 'Served,Completed' %}
+                            <i class="bi bi-check-lg"></i>
+                        {% else %}
+                            <i class="bi bi-bell-fill"></i>
+                        {% endif %}
+                    </div>
+                    <h6 class="fw-bold mb-0">Food Plated & Ready</h6>
+                    <span class="text-muted small">Waiter bringing food to your table</span>
+                </div>
+
+                <!-- Step 4: Served / Settled -->
+                <div class="timeline-step {% if order.status == 'Completed' %}completed{% elif order.status == 'Served' %}active{% endif %}">
+                    <div class="timeline-node">
+                        <i class="bi bi-check2-all"></i>
+                    </div>
+                    <h6 class="fw-bold mb-0">Served & Bill Settled</h6>
+                    <span class="text-muted small">Dining complete &bull; Table lock released</span>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Ordered Items Card -->
+    <div class="card-surface p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
+            <h5 class="brand-font fw-bold mb-0">Ordered Dishes</h5>
+            {% if order.status != 'Cancelled' and order.status != 'Completed' %}
+                <a href="{% url 'menu:menu_list' %}" class="btn btn-outline-surface btn-sm rounded-pill px-3">
+                    <i class="bi bi-plus-lg me-1"></i> Order More
+                </a>
+            {% endif %}
+        </div>
+
+        <div class="d-flex flex-column gap-3 mb-3">
+            {% for itm in order.items.all %}
+            <div class="d-flex justify-content-between align-items-center {% if itm.is_cancelled %}text-muted text-decoration-line-through{% endif %}">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="fw-bold" style="color: var(--text-primary);">{{ itm.quantity }}x</span>
+                    <span class="fw-semibold" style="color: var(--text-primary);">{{ itm.menu_item.name }}</span>
+                    {% if itm.is_cancelled %}
+                        <span class="badge bg-secondary ms-2" style="font-size: 0.65rem;">Cancelled</span>
+                    {% endif %}
+                </div>
+
+                <div class="d-flex align-items-center gap-3">
+                    <span class="fw-bold" style="color: var(--text-primary);">₹{{ itm.subtotal }}</span>
+
+                    <!-- Partial item cancellation if Pending -->
+                    {% if order.can_customer_cancel and not itm.is_cancelled %}
+                    <form method="POST" action="{% url 'orders:order_item_cancel' order.id itm.id %}" onsubmit="return confirm('Remove {{ itm.menu_item.name }}?')">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-link text-danger p-0 text-decoration-none" title="Cancel this item">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="border-top pt-3">
+            <div class="d-flex justify-content-between text-muted small mb-1">
+                <span>Subtotal</span>
+                <span>₹{{ order.subtotal }}</span>
+            </div>
+            <div class="d-flex justify-content-between text-muted small mb-2">
+                <span>GST (5%)</span>
+                <span>₹{{ order.tax_amount }}</span>
+            </div>
+            <div class="d-flex justify-content-between fw-bold fs-5 border-top pt-2" style="color: var(--text-primary);">
+                <span>Total Amount:</span>
+                <span class="text-danger">₹{{ order.total_amount }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Actions (Settle Online, Cancel, Receipt) -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-5">
+        <div>
+            {% if order.can_customer_cancel %}
+                <form method="POST" action="{% url 'orders:order_cancel' order.id %}" onsubmit="return confirm('Are you sure you want to cancel your entire order?')">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3">
+                        <i class="bi bi-x-circle me-1"></i> Cancel Entire Order
+                    </button>
+                </form>
+            {% elif order.status in 'Preparing,Ready,Served' %}
+                <span class="text-muted small">
+                    <i class="bi bi-lock-fill text-warning me-1"></i> Food is cooking. Customer cancellation is locked.
+                </span>
+            {% endif %}
+        </div>
+
+        <div class="d-flex gap-2">
+            <a href="{% url 'orders:order_invoice' order.id %}" target="_blank" class="btn btn-outline-surface btn-sm rounded-pill px-3">
+                <i class="bi bi-printer me-1"></i> View Receipt
+            </a>
+
+            {% if order.payment_status == 'Pending' and order.status != 'Cancelled' %}
+                <a href="{% url 'orders:payment_gateway' order.id %}" class="btn btn-brand btn-sm rounded-pill px-4 fw-bold shadow">
+                    <i class="bi bi-credit-card me-1"></i> Pay Bill Online (₹{{ order.total_amount }})
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Real-time Polling Script for Order Status Stepper -->
+<script>
+    let currentStatus = "{{ order.status }}";
+    let orderId = {{ order.id }};
+
+    if (currentStatus !== 'Completed' && currentStatus !== 'Cancelled') {
+        setInterval(() => {
+            fetch("{% url 'orders:order_status_api' order.id %}")
+                .then(res => {
+                    if (!res.ok) return null;
+                    return res.json();
+                })
+                .then(data => {
+                    if (!data) return;
+                    if (data.status !== currentStatus) {
+                        window.location.reload();
+                    }
+                })
+                .catch(err => console.debug('Poller:', err));
+        }, 5000);
+    }
+</script>
+{% endblock %}

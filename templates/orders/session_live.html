@@ -1,0 +1,438 @@
+{% extends 'base.html' %}
+
+{% block title %}Live Dining Session #{{ session.id }} - {{ restaurant.name|default:"Spice Garden" }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Live Pulse Indicator */
+    .live-pulse-dot {
+        width: 10px;
+        height: 10px;
+        background-color: #22c55e;
+        border-radius: 50%;
+        display: inline-block;
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+        animation: pulseGreen 1.6s infinite;
+    }
+    @keyframes pulseGreen {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+        70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+    }
+
+    /* Horizontal Compact Stepper */
+    .status-steps {
+        display: flex;
+        justify-content: space-between;
+        position: relative;
+        margin: 1.25rem 0 0.75rem;
+    }
+    .status-steps::before {
+        content: '';
+        position: absolute;
+        top: 14px;
+        left: 20px;
+        right: 20px;
+        height: 2px;
+        background: var(--border-color);
+        z-index: 1;
+    }
+    .step-item {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        flex: 1;
+    }
+    .step-circle {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: var(--bg-surface);
+        border: 2px solid var(--border-color);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        font-weight: 700;
+        margin-bottom: 4px;
+        transition: all 0.25s ease;
+    }
+    .step-item.completed .step-circle {
+        background: var(--veg-color);
+        border-color: var(--veg-color);
+        color: #ffffff;
+    }
+    .step-item.active .step-circle {
+        background: var(--color-primary);
+        border-color: var(--color-primary);
+        color: #ffffff;
+        box-shadow: 0 0 0 4px var(--color-primary-light);
+    }
+    .step-label {
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        display: block;
+    }
+    .step-item.active .step-label,
+    .step-item.completed .step-label {
+        color: var(--text-primary);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-3" style="max-width: 820px;">
+    
+    <!-- Top Header Banner -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                {% if session.is_active %}
+                    <span class="live-pulse-dot"></span>
+                    <span class="small fw-bold text-uppercase tracking-wider text-success">Live Dining Session</span>
+                {% else %}
+                    <span class="badge bg-success">Session Completed</span>
+                {% endif %}
+            </div>
+            <h2 class="brand-font fw-bold mb-0">
+                Table {{ session.table_number|default:'Takeaway' }}
+            </h2>
+            <span class="text-muted small">Session #{{ session.id }} &bull; Started {{ session.started_at|date:"h:i A" }}</span>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+            <button type="button" class="btn btn-outline-surface btn-sm rounded-pill px-3 d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#waiterModal">
+                <i class="bi bi-bell-fill text-warning"></i> Call Staff
+            </button>
+            <a href="{% url 'menu:menu_list' %}" class="btn btn-brand btn-sm rounded-pill px-3 fw-bold d-flex align-items-center gap-1">
+                <i class="bi bi-plus-lg"></i> Add Food
+            </a>
+        </div>
+    </div>
+
+    <!-- Active Session Hero Banner -->
+    <div class="card-surface p-3 p-md-4 mb-4 border-warning shadow-sm" style="background: linear-gradient(135deg, var(--bg-surface) 0%, var(--color-primary-light) 100%);">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <div>
+                {% if is_all_served and session.is_active %}
+                    <h5 class="fw-bold mb-1 text-success">
+                        <i class="bi bi-check-circle-fill me-1"></i> All Ordered Dishes Served!
+                    </h5>
+                    <p class="text-muted small mb-0">Enjoy your delicious meal! Order more dishes anytime or settle the bill below.</p>
+                {% elif has_active_cooking %}
+                    <h5 class="fw-bold mb-1" style="color: var(--color-primary);">
+                        <i class="bi bi-fire me-1"></i> Kitchen is Cooking Your Dishes
+                    </h5>
+                    <p class="text-muted small mb-0">The chef is preparing your latest order round right now.</p>
+                {% elif not session.is_active %}
+                    <h5 class="fw-bold mb-1 text-success">
+                        <i class="bi bi-patch-check-fill me-1"></i> Bill Settled & Session Closed
+                    </h5>
+                    <p class="text-muted small mb-0">Thank you for dining with us at {{ restaurant.name|default:"Spice Garden" }}!</p>
+                {% else %}
+                    <h5 class="fw-bold mb-1">Active Dining Session in Progress</h5>
+                    <p class="text-muted small mb-0">{{ orders.count }} order round(s) placed for Table {{ session.table_number }}.</p>
+                {% endif %}
+            </div>
+
+            <div class="text-md-end">
+                <span class="small text-muted d-block" style="font-size: 0.75rem;">Consolidated Balance</span>
+                <span class="fs-4 fw-bold text-danger">₹{{ consolidated_total }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 1: ALL ORDERS IN REVERSE CHRONOLOGICAL ORDER (NEWEST AT TOP!) -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="brand-font fw-bold mb-0">
+            Order Rounds ({{ orders.count }})
+        </h5>
+        <span class="text-muted small">Newest order at the top</span>
+    </div>
+
+    <div class="d-flex flex-column gap-4 mb-5">
+        {% for ord in orders %}
+        <div class="card-surface p-3 p-md-4 shadow-sm position-relative {% if ord.status == 'Cancelled' %}opacity-75{% endif %}">
+            
+            <!-- Order Ticket Header -->
+            <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-2">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <span class="badge bg-dark text-white rounded-pill px-2 py-1" style="font-size: 0.72rem;">
+                            Ticket #{{ ord.id }}
+                        </span>
+                        <strong class="fs-6">{{ ord.order_date|date:"h:i A" }}</strong>
+                        {% if forloop.first and orders.count > 1 %}
+                            <span class="badge bg-warning text-dark rounded-pill px-2" style="font-size: 0.65rem;">Latest Round</span>
+                        {% endif %}
+                    </div>
+                    {% if ord.special_instructions %}
+                        <span class="text-muted small d-block" style="font-size: 0.72rem;">
+                            <i class="bi bi-chat-quote me-1"></i> "{{ ord.special_instructions }}"
+                        </span>
+                    {% endif %}
+                </div>
+
+                <div class="text-end">
+                    {% if ord.status == 'Pending' %}
+                        <span class="badge bg-warning text-dark px-2 py-1"><i class="bi bi-hourglass-split"></i> Queued</span>
+                    {% elif ord.status == 'Preparing' %}
+                        <span class="badge bg-primary px-2 py-1"><i class="bi bi-fire"></i> Cooking</span>
+                    {% elif ord.status == 'Ready' %}
+                        <span class="badge bg-info text-dark px-2 py-1"><i class="bi bi-bell-fill"></i> Ready</span>
+                    {% elif ord.status == 'Served' %}
+                        <span class="badge bg-success px-2 py-1"><i class="bi bi-check2-all"></i> Served</span>
+                    {% elif ord.status == 'Completed' %}
+                        <span class="badge bg-secondary px-2 py-1">Completed</span>
+                    {% elif ord.status == 'Cancelled' %}
+                        <span class="badge bg-danger px-2 py-1">Cancelled</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Horizontal Progress Stepper for This Order -->
+            {% if ord.status != 'Cancelled' %}
+            <div class="status-steps mb-3">
+                <!-- Step 1: Queued -->
+                <div class="step-item {% if ord.status in 'Preparing,Ready,Served,Completed' %}completed{% elif ord.status == 'Pending' %}active{% endif %}">
+                    <div class="step-circle">
+                        {% if ord.status in 'Preparing,Ready,Served,Completed' %}<i class="bi bi-check"></i>{% else %}1{% endif %}
+                    </div>
+                    <span class="step-label">Queued</span>
+                </div>
+
+                <!-- Step 2: Cooking -->
+                <div class="step-item {% if ord.status in 'Ready,Served,Completed' %}completed{% elif ord.status == 'Preparing' %}active{% endif %}">
+                    <div class="step-circle">
+                        {% if ord.status in 'Ready,Served,Completed' %}<i class="bi bi-check"></i>{% elif ord.status == 'Preparing' %}<i class="bi bi-fire"></i>{% else %}2{% endif %}
+                    </div>
+                    <span class="step-label">Cooking</span>
+                </div>
+
+                <!-- Step 3: Plated -->
+                <div class="step-item {% if ord.status in 'Served,Completed' %}completed{% elif ord.status == 'Ready' %}active{% endif %}">
+                    <div class="step-circle">
+                        {% if ord.status in 'Served,Completed' %}<i class="bi bi-check"></i>{% elif ord.status == 'Ready' %}<i class="bi bi-bell-fill"></i>{% else %}3{% endif %}
+                    </div>
+                    <span class="step-label">Ready</span>
+                </div>
+
+                <!-- Step 4: Served -->
+                <div class="step-item {% if ord.status in 'Served,Completed' %}completed{% endif %}">
+                    <div class="step-circle">
+                        <i class="bi bi-check2-all"></i>
+                    </div>
+                    <span class="step-label">Served</span>
+                </div>
+            </div>
+            {% else %}
+            <div class="alert alert-danger py-2 px-3 small rounded-3 my-2">
+                <i class="bi bi-x-circle-fill me-1"></i> This order ticket was cancelled.
+            </div>
+            {% endif %}
+
+            <!-- Order Items List -->
+            <div class="d-flex flex-column gap-2 mb-3">
+                {% for itm in ord.items.all %}
+                <div class="d-flex justify-content-between align-items-center {% if itm.is_cancelled %}text-muted text-decoration-line-through{% endif %} p-1">
+                    <div class="d-flex align-items-center gap-2">
+                        {% if itm.menu_item.is_veg %}
+                            <span class="veg-tag" style="font-size: 0.65rem;"><i class="bi bi-record-circle"></i></span>
+                        {% else %}
+                            <span class="nonveg-tag" style="font-size: 0.65rem;"><i class="bi bi-caret-up-square-fill"></i></span>
+                        {% endif %}
+                        <span class="fw-bold">{{ itm.quantity }}x</span>
+                        <span>{{ itm.menu_item.name }}</span>
+                        {% if itm.is_cancelled %}
+                            <span class="badge bg-secondary" style="font-size: 0.6rem;">Cancelled</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="fw-semibold">₹{{ itm.subtotal }}</span>
+
+                        <!-- Partial Item Cancellation if order is still Pending -->
+                        {% if ord.can_customer_cancel and not itm.is_cancelled %}
+                        <form method="POST" action="{% url 'orders:order_item_cancel' ord.id itm.id %}" onsubmit="return confirm('Cancel {{ itm.menu_item.name }}?')">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-link text-danger p-0 text-decoration-none" title="Cancel this item">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Order Ticket Footer (Total & Cancel Entire Order) -->
+            <div class="border-top pt-2 d-flex justify-content-between align-items-center">
+                <div>
+                    {% if ord.can_customer_cancel %}
+                        <form method="POST" action="{% url 'orders:order_cancel' ord.id %}" onsubmit="return confirm('Cancel this entire order round #{{ ord.id }}?')">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-danger btn-sm py-1 px-3 rounded-pill" style="font-size: 0.75rem;">
+                                <i class="bi bi-x-circle me-1"></i> Cancel Round
+                            </button>
+                        </form>
+                    {% elif ord.status in 'Preparing,Ready,Served' %}
+                        <span class="text-muted small" style="font-size: 0.72rem;">
+                            <i class="bi bi-lock-fill text-warning me-1"></i> In preparation (Cancellation locked)
+                        </span>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <span class="text-muted small me-2">Ticket Total:</span>
+                    <strong class="fs-6">₹{{ ord.total_amount }}</strong>
+                </div>
+            </div>
+
+        </div>
+        {% empty %}
+        <div class="text-center py-5">
+            <div class="card-surface p-5 rounded-4 mx-auto" style="max-width: 480px;">
+                <i class="bi bi-cart-x fs-1 text-muted mb-3 d-block"></i>
+                <h5 class="fw-bold mb-1">No Orders in this Session</h5>
+                <p class="text-muted small mb-3">Browse our digital menu to place your first dishes!</p>
+                <a href="{% url 'menu:menu_list' %}" class="btn btn-brand px-4 rounded-pill">Explore Menu</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- SECTION 2: CONSOLIDATED SESSION BILL AT BOTTOM (Grand Total & Settlement) -->
+    <div class="card-surface p-4 rounded-4 shadow-lg border-2 mb-5" style="border-color: var(--color-primary);">
+        <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-3">
+            <div>
+                <h4 class="brand-font fw-bold mb-1">Consolidated Dining Bill</h4>
+                <span class="text-muted small">Summary of all {{ orders.count }} order round(s) in Session #{{ session.id }}</span>
+            </div>
+            <div>
+                {% if is_fully_paid or not session.is_active %}
+                    <span class="badge bg-success px-3 py-2 rounded-pill fw-bold">
+                        <i class="bi bi-check-circle-fill me-1"></i> Paid & Settled
+                    </span>
+                {% else %}
+                    <span class="badge bg-warning text-dark px-3 py-2 rounded-pill fw-bold">
+                        <i class="bi bi-clock-fill me-1"></i> Payment Pending
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- All Items Consolidated Table Summary -->
+        <div class="table-responsive mb-3">
+            <table class="table table-sm align-middle">
+                <thead>
+                    <tr class="text-muted small border-bottom">
+                        <th>Dish Item</th>
+                        <th class="text-center">Total Qty</th>
+                        <th class="text-end">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for itm in all_items %}
+                    <tr>
+                        <td>
+                            {% if itm.menu_item.is_veg %}
+                                <span class="veg-tag me-1" style="font-size: 0.6rem;"><i class="bi bi-record-circle"></i></span>
+                            {% else %}
+                                <span class="nonveg-tag me-1" style="font-size: 0.6rem;"><i class="bi bi-caret-up-square-fill"></i></span>
+                            {% endif %}
+                            <span>{{ itm.menu_item.name }}</span>
+                        </td>
+                        <td class="text-center fw-semibold">{{ itm.quantity }}</td>
+                        <td class="text-end fw-semibold">₹{{ itm.subtotal }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="text-center text-muted py-3">No active items in session.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Bill Totals Breakdown -->
+        <div class="d-flex flex-column gap-1 border-top pt-3 mb-4">
+            <div class="d-flex justify-content-between text-muted small">
+                <span>Dishes Subtotal</span>
+                <span class="fw-semibold">₹{{ consolidated_subtotal }}</span>
+            </div>
+            <div class="d-flex justify-content-between text-muted small">
+                <span>GST (5% Hospitality Tax)</span>
+                <span class="fw-semibold">₹{{ consolidated_tax }}</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center fs-4 fw-bold border-top pt-2 mt-2">
+                <span>Grand Total:</span>
+                <span class="text-danger">₹{{ consolidated_total }}</span>
+            </div>
+        </div>
+
+        <!-- Bottom Actions (Settle Bill, View Receipt, Call Staff) -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div class="d-flex gap-2">
+                <a href="{% url 'orders:session_invoice' session.id %}" target="_blank" class="btn btn-outline-surface btn-sm rounded-pill px-3">
+                    <i class="bi bi-printer me-1"></i> Consolidated Receipt
+                </a>
+                <a href="{% url 'menu:menu_list' %}" class="btn btn-outline-surface btn-sm rounded-pill px-3">
+                    <i class="bi bi-plus-lg me-1"></i> Order More Food
+                </a>
+            </div>
+
+            <div>
+                {% if session.is_active and not is_fully_paid %}
+                    {% if is_all_served %}
+                        <a href="{% url 'orders:session_payment_gateway' session.id %}" class="btn btn-brand btn-lg rounded-pill px-4 fw-bold shadow">
+                            <i class="bi bi-credit-card me-1"></i> Settle Bill & Pay (₹{{ consolidated_total }})
+                        </a>
+                    {% else %}
+                        <div class="d-flex flex-column align-items-md-end">
+                            <button type="button" class="btn btn-secondary btn-lg rounded-pill px-4 fw-bold opacity-75 shadow-sm" disabled title="Bill settlement is available once all dishes are served to your table">
+                                <i class="bi bi-hourglass-split me-1"></i> Cooking / Delivering to Table
+                            </button>
+                            <span class="text-warning small mt-1" style="font-size: 0.76rem;">
+                                <i class="bi bi-info-circle-fill me-1"></i> Bill can be settled once all ordered dishes are delivered.
+                            </span>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="text-success small fw-semibold">
+                        <i class="bi bi-shield-check fs-5 me-1"></i> Table {{ session.table_number }} lock has been lifted.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Real-time Polling for Live Session Updates -->
+<script>
+    const sessionId = {{ session.id }};
+    const isSessionActive = {{ session.is_active|yesno:'true,false' }};
+    let currentStatusHash = "{{ status_hash|default:'' }}";
+
+    if (isSessionActive) {
+        setInterval(() => {
+            fetch("{% url 'orders:session_status_api' session.id %}")
+                .then(res => {
+                    if (!res.ok) return null;
+                    return res.json();
+                })
+                .then(data => {
+                    if (!data) return;
+                    // If session ended or order status progressed (e.g. food served), refresh live screen!
+                    if (!data.is_active || (data.status_hash && data.status_hash !== currentStatusHash)) {
+                        window.location.reload();
+                    }
+                })
+                .catch(err => console.debug('Session poller:', err));
+        }, 3500);
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,116 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static admin_kpis %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static "admin/css/dashboard.css" %}">
+{% endblock %}
+
+{% block coltype %}colMS{% endblock %}
+
+{% block bodyclass %}{{ block.super }} dashboard{% endblock %}
+
+{% block nav-breadcrumbs %}{% endblock %}
+
+{% block content %}
+<div id="content-main">
+
+  <!-- Executive Live KPI Row -->
+  {% get_admin_dashboard_kpis as kpi %}
+  <div class="admin-kpi-grid">
+    <div class="admin-kpi-card">
+      <div class="admin-kpi-title"><i class="bi bi-cash-stack text-success"></i> Total Settled Revenue</div>
+      <div class="admin-kpi-val" style="color: #16a34a;">₹{{ kpi.total_revenue }}</div>
+    </div>
+    <div class="admin-kpi-card">
+      <div class="admin-kpi-title"><i class="bi bi-calendar2-check text-primary"></i> Today's Inflow</div>
+      <div class="admin-kpi-val" style="color: #2563eb;">₹{{ kpi.today_revenue }}</div>
+    </div>
+    <div class="admin-kpi-card">
+      <div class="admin-kpi-title"><i class="bi bi-fire text-warning"></i> Active Floor Orders</div>
+      <div class="admin-kpi-val" style="color: #d97706;">{{ kpi.active_orders }}</div>
+    </div>
+    <div class="admin-kpi-card">
+      <div class="admin-kpi-title"><i class="bi bi-grid-3x3-gap text-danger"></i> Occupied Tables</div>
+      <div class="admin-kpi-val" style="color: #dc2626;">{{ kpi.locked_tables }} <span style="font-size: 0.9rem; font-weight: 500; color: #64748b;">/ {{ kpi.total_tables }}</span></div>
+    </div>
+    <div class="admin-kpi-card">
+      <div class="admin-kpi-title"><i class="bi bi-book-half text-info"></i> Dishes in Menu</div>
+      <div class="admin-kpi-val">{{ kpi.menu_items }}</div>
+    </div>
+    <div class="admin-kpi-card">
+      <div class="admin-kpi-title"><i class="bi bi-people-fill text-secondary"></i> Restaurant Staff</div>
+      <div class="admin-kpi-val">{{ kpi.staff }}</div>
+    </div>
+  </div>
+
+  <!-- Operational Quick Action Launchpad -->
+  <div class="admin-launchpad">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+      <div>
+        <h3><i class="bi bi-lightning-charge-fill" style="color: #f59e0b;"></i> Restaurant Operations Launchpad</h3>
+        <p style="margin: 0; font-size: 0.82rem; color: #94a3b8;">High-frequency controls for manager, floor supervisor, and dining management.</p>
+      </div>
+      <div>
+        <a href="{% url 'orders:manager_dashboard' %}" class="launchpad-btn" style="background: #f59e0b; color: #000 !important; font-weight: 700;">
+          <i class="bi bi-speedometer2"></i> Open Full Manager Console
+        </a>
+      </div>
+    </div>
+
+    <div class="launchpad-btn-group">
+      <a href="{% url 'admin:menu_menuitem_add' %}" class="launchpad-btn">
+        <i class="bi bi-plus-circle text-warning"></i> Add Food Item
+      </a>
+      <a href="{% url 'admin:orders_restauranttable_add' %}" class="launchpad-btn">
+        <i class="bi bi-plus-circle text-info"></i> Add Dining Table
+      </a>
+      <a href="{% url 'admin:accounts_staffprofile_add' %}" class="launchpad-btn">
+        <i class="bi bi-person-plus text-success"></i> Add Staff Account
+      </a>
+      <a href="{% url 'orders:kitchen_dashboard' %}" target="_blank" class="launchpad-btn">
+        <i class="bi bi-display text-warning"></i> Launch Kitchen KDS
+      </a>
+      <a href="{% url 'orders:waiter_dashboard' %}" target="_blank" class="launchpad-btn">
+        <i class="bi bi-bell-concierge text-success"></i> Launch Waiter Grid
+      </a>
+    </div>
+  </div>
+
+  <!-- Standard Django App & Model Registry Tables -->
+  {% include "admin/app_list.html" with app_list=app_list %}
+
+</div>
+{% endblock %}
+
+{% block sidebar %}
+<div id="content-related">
+    <div class="module" id="recent-actions-module">
+        <h2>{% translate 'Recent Actions' %}</h2>
+        <h3>{% translate 'My Actions' %}</h3>
+        {% load log %}
+        {% get_admin_log 10 as admin_log for_user user %}
+        {% if not admin_log %}
+            <p style="padding: 14px; font-size: 0.82rem; color: #64748b;">{% translate 'None available' %}</p>
+        {% else %}
+            <ul class="actionlist" style="padding: 10px 16px;">
+            {% for entry in admin_log %}
+                <li class="{% if entry.is_addition %}addlink{% endif %}{% if entry.is_change %}changelink{% endif %}{% if entry.is_deletion %}deletelink{% endif %}" style="font-size: 0.82rem; margin-bottom: 8px;">
+                    {% if entry.is_deletion or not entry.get_admin_url %}
+                        {{ entry.object_repr }}
+                    {% else %}
+                        <a href="{{ entry.get_admin_url }}">{{ entry.object_repr }}</a>
+                    {% endif %}
+                    <br>
+                    {% if entry.content_type %}
+                        <span class="mini quiet" style="font-size: 0.75rem; color: #94a3b8;">{% filter capfirst %}{{ entry.content_type.name }}{% endfilter %}</span>
+                    {% else %}
+                        <span class="mini quiet" style="font-size: 0.75rem; color: #94a3b8;">{% translate 'Unknown content' %}</span>
+                    {% endif %}
+                </li>
+            {% endfor %}
+            </ul>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

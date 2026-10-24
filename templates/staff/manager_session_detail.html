@@ -1,0 +1,388 @@
+{% extends 'base.html' %}
+
+{% block title %}Session #SESS-{{ session.id }} - Manager Audit{% endblock %}
+
+{% block extra_css %}
+<style>
+    .session-audit-container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding-top: 1rem;
+        padding-bottom: 120px !important; /* Ample breathing room above fixed bottom navigation */
+        overflow-x: hidden;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    .session-hero-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        box-sizing: border-box;
+        max-width: 100%;
+        overflow: hidden;
+    }
+    @media (max-width: 576px) {
+        .session-audit-container {
+            padding-left: 0.75rem;
+            padding-right: 0.75rem;
+        }
+        .session-hero-card {
+            border-radius: 16px;
+            padding: 1.25rem 1rem !important;
+        }
+        .hero-title-amount {
+            font-size: 1.75rem !important;
+        }
+        .mobile-stack-btn {
+            width: 100%;
+        }
+        .mobile-stack-btn .btn, .mobile-stack-btn form {
+            flex: 1 1 100%;
+        }
+        .mobile-stack-btn button, .mobile-stack-btn a {
+            width: 100%;
+            text-align: center;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid session-audit-container">
+
+    <!-- Top Bar: Back Link & Quick Table Badge -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <a href="{% url 'orders:manager_dashboard' %}?order_filter=all" class="btn btn-sm btn-outline-surface rounded-pill px-3 py-1.5 fw-semibold d-inline-flex align-items-center gap-1.5">
+            <i class="bi bi-arrow-left"></i>
+            <span>Floor Orders</span>
+        </a>
+        <div class="d-flex align-items-center gap-1.5">
+            {% if session.table %}
+                <span class="badge bg-primary rounded-pill px-2.5 py-1 fw-bold">
+                    <i class="bi bi-geo-alt-fill me-1"></i>Table {{ session.table_number }}
+                </span>
+            {% else %}
+                <span class="badge bg-secondary rounded-pill px-2.5 py-1 fw-bold">Takeaway</span>
+            {% endif %}
+            {% if session.is_active %}
+                <span class="badge bg-warning text-dark rounded-pill px-2.5 py-1 fw-bold">
+                    <i class="bi bi-hourglass-split me-1"></i>Active Dining
+                </span>
+            {% else %}
+                <span class="badge bg-success rounded-pill px-2.5 py-1 fw-bold">
+                    <i class="bi bi-check2-all me-1"></i>Settled
+                </span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Executive Session Summary Header Card (Mobile-First) -->
+    <div class="session-hero-card shadow-sm p-3.5 p-sm-4 p-md-4 mb-3.5">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+            <div>
+                <span class="text-muted small text-uppercase fw-bold" style="letter-spacing: 0.5px; font-size: 0.72rem;">
+                    Dining Session #SESS-{{ session.id }}
+                </span>
+                <div class="d-flex align-items-baseline gap-2 mt-1 mb-1">
+                    <h2 class="fw-black brand-font mb-0 text-success hero-title-amount" style="font-size: 2.25rem; letter-spacing: -0.5px;">
+                        ₹{{ total_amount|floatformat:2 }}
+                    </h2>
+                    <span class="text-muted small fw-semibold">Grand Total</span>
+                </div>
+                <div class="d-flex align-items-center gap-2 flex-wrap text-muted small mt-1.5" style="font-size: 0.78rem;">
+                    <span><i class="bi bi-person text-primary me-1"></i><strong style="color: var(--text-primary);">{{ session.customer.name }}</strong></span>
+                    <span>&bull;</span>
+                    <span><i class="bi bi-clock me-1"></i>{{ session.started_at|date:"h:i A" }} ({{ session.duration_display }})</span>
+                    <span>&bull;</span>
+                    <span>{{ orders.count }} Ticket{{ orders.count|pluralize }}</span>
+                </div>
+            </div>
+
+            <!-- Action Buttons Group (Stacked cleanly on mobile, inline on desktop) -->
+            <div class="d-flex align-items-center gap-2 flex-wrap mobile-stack-btn w-100 w-md-auto">
+                <a href="{% url 'orders:session_invoice' session.id %}" target="_blank" class="btn btn-brand text-white rounded-pill px-3.5 py-2 fw-semibold shadow-sm" style="font-size: 0.85rem;">
+                    <i class="bi bi-printer me-1.5"></i> Printable Invoice
+                </a>
+                {% if can_relock %}
+                <form method="POST" action="{% url 'orders:waiter_relock_table' session.table.id %}" class="d-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="session_id" value="{{ session.id }}">
+                    <button type="submit" class="btn btn-outline-surface text-warning rounded-pill px-3 py-2 fw-semibold" style="font-size: 0.85rem;" onclick="return confirm('Re-lock Table {{ session.table.table_number }} to {{ session.customer.name }}?')">
+                        <i class="bi bi-lock-fill me-1"></i> Re-Lock Table
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 2-Column Responsive Layout -->
+    <div class="row g-3 g-md-4">
+        <!-- Left Column: Itemized Ticket Rounds & Financials -->
+        <div class="col-lg-8">
+            <!-- Ordered Tickets Card -->
+            <div class="card-surface rounded-4 border shadow-sm p-3 p-sm-4 mb-3.5">
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-2.5 border-bottom">
+                    <h5 class="brand-font fw-bold mb-0 fs-6 fs-sm-5" style="color: var(--text-primary);">
+                        <i class="bi bi-receipt-cutoff text-primary me-2"></i>Ordered Rounds ({{ orders.count }})
+                    </h5>
+                    <span class="badge bg-surface-raised border text-secondary rounded-pill px-2.5 py-1" style="font-size: 0.72rem;">
+                        {{ orders.count }} Ticket{{ orders.count|pluralize }} Placed
+                    </span>
+                </div>
+
+                <!-- Ticket Rounds Loop -->
+                {% for ord in orders %}
+                <div class="mb-4 pb-3 {% if not forloop.last %}border-bottom{% endif %}" id="order-{{ ord.id }}">
+                    <!-- Round Header Bar (Borderless & Clean) -->
+                    <div class="d-flex justify-content-between align-items-center mb-2.5 flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="fw-bold fs-6" style="color: var(--text-primary);">Round {{ forloop.counter }} (Order #{{ ord.id }})</span>
+                            <span class="badge {% if ord.status == 'Served' or ord.status == 'Completed' %}bg-success{% elif ord.status == 'Cancelled' %}bg-danger{% else %}bg-warning text-dark{% endif %} rounded-pill px-2 py-0.5" style="font-size: 0.70rem;">
+                                {{ ord.status }}
+                            </span>
+                            <span class="text-muted small">&bull; {{ ord.order_date|date:"h:i A" }}</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="fw-black brand-font" style="color: var(--text-primary); font-size: 1rem;">₹{{ ord.total_amount|floatformat:2 }}</span>
+                            <a href="{% url 'orders:order_live' ord.id %}" target="_blank" class="btn btn-xs btn-outline-surface rounded-pill px-2.5 py-1" style="font-size: 0.72rem;" title="KDS Tracker">
+                                <i class="bi bi-eye me-1"></i> Track
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Desktop Table View (md and up) -->
+                    <div class="table-responsive d-none d-md-block">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead class="small text-secondary bg-surface-raised">
+                                <tr>
+                                    <th class="ps-2">Item</th>
+                                    <th>Category</th>
+                                    <th class="text-center">Qty</th>
+                                    <th class="text-end">Price</th>
+                                    <th class="text-end pe-2">Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in ord.items.all %}
+                                <tr>
+                                    <td class="ps-2">
+                                        <div class="d-flex align-items-center gap-2.5">
+                                            <img src="{{ item.menu_item.get_image_url }}" alt="{{ item.menu_item.name }}" class="app-dish-thumb shadow-sm" loading="lazy">
+                                            <div>
+                                                <strong class="d-block" style="font-size: 0.88rem; color: var(--text-primary);">{{ item.menu_item.name }}</strong>
+                                                {% if item.is_cancelled %}
+                                                    <span class="badge bg-danger rounded-pill px-1.5 py-0" style="font-size: 0.65rem;">Cancelled</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="small text-muted">{{ item.menu_item.category.name }}</td>
+                                    <td class="text-center fw-bold">{{ item.quantity }}</td>
+                                    <td class="text-end small text-muted">₹{{ item.price|floatformat:2 }}</td>
+                                    <td class="text-end pe-2 fw-bold" style="color: var(--text-primary);">₹{{ item.subtotal|floatformat:2 }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-3">No items in this ticket.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Mobile Clean Items List (< 768px - Modular Responsive System) -->
+                    <div class="d-md-none d-flex flex-column">
+                        {% for item in ord.items.all %}
+                        <div class="app-dish-item">
+                            <img src="{{ item.menu_item.get_image_url }}" alt="{{ item.menu_item.name }}" class="app-dish-thumb shadow-sm" loading="lazy">
+                            <div class="app-dish-info">
+                                <div class="d-flex align-items-center gap-1 flex-wrap">
+                                    <span class="app-dish-name">{{ item.menu_item.name }}</span>
+                                    {% if item.is_cancelled %}
+                                        <span class="badge bg-danger rounded-pill px-1.5 py-0" style="font-size: 0.62rem;">Cancelled</span>
+                                    {% endif %}
+                                </div>
+                                <div class="app-dish-meta mt-1">
+                                    <span class="fw-semibold">{{ item.quantity }} &times; ₹{{ item.price|floatformat:2 }}</span>
+                                    <span class="text-secondary opacity-75">&bull; {{ item.menu_item.category.name }}</span>
+                                </div>
+                            </div>
+                            <div class="app-dish-price">
+                                ₹{{ item.subtotal|floatformat:2 }}
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center text-muted small py-2">No items in this round.</div>
+                        {% endfor %}
+                    </div>
+
+                    {% if ord.special_instructions %}
+                    <div class="mt-2.5 p-2 bg-surface-raised rounded-3 text-warning small" style="font-size: 0.74rem;">
+                        <i class="bi bi-chat-left-text me-1 text-primary"></i> <strong>Kitchen Note:</strong> {{ ord.special_instructions }}
+                    </div>
+                    {% endif %}
+                </div>
+                {% empty %}
+                <div class="text-center py-4 text-muted">No orders recorded in this session.</div>
+                {% endfor %}
+
+                <!-- Receipt / Bill Summary Breakdown -->
+                <div class="p-3 bg-surface-raised rounded-3 border mt-3">
+                    <h6 class="fw-bold mb-2 small text-uppercase text-muted" style="letter-spacing: 0.5px;">Bill Summary</h6>
+                    <div class="d-flex justify-content-between align-items-center py-1">
+                        <span class="text-muted small">Items Subtotal:</span>
+                        <strong style="color: var(--text-primary);">₹{{ subtotal|floatformat:2 }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center py-1 border-top">
+                        <span class="text-muted small">GST Tax (5%):</span>
+                        <span class="text-muted">₹{{ tax_amount|floatformat:2 }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center py-2 border-top">
+                        <span class="fw-bold fs-6" style="color: var(--text-primary);">Session Grand Total:</span>
+                        <h4 class="fw-black brand-font mb-0 text-success" style="letter-spacing: -0.5px;">₹{{ total_amount|floatformat:2 }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Guest Profile & Payment Records -->
+        <div class="col-lg-4">
+            <!-- Guest & Dining Information Card -->
+            <div class="card-surface rounded-4 border shadow-sm p-3 p-sm-3.5 mb-3.5">
+                <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
+                    <h6 class="fw-bold mb-0 text-uppercase small text-muted" style="letter-spacing: 0.5px;">
+                        <i class="bi bi-person-circle text-primary me-1.5"></i>Guest &amp; Table
+                    </h6>
+                    <span class="badge bg-surface-raised border text-body" style="font-size: 0.70rem;">
+                        {% if session.table %}Dine-In{% else %}Takeaway{% endif %}
+                    </span>
+                </div>
+
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center fw-bold flex-shrink-0 shadow-sm" style="width: 44px; height: 44px; font-size: 1.15rem;">
+                        {{ session.customer.name|slice:":1"|upper }}
+                    </div>
+                    <div class="min-w-0">
+                        <strong class="d-block text-truncate fs-6" style="color: var(--text-primary);">{{ session.customer.name }}</strong>
+                        <span class="text-muted small text-truncate d-block" style="font-size: 0.75rem;">{{ session.customer.email }}</span>
+                    </div>
+                </div>
+
+                <div class="small">
+                    <div class="d-flex justify-content-between py-1.5 border-top">
+                        <span class="text-muted">Phone:</span>
+                        <span class="fw-semibold">{{ session.customer.phone|default:"Not provided" }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-1.5 border-top">
+                        <span class="text-muted">Table Assigned:</span>
+                        <strong style="color: var(--text-primary);">Table {{ session.table_number }}</strong>
+                    </div>
+                    {% if session.table %}
+                    <div class="d-flex justify-content-between py-1.5 border-top">
+                        <span class="text-muted">Capacity &amp; Status:</span>
+                        <span>{{ session.table.capacity }} Seats &bull; {% if session.table.is_locked %}<span class="badge bg-danger rounded-pill px-2 py-0.5">Locked</span>{% else %}<span class="badge bg-success rounded-pill px-2 py-0.5">Free</span>{% endif %}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Payment Audit Trail Card (Consolidated Receipts & Installment Distinction) -->
+            <div class="card-surface rounded-4 border shadow-sm p-3 p-sm-3.5 mb-3.5">
+                <div class="d-flex justify-content-between align-items-center mb-2.5 pb-2 border-bottom">
+                    <div>
+                        <h6 class="fw-bold mb-0 text-uppercase small text-muted" style="letter-spacing: 0.5px;">
+                            <i class="bi bi-wallet2 text-success me-1.5"></i>Payment Receipts
+                        </h6>
+                        <span class="text-muted small" style="font-size: 0.70rem;">{{ combined_payments|length }} Settlement{{ combined_payments|length|pluralize }} Recorded</span>
+                    </div>
+                    <span class="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-2.5 py-1" style="font-size: 0.70rem;">
+                        ₹{{ total_paid|floatformat:2 }} Settled
+                    </span>
+                </div>
+
+                <div class="d-flex flex-column gap-2.5">
+                    {% for rcp in combined_payments %}
+                    <div class="app-card border rounded-3 p-2.5 mb-0" style="background: var(--bg-surface-raised);">
+                        <!-- Receipt Top Row: Icon, Receipt #, Method, Status, Amount -->
+                        <div class="d-flex justify-content-between align-items-start mb-1.5">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="app-payment-icon {% if rcp.method == 'ONLINE_UPI' %}bg-primary bg-opacity-10 text-primary{% elif rcp.method == 'CASH_COUNTER' %}bg-success bg-opacity-10 text-success{% else %}bg-info bg-opacity-10 text-info{% endif %}">
+                                    {% if rcp.method == 'ONLINE_UPI' %}
+                                        <i class="bi bi-qr-code"></i>
+                                    {% elif rcp.method == 'CASH_COUNTER' %}
+                                        <i class="bi bi-cash"></i>
+                                    {% else %}
+                                        <i class="bi bi-credit-card"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <strong class="small d-block" style="color: var(--text-primary); line-height: 1.25;">
+                                        Receipt #{{ rcp.receipt_index }} &bull; {{ rcp.method_display }}
+                                    </strong>
+                                    <span class="text-muted" style="font-size: 0.70rem;">
+                                        <i class="bi bi-clock me-0.5"></i>{{ rcp.payment_date|date:"h:i A, d M" }}
+                                        {% if rcp.collected_by %}
+                                            &bull; Waiter: {{ rcp.collected_by.get_full_name|default:rcp.collected_by.username }}
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-success rounded-pill px-2 py-0.5 d-inline-block mb-0.5" style="font-size: 0.68rem;">
+                                    {{ rcp.status }}
+                                </span>
+                                <div class="text-success fw-bold fs-6">₹{{ rcp.total_amount|floatformat:2 }}</div>
+                            </div>
+                        </div>
+
+                        <!-- Transaction Reference -->
+                        {% if rcp.transaction_id %}
+                        <div class="small text-muted font-monospace ps-1 mb-1.5" style="font-size: 0.68rem;">
+                            Txn Ref: <code>{{ rcp.transaction_id }}</code>
+                        </div>
+                        {% endif %}
+
+                        <!-- Covered Orders & Round Breakdown -->
+                        <div class="border-top pt-1.5" style="border-color: var(--border-color) !important;">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="small fw-semibold text-muted" style="font-size: 0.72rem;">
+                                    <i class="bi bi-check2-circle text-success me-1"></i>Covered: <strong>{{ rcp.orders_label }}</strong>
+                                </span>
+                                {% if rcp.payments_count > 1 %}
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-1.5 py-0.5" style="font-size: 0.65rem;">
+                                    {{ rcp.payments_count }} Combined Orders
+                                </span>
+                                {% endif %}
+                            </div>
+
+                            <!-- List each order covered in this receipt -->
+                            <div class="d-flex flex-column gap-1">
+                                {% for co in rcp.covered_orders %}
+                                <div class="d-flex justify-content-between align-items-center small py-0.5 px-2 rounded-2" style="background: var(--bg-surface); font-size: 0.73rem;">
+                                    <div class="text-truncate me-2">
+                                        <span class="fw-bold" style="color: var(--text-primary);">Round {{ co.round_number }} (Order #{{ co.order_id }}):</span>
+                                        <span class="text-muted ms-1">{{ co.items_summary }}</span>
+                                    </div>
+                                    <span class="fw-bold text-success flex-shrink-0">₹{{ co.amount|floatformat:2 }}</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-muted small fst-italic py-2">No payment transactions recorded yet.</div>
+                    {% endfor %}
+                </div>
+
+                {% if balance_due > 0 %}
+                <div class="alert alert-warning py-2 px-3 small rounded-3 mt-3 mb-0" style="font-size: 0.78rem;">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i> Balance remaining: <strong>₹{{ balance_due|floatformat:2 }}</strong>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
