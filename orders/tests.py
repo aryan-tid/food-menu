@@ -251,6 +251,12 @@ class RealDiningFlowTests(TestCase):
         self.assertEqual(res_del_cat.status_code, 302)
         self.assertFalse(Category.objects.filter(id=new_cat.id).exists())
 
+        # 5. Print All QR Stickers View
+        res_print = self.client.get(reverse('orders:manager_print_qr_stickers'))
+        self.assertEqual(res_print.status_code, 200)
+        self.assertTemplateUsed(res_print, 'staff/print_qr_stickers.html')
+        self.assertContains(res_print, 'Table QR Sticker Sheets')
+
     def test_manager_order_status_and_payment_controls(self):
         """Tests manager full control on orders: status change, payment settlement, and emergency cancellation."""
         manager_user = User.objects.create_user(username='manager2', password='password123', first_name='Manager')

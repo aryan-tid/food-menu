@@ -79,6 +79,7 @@ urlpatterns = [
     path('staff/manager/order/<int:order_id>/payment/', staff_views.manager_update_order_payment_view, name='manager_update_order_payment'),
     path('staff/manager/order/<int:order_id>/cancel/', staff_views.manager_cancel_order_view, name='manager_cancel_order'),
     path('staff/manager/table/create/', staff_views.manager_create_table_view, name='manager_create_table'),
+    path('staff/manager/tables/print/', staff_views.manager_print_qr_stickers_view, name='manager_print_qr_stickers'),
     path('staff/manager/table/<int:table_id>/toggle/', staff_views.manager_toggle_table_view, name='manager_toggle_table'),
     path('staff/manager/table/<int:table_id>/edit/', staff_views.manager_edit_table_view, name='manager_edit_table'),
     path('staff/manager/table/<int:table_id>/delete/', staff_views.manager_delete_table_view, name='manager_delete_table'),

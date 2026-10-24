@@ -13,7 +13,7 @@ from django.views.decorators.http import require_POST
 from django.db.models import Sum, Count, Q, Value, DecimalField, Avg
 from django.db.models.functions import Coalesce
 from accounts.models import StaffProfile, Customer
-from menu.models import MenuItem, Category, Review
+from menu.models import Restaurant, MenuItem, Category, Review
 from .models import RestaurantTable, Order, OrderItem, Payment, WaiterAlert, DiningSession
 
 
@@ -1170,5 +1170,33 @@ def staff_change_password_view(request):
 
     messages.success(request, success_msg)
     return redirect(request.META.get('HTTP_REFERER') or 'orders:kitchen_dashboard')
+
+
+@login_required
+@staff_role_required([StaffProfile.ROLE_MANAGER])
+def manager_print_qr_stickers_view(request):
+    """
+    Renders an optimized, high-resolution printable sheet of restaurant table QR stickers.
+    Features:
+    - Multiple density options (2 per row for table tents, 3 or 4 per row for stickers/decals).
+    - Dotted cut guidelines for precise trimming.
+    - Page break isolation to avoid split stickers across pages.
+    - Automatic print stylesheet hiding all toolbars and browser chrome.
+    """
+    restaurant = Restaurant.objects.first()
+    tables = RestaurantTable.objects.all().order_by('table_number')
+    host = request.build_absolute_uri('/')[:-1]
+
+    tables_with_qr = []
+    for t in tables:
+        tables_with_qr.append({
+            'table': t,
+            'qr_data_uri': t.generate_qr_base64(host),
+        })
+
+    return render(request, 'staff/print_qr_stickers.html', {
+        'restaurant': restaurant,
+        'tables_with_qr': tables_with_qr,
+    })
 
 

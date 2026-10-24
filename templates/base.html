@@ -620,6 +620,93 @@
             flex-shrink: 0;
         }
 
+        /* Universal High-Contrast Soft Badge System (Works flawlessly in Light & Dark mode) */
+        .badge-soft-success {
+            background-color: #dcfce7 !important;
+            color: #15803d !important;
+            border: 1px solid #86efac !important;
+            font-weight: 600 !important;
+        }
+        :root[data-theme="dark"] .badge-soft-success {
+            background-color: rgba(34, 197, 94, 0.18) !important;
+            color: #4ade80 !important;
+            border: 1px solid rgba(34, 197, 94, 0.35) !important;
+        }
+
+        .badge-soft-danger {
+            background-color: #fee2e2 !important;
+            color: #b91c1c !important;
+            border: 1px solid #fca5a5 !important;
+            font-weight: 600 !important;
+        }
+        :root[data-theme="dark"] .badge-soft-danger {
+            background-color: rgba(239, 68, 68, 0.18) !important;
+            color: #f87171 !important;
+            border: 1px solid rgba(239, 68, 68, 0.35) !important;
+        }
+
+        .badge-soft-warning {
+            background-color: #fef3c7 !important;
+            color: #92400e !important;
+            border: 1px solid #fcd34d !important;
+            font-weight: 600 !important;
+        }
+        :root[data-theme="dark"] .badge-soft-warning {
+            background-color: rgba(245, 158, 11, 0.18) !important;
+            color: #fbbf24 !important;
+            border: 1px solid rgba(245, 158, 11, 0.35) !important;
+        }
+
+        .badge-soft-info {
+            background-color: #e0f2fe !important;
+            color: #0369a1 !important;
+            border: 1px solid #7dd3fc !important;
+            font-weight: 600 !important;
+        }
+        :root[data-theme="dark"] .badge-soft-info {
+            background-color: rgba(56, 189, 248, 0.18) !important;
+            color: #38bdf8 !important;
+            border: 1px solid rgba(56, 189, 248, 0.35) !important;
+        }
+
+        .badge-soft-secondary {
+            background-color: #f1f5f9 !important;
+            color: #334155 !important;
+            border: 1px solid #cbd5e1 !important;
+            font-weight: 600 !important;
+        }
+        :root[data-theme="dark"] .badge-soft-secondary {
+            background-color: rgba(148, 163, 184, 0.18) !important;
+            color: #cbd5e1 !important;
+            border: 1px solid rgba(148, 163, 184, 0.35) !important;
+        }
+
+        .badge-soft-primary {
+            background-color: #ffedd5 !important;
+            color: #9a3412 !important;
+            border: 1px solid #fdba74 !important;
+            font-weight: 600 !important;
+        }
+        :root[data-theme="dark"] .badge-soft-primary {
+            background-color: rgba(234, 88, 12, 0.18) !important;
+            color: #fb923c !important;
+            border: 1px solid rgba(234, 88, 12, 0.35) !important;
+        }
+
+        /* Prevent invisible badge text when bg-success/bg-danger is combined with text-success/text-danger */
+        .badge.bg-success.text-success,
+        .badge.bg-success:not(.text-white) {
+            background-color: #dcfce7 !important;
+            color: #15803d !important;
+            border: 1px solid #86efac !important;
+        }
+        .badge.bg-danger.text-danger,
+        .badge.bg-danger:not(.text-white) {
+            background-color: #fee2e2 !important;
+            color: #b91c1c !important;
+            border: 1px solid #fca5a5 !important;
+        }
+
         /* High-Contrast Robust Dark Mode Global Overrides */
         :root[data-theme="dark"] body {
             background-color: var(--bg-body);
@@ -1072,16 +1159,16 @@
                 </div>
             </a>
 
-            <!-- Center Table Chip Selector (Compact Pill) -->
+            <!-- Center Table Chip Selector (Compact Pill with Padlock / Green Dot) -->
             <div class="d-flex align-items-center justify-content-center flex-shrink-1" style="min-width: 0;">
-                <button type="button" class="table-chip px-2 py-1" data-bs-toggle="modal" data-bs-target="#tableModal" title="Select or Change Table" style="font-size: 0.8rem; white-space: nowrap;">
-                    <i class="bi bi-geo-alt-fill text-danger"></i>
+                <button type="button" class="table-chip px-2.5 py-1 d-flex align-items-center gap-1.5" data-bs-toggle="modal" data-bs-target="#tableModal" title="Select or Change Table" style="font-size: 0.8rem; white-space: nowrap;">
+                    <i class="bi bi-geo-alt-fill text-danger" style="font-size: 0.78rem;"></i>
                     {% if current_table_number %}
                         <span class="fw-bold">{{ current_table_number }}</span>
                         {% if current_table.is_locked %}
-                            <span class="badge bg-danger rounded-pill px-1" style="font-size: 0.6rem;">Locked</span>
+                            <i class="bi bi-lock-fill text-warning ms-0.5" style="font-size: 0.72rem;" title="Table Locked"></i>
                         {% else %}
-                            <span class="badge bg-success rounded-pill px-1" style="font-size: 0.6rem;">Free</span>
+                            <span class="bg-success rounded-circle d-inline-block ms-0.5" style="width: 7px; height: 7px; box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.25);" title="Table Available"></span>
                         {% endif %}
                     {% else %}
                         <span>Takeaway</span>
@@ -1118,16 +1205,18 @@
                     </span>
                 </a>
 
-                <!-- User Dropdown / Sign-In -->
+                <!-- User Dropdown / Sign-In (Clean Avatar without Down Arrow) -->
                 {% if user.is_authenticated %}
                     <div class="dropdown">
-                        <button class="btn btn-sm btn-outline-surface dropdown-toggle d-flex align-items-center gap-1.5 p-1 px-2.5 rounded-pill" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <button class="btn btn-sm btn-outline-surface d-flex align-items-center p-1 rounded-circle border-0 shadow-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Account Menu">
                             {% if user.customer_profile.avatar_url %}
-                                <img src="{{ user.customer_profile.avatar_url }}" width="22" height="22" class="rounded-circle" alt="avatar">
+                                <img src="{{ user.customer_profile.avatar_url }}" width="26" height="26" class="rounded-circle" alt="avatar" style="object-fit: cover;">
                             {% else %}
-                                <i class="bi bi-person-circle"></i>
+                                <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center fw-bold" style="width: 26px; height: 26px; font-size: 0.85rem;">
+                                    <i class="bi bi-person-circle"></i>
+                                </div>
                             {% endif %}
-                            <span class="d-none d-lg-inline">{{ user.first_name|default:user.username }}</span>
+                            <span class="d-none d-lg-inline ms-1.5 pe-1 fw-medium" style="font-size: 0.82rem;">{{ user.first_name|default:user.username }}</span>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 app-dropdown-menu mt-2">
                             <!-- Customer Profile Header Card -->
@@ -1338,26 +1427,40 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <p class="text-muted small mb-2.5">
-                            Scanning a physical table QR code sets this automatically. If you walked in directly, select your table below:
-                        </p>
-
                         <!-- Dynamic Concurrency Alert Message -->
                         <div id="tableModalAlert" class="alert alert-danger py-2 px-3 small rounded-3 d-none mb-3 d-flex align-items-center gap-2" role="alert">
                             <i class="bi bi-shield-exclamation text-danger fs-6 flex-shrink-0"></i>
                             <span id="tableModalAlertText" class="flex-grow-1" style="font-size: 0.8rem; line-height: 1.35;"></span>
                         </div>
 
+                        <!-- Takeaway Option Card -->
+                        <div class="mb-3">
+                            <button type="button" id="takeawaySelectBtn" class="btn btn-outline-surface w-100 py-2 px-3 d-flex align-items-center justify-content-between rounded-3 {% if not current_table_number %}border-warning bg-warning bg-opacity-10 text-dark fw-bold shadow-sm{% endif %}" onclick="selectTakeawayOption()">
+                                <div class="d-flex align-items-center gap-2.5">
+                                    <div class="rounded-circle bg-warning bg-opacity-15 text-warning d-flex align-items-center justify-content-center flex-shrink-0" style="width: 34px; height: 34px;">
+                                        <i class="bi bi-bag-check-fill fs-6"></i>
+                                    </div>
+                                    <div class="text-start">
+                                        <span class="d-block fw-bold" style="font-size: 0.90rem; line-height: 1.2;">Takeaway / Self-Pickup</span>
+                                        <span class="d-block small text-muted" style="font-size: 0.70rem;">Order without table assignment</span>
+                                    </div>
+                                </div>
+                                <span class="badge {% if not current_table_number %}bg-warning text-dark{% else %}bg-surface-raised border text-secondary{% endif %} rounded-pill px-2.5 py-1" style="font-size: 0.68rem;">
+                                    {% if not current_table_number %}<i class="bi bi-check2 me-0.5"></i> Selected{% else %}Select{% endif %}
+                                </span>
+                            </button>
+                        </div>
+
                         <!-- Real-time Table Grid Header -->
                         <div class="d-flex align-items-center justify-content-between mb-2">
                             <label class="form-label fw-semibold small text-muted mb-0">
-                                <i class="bi bi-activity text-success me-1"></i>Live Table Status
+                                <i class="bi bi-shop text-primary me-1"></i>Dining Tables
                             </label>
                             <span id="tableStatusSpinner" class="spinner-border spinner-border-sm text-primary d-none" role="status" title="Syncing live occupancy..."></span>
                         </div>
 
                         <!-- Quick Table Tap Grid -->
-                        <div class="row g-2 mb-3" id="modalTablesGrid">
+                        <div class="row g-2 mb-2" id="modalTablesGrid">
                             {% for tbl in all_active_tables %}
                             <div class="col-4">
                                 <button type="button" class="btn btn-outline-surface w-100 py-2 table-select-btn {% if current_table_number == tbl.table_number %}border-warning bg-warning bg-opacity-10 text-dark fw-bold shadow-sm{% endif %}" onclick="selectModalTable('{{ tbl.table_number }}', {{ tbl.is_locked|yesno:'true,false' }})" data-table="{{ tbl.table_number }}">
@@ -1373,16 +1476,12 @@
                             {% endfor %}
                         </div>
 
-                        <!-- Manual Custom Input -->
-                        <div class="mb-2">
-                            <label class="form-label fw-semibold small text-muted">Or Enter Custom Table</label>
-                            <input type="text" id="modalTableInput" name="table_number" class="form-control" placeholder="e.g. T-01, VIP-1" value="{{ current_table_number|default:'' }}">
-                            <div class="form-text small">Leave blank to switch to Takeaway (Self-Pickup).</div>
-                        </div>
+                        <!-- Hidden Table Input Submitted With Form -->
+                        <input type="hidden" id="modalTableInput" name="table_number" value="{{ current_table_number|default:'' }}">
                     </div>
                     <div class="modal-footer border-0 pt-0">
                         <button type="button" class="btn btn-outline-surface btn-sm" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" id="modalSetTableBtn" class="btn btn-brand btn-sm px-4">Set Table</button>
+                        <button type="submit" id="modalSetTableBtn" class="btn btn-brand btn-sm px-4">Confirm Selection</button>
                     </div>
                 </form>
             </div>
@@ -1669,6 +1768,26 @@
                 });
         }
 
+        function selectTakeawayOption() {
+            const alertBox = document.getElementById('tableModalAlert');
+            if (alertBox) alertBox.classList.add('d-none');
+            const input = document.getElementById('modalTableInput');
+            if (input) input.value = '';
+
+            document.querySelectorAll('#modalTablesGrid .table-select-btn').forEach(btn => {
+                btn.classList.remove('border-warning', 'bg-warning', 'bg-opacity-10', 'text-dark', 'fw-bold', 'shadow-sm');
+            });
+            const takeawayBtn = document.getElementById('takeawaySelectBtn');
+            if (takeawayBtn) {
+                takeawayBtn.classList.add('border-warning', 'bg-warning', 'bg-opacity-10', 'text-dark', 'fw-bold', 'shadow-sm');
+                const badge = takeawayBtn.querySelector('.badge');
+                if (badge) {
+                    badge.className = 'badge bg-warning text-dark rounded-pill px-2.5 py-1';
+                    badge.innerHTML = '<i class="bi bi-check2 me-0.5"></i> Selected';
+                }
+            }
+        }
+
         function handleTableSelection(tbl) {
             const alertBox = document.getElementById('tableModalAlert');
             const alertText = document.getElementById('tableModalAlertText');
@@ -1684,6 +1803,16 @@
 
             if (alertBox) alertBox.classList.add('d-none');
             if (input) input.value = tbl.table_number;
+
+            const takeawayBtn = document.getElementById('takeawaySelectBtn');
+            if (takeawayBtn) {
+                takeawayBtn.classList.remove('border-warning', 'bg-warning', 'bg-opacity-10', 'text-dark', 'fw-bold', 'shadow-sm');
+                const badge = takeawayBtn.querySelector('.badge');
+                if (badge) {
+                    badge.className = 'badge bg-surface-raised border text-secondary rounded-pill px-2.5 py-1';
+                    badge.textContent = 'Select';
+                }
+            }
 
             document.querySelectorAll('#modalTablesGrid .table-select-btn').forEach(btn => {
                 btn.classList.remove('border-warning', 'bg-warning', 'bg-opacity-10', 'text-dark', 'fw-bold', 'shadow-sm');
@@ -1703,7 +1832,26 @@
                 }
                 return;
             }
+            const alertBox = document.getElementById('tableModalAlert');
+            if (alertBox) alertBox.classList.add('d-none');
             document.getElementById('modalTableInput').value = tblNum;
+
+            const takeawayBtn = document.getElementById('takeawaySelectBtn');
+            if (takeawayBtn) {
+                takeawayBtn.classList.remove('border-warning', 'bg-warning', 'bg-opacity-10', 'text-dark', 'fw-bold', 'shadow-sm');
+                const badge = takeawayBtn.querySelector('.badge');
+                if (badge) {
+                    badge.className = 'badge bg-surface-raised border text-secondary rounded-pill px-2.5 py-1';
+                    badge.textContent = 'Select';
+                }
+            }
+
+            document.querySelectorAll('#modalTablesGrid .table-select-btn').forEach(btn => {
+                btn.classList.remove('border-warning', 'bg-warning', 'bg-opacity-10', 'text-dark', 'fw-bold', 'shadow-sm');
+                if (btn.getAttribute('data-table') === tblNum) {
+                    btn.classList.add('border-warning', 'bg-warning', 'bg-opacity-10', 'text-dark', 'fw-bold', 'shadow-sm');
+                }
+            });
         }
 
         // Initialize table modal listeners
